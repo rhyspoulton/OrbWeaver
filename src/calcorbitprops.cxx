@@ -133,8 +133,6 @@ void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<
 		//Keep track of the orbiting halo's index index if need to interpolate
 		interporbitinghaloindex = orbitinghaloindex;
 
-		
-
 		//Only if the current halosnap is greater than the final snapshot in the list of snapshots
 		if(halosnap>halosnaps.back()){
 
@@ -166,6 +164,7 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> 
 	int numsnaps =  opt.fsnap - opt.isnap+1;
 	vector<double> scalefactors;
 	scalefactors.resize(numsnaps);
+	double *uniages;
 
 	// Initilize the flag which marks the halo as being processed to false
 	// and the vector to store the orbital data
@@ -193,6 +192,9 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> 
 			}
 		}
 	}
+
+	//Generate a list of the universes ages from the scalefactors
+	uniages = GenerateUniAges(scalefactors);
 
 	bool done = false;
 
