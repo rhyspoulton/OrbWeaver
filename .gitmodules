@@ -1,0 +1,3 @@
+[submodule "NBodylib"]
+	path = NBodylib
+	url = https://github.com/pelahi/NBodylib.git
