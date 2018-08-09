@@ -19,7 +19,7 @@ bool FileExists(const char *fname) {
 
 #ifdef USEHDF
 
-HaloData *ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, SnapData *&snapdata, HDFCatalogNames hdfnames){
+vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, SnapData *&snapdata, HDFCatalogNames hdfnames){
 	
 	int ichunk, chunksize=8192;
 	Attribute snapattr;
@@ -31,7 +31,7 @@ HaloData *ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, SnapData *
 	DataSpace idataspace;
 	int rank;
 	hsize_t dim[1];
-	HaloData *Halo;
+	vector<HaloData> Halo;
 
 	hsize_t filespacecount[2],filespaceoffset[2];
 
@@ -81,7 +81,7 @@ HaloData *ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, SnapData *
 	numread = snapdata[snap].numhalos;
 
 	//Setup the local halodata
-	Halo = new HaloData[numread];
+	Halo.reserve(numread);
 
 
 	//First lets open up the datasets

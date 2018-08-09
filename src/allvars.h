@@ -147,15 +147,17 @@ struct HaloData{
 struct SnapData{
 	Int_t numhalos;
 	double scalefactor;
-	HaloData *Halo;
+	double uniage; // Age of the universe at this snapshot
+	vector<HaloData> Halo;
 
 	SnapData(){
 		numhalos=0;
 		scalefactor=0.0;
-		Halo=NULL;
+		Halo.empty();
 	};	
 	~SnapData(){
-		if(numhalos>0) delete[] Halo;
+		for(int i;i<Halo.size();i++)
+			delete &Halo[i];
 	};
 };
 

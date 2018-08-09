@@ -7,10 +7,8 @@ double Integrand(double a,void *p){
 	return (a*HT)/sqrt(Cosmo.omegaR + Cosmo.omegaM*a + Cosmo.omegaK*(a*a) + Cosmo.omegaL*(a*a*a*a));
 }
 
-double *GenerateUniAges(vector<double> &scalefactors){
-
-	//Find the number of points need to intergrate to
-	int numpoints = scalefactors.size();
+// Function to find the age of the universe given a value of the scalefactor
+double GetUniverseAge(double scalefactor){
 
 	//Setup the integrand function
 	gsl_function F;
@@ -19,14 +17,11 @@ double *GenerateUniAges(vector<double> &scalefactors){
 	double epsrel=1e-4;
 
 	//Setup the return values
-	double *results;
-	results = new double[numpoints];
-	double error;
+	double error, result;
   	size_t neval;
 
   	//Now do the intergration using a non-adaptive Gauss-Kronrod integration
-  	for(int i=0;i<numpoints;i++)
-		gsl_integration_qng(&F,0,scalefactors[i],epsabs,epsrel,&results[i],&error,&neval);
+	gsl_integration_qng(&F,0,scalefactor,epsabs,epsrel,&result,&error,&neval);
 
-	return results;
+	return result;
 }

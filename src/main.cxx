@@ -35,6 +35,9 @@ int main(int argc,char **argv)
         // First need to load in the catalogue data from VELOCIraptor and TreeFrog catalogues
         ReadData(opt,snapdata);
 
+        //Find the ages of the universe from the scalefactors in the snapdata
+        for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++)
+            snapdata[snap].uniage = GetUniverseAge(snapdata[snap].scalefactor);
 
         //Declare the orbitdata as a 2d vector so the interpolated halos can be added
         vector< vector<OrbitData>> orbitdata;
