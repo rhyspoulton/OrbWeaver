@@ -185,7 +185,7 @@ struct OrbitData{
 	float massatinfall;
 
 	//Vmax of the halo when it passes into its hosts Rvir
-	float vmaxinfall;
+	float vmaxatinfall;
 
 	//Mass loss rate
 	float masslossrate;

@@ -81,7 +81,7 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, Sna
 	numread = snapdata[snap].numhalos;
 
 	//Setup the local halodata
-	Halo.reserve(numread);
+	Halo.resize(numread);
 
 
 	//First lets open up the datasets
