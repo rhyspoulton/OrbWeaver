@@ -14,7 +14,7 @@ vector<HaloData> ReadSnapshotData(int snap, int i,Group snapgroup, Options &opt,
 double GetUniverseAge(double scalefactor);
 
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, SnapData *&snapdata);
-void ProcessOrbits(Options &opt, SnapData *&snapdata, vector< vector<OrbitData>> &orbitdata);
-void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> &orbitdata);
+void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata);
+void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, OrbitData &orbitdata);
 OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo);
 #endif //ifndef ORBPROTO_H

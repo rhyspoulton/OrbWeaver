@@ -163,33 +163,83 @@ struct SnapData{
 
 struct OrbitData{
 
-	//The number of orbits the halo is on
+	//The orbit number
+	int orbitID;
+
+	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
+	int entrytype;
+
+	//The number of orbits the halo has undergone
 	float numorbits;
 
-	//The scalefactor when pass 3 rvir for first time
-	float timepass_R3;
-
-	//The scalefactor when pass 2 rvir for first time
-	float timepass_R2;
-
-	//The scalefactor when pass 1 rvir for first time
-	float timepass_R1;
-
-	//The orbital period in difference in scalefactors
+	//The orbital period
 	float orbitperiod;
 
 	//Closest approach for this halo to the halo it is orbiting
 	float closestapproach;
 
-	//The mass of the halo when passes into its hosts Rvir 
-	float massatinfall;
-
-	//Vmax of the halo when it passes into its hosts Rvir
-	float vmaxatinfall;
-
 	//Mass loss rate
 	float masslossrate;
 
+	//The scalefactor
+	float scalefactor;
+
+	//The x position
+	float x;
+
+	//The y position
+	float y;
+
+	//The z position
+	float z;
+
+	//The x velocity
+	float vx;
+
+	//The y velocity
+	float vy;
+
+	//The z velocity
+	float vz;
+
+	//The viral mass of the orbiting halo
+	float mvir;
+
+	//The vmax of the orbiting halo
+	float vmax;
+
+	//The rmax of the orbiting halo
+	float rmax;
+
+	//The relative x position to the host
+	float xrel;
+
+	//The relative y position to the host
+	float yrel;
+
+	//The relative z position to the host
+	float zrel;
+
+	//The relative x velocity to the host
+	float vxrel;
+
+	//The relative y velocity to the host
+	float vyrel;
+
+	//The relative z velocity to the host
+	float vzrel;
+
+	//The viral radius of the host
+	float rvirhost;
+
+	//The viral mass of the host halo
+	float mvirhost;
+
+	//The vmax of the host halo
+	float vmaxhost;
+
+	//The rmax of the host halo
+	float rmaxhost;
 };
 
 struct UnitsData{

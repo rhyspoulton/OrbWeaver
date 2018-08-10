@@ -2,11 +2,11 @@
 
 #include "orbweaver.h"
 
-OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &prevorbitdata, double currenttime, double prevtime){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData tmporbitdata, SnapData *&snapdata){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
-		cout<<"he position was "<<orbitinghalo.x<<endl;
+		cout<<"The position was "<<orbitinghalo.x<<endl;
 		orbitinghalo.x-=Cosmo.boxsize;
 		cout<<"Corrected the position to "<<orbitinghalo.x<<endl;
 	}
@@ -16,9 +16,6 @@ OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo, HaloData &p
 	if((orbitinghalo.x - hosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
 	if((orbitinghalo.y - hosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
 	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
-
-	//Create a temporary orbitdata structure for the current halo
-	OrbitData orbitdata = prevorbitdata;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r,vr;
@@ -35,8 +32,7 @@ OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo, HaloData &p
 
 	//Lets check if we are at the base of this branch i.e. the progenitor ID is the same as the halo's
 	if((orbitinghalo.progenitor==orbitinghalo.id) & (orbitinghalo.id!=0)){
-		orbitdata.closestapproach = r;
-		return orbitdata;
+		tmporbitdata.closestapproach = r;
 	}
 
 	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvr;
@@ -53,32 +49,73 @@ OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo, HaloData &p
 
 
 	//Lets find if this halo has the closest approach so far
-	if(r<prevorbitdata.closestapproach){
-		prevorbitdata.closestapproach=0;
-		orbitdata.closestapproach = r;
+	if(r<tmporbitdata.closestapproach){
+		tmporbitdata.closestapproach = r;
 	}
 
+	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
+	for(int i = 3;i>=0;i--){
 
-	// Now lets see if the mulitplication of the two orbiting vector gives 
-	//out a -ve number (has undergone 1/2 an orbit)
-	if(vr*prevvr<0){
-		orbitdata.numorbits = prevorbitdata.numorbits + 0.5;
+		// Less check to see if the previous halo was beyond the host Rvir and
+		//if the current halo is within the host Rvir so it has infallen
+		if(((prevr>i*prevhosthalo.rvir) & (r<i*hosthalo.rvir)) | ((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir))){
+
+			/* Store some properties of the orbit halo and its host at this point */
+
+			//Store what orbitID number this is
+			tmporbitdata.orbitID = orbitID;
+
+			//Store how many rvir this entry is
+			tmporbitdata.entrytype = i;
+
+			//Store the scalefactor this happens at
+			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+			//The orbting halo
+			tmporbitdata.x = orbitinghalo.x;
+			tmporbitdata.y = orbitinghalo.y;
+			tmporbitdata.z = orbitinghalo.z;
+			tmporbitdata.vx = orbitinghalo.vx;
+			tmporbitdata.vy = orbitinghalo.vy;
+			tmporbitdata.vz = orbitinghalo.vz;
+			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.xrel = rx;
+			tmporbitdata.yrel = ry;
+			tmporbitdata.zrel = rz;
+			tmporbitdata.vxrel = vrx;
+			tmporbitdata.vyrel = vry;
+			tmporbitdata.vzrel = vrz;
+
+			//The host halo
+			tmporbitdata.rvirhost = hosthalo.rvir;
+			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.vmaxhost = hosthalo.vmax;
+			tmporbitdata.rmaxhost = hosthalo.rmax;
+
+			/* Calculate various properties to be outputted */
+
+			// Find the change mass in units of Msun/Gyr
+			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+
+
+			//Now append it into the orbitdata dataset
+			orbitdata.push_back(tmporbitdata);
+
+			//If has undergone a crossing then there is no need to check the other crossings
+			return;
+		}
 	}
 
+	/* Check if the halo has gone past pericenter or apocenter */
 
-	// Find the change mass in units of Msun/Gyr
-	orbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(currenttime - prevtime);
-
-	//Less check to see if the previous halo was beyond the host Rvir and
-	//if the current halo is within the host Rvir so it has infallen
-	if((prevr>prevhosthalo.rvir) & (r<hosthalo.rvir)){
-		orbitdata.massatinfall = orbitinghalo.mvir;
-		orbitdata.vmaxatinfall = orbitinghalo.vmax;
-	}
-
-
-
-	return orbitdata;
+	// // Now lets see if the mulitplication of the two orbiting vector gives
+	// //out a -ve number (has undergone 1/2 an orbit)
+	// if(vr*prevvr<0){
+	// 	cout<<"Gone 1/2 orbit"<<endl;
+	// 	tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
+	// }
 
 }
 
@@ -189,8 +226,6 @@ double LogInterp(double prevdata, double nextdata, double f){
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, SnapData *&snapdata){
 
 
-
-
 	//Set the number of halos and the number that need to interpolated
 	Int_t nhalo = halosnaps.size(), ninterp = interpsnaps.size();
 
@@ -299,7 +334,7 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 }
 
 
-void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> &orbitdata){
+void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long descendantID = snapdata[snap].Halo[i].descendant;
 	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
@@ -320,7 +355,7 @@ void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<
 	//Keep track of the previous halos halodata and orbitdata
 	HaloData prevorbitinghalo = snapdata[halosnap].Halo[haloindex];
 	HaloData prevhosthalo;
-	OrbitData prevorbitdata = {0};
+	OrbitData tmporbitdata = {0};
 	Int_t prevsnap=halosnap-1;
 
 	//Keep track of the snapshot
@@ -336,9 +371,6 @@ void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<
 		//for the halos that are to be interpolated
 		while(currentsnap!=halosnap){
 			interpsnaps.push_back(currentsnap);
-
-			OrbitData tmporbitdata;
-			orbitdata[currentsnap].push_back(tmporbitdata);
 
 			currentsnap++;
 		}
@@ -381,9 +413,8 @@ void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
-		prevorbitdata = CalcOrbitProps(snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,prevorbitdata,snapdata[halosnap].uniage,snapdata[prevsnap].uniage);
+		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata);
 		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
-		orbitdata[halosnap][haloindex] = prevorbitdata;
 
 		if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 			file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -414,35 +445,18 @@ void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<
 	file.close();
 }
 
-void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> &orbitdata){
+void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
 
 	int numsnaps =  opt.fsnap - opt.isnap+1;
 
 	// Initilize the flag which marks the halo as being processed to false
-	// and the vector to store the orbital data
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
-
-		//Initilize a vector and reserve it (this intilizes the values to 0)
-		vector<OrbitData> tmporbitdata;
-		tmporbitdata.resize(snapdata[snap].numhalos);
-
-		//Append the vector into the orbit data
-		orbitdata.push_back(tmporbitdata);
-
-		//Now go through all the halos marking their doneflag as false
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++)
+		for(Int_t i=0;i<snapdata[snap].numhalos;i++)
 			snapdata[snap].Halo[i].doneflag = false;
 
-			//lets also convert to comoving distances if the distances are in physical units
-			if(Units.distFlag==false){
-				snapdata[snap].Halo[i].x*=Cosmo.h/snapdata[snap].scalefactor;
-				snapdata[snap].Halo[i].y*=Cosmo.h/snapdata[snap].scalefactor;
-				snapdata[snap].Halo[i].z*=Cosmo.h/snapdata[snap].scalefactor;
-			}
-		}
-	}
 
 	bool done = false;
+	Int_t orbitID = 0;
 
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
@@ -453,9 +467,10 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<vector<OrbitData>> 
 			//Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
-			ProcessHalo(snap,i,opt,snapdata,orbitdata);
+			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			done = true;
 			break;
+			orbitID++;
 			
 		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;

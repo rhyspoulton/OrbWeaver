@@ -40,7 +40,7 @@ int main(int argc,char **argv)
             snapdata[snap].uniage = GetUniverseAge(snapdata[snap].scalefactor);
 
         //Declare the orbitdata as a 2d vector so the interpolated halos can be added
-        vector< vector<OrbitData>> orbitdata;
+        vector<OrbitData> orbitdata;
 
         ProcessOrbits(opt, snapdata,orbitdata);
 
