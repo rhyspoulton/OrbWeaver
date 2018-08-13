@@ -6,9 +6,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
-		cout<<"The position was "<<orbitinghalo.x<<endl;
+		// cout<<"The position was "<<orbitinghalo.x<<endl;
 		orbitinghalo.x-=Cosmo.boxsize;
-		cout<<"Corrected the position to "<<orbitinghalo.x<<endl;
+		// cout<<"Corrected the position to "<<orbitinghalo.x<<endl;
 	}
 
 	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
@@ -559,8 +559,9 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		currentsnap++;
 	}
 
-	// If the interp snapshots contains snapshots then interpolation needs to be done
-	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
+	//If the interp snapshots contains snapshots then interpolation needs to be done
+	//but only if the halo exists for more than 3 snapshots is it possible
+	if((interpsnaps.size()>0) & (halosnaps.size()>3)) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
 
 	//Reset the tree info to back at the base of the tree
 	descendantID = snapdata[snap].Halo[i].descendant;
@@ -570,8 +571,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
 
-	ofstream file;
-	file.open("../analysis/data/lininterp.dat");
+	// ofstream file;
+	// file.open("../analysis/data/lininterp.dat");
 
 	while(true){
 
@@ -582,10 +583,10 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata,orbitingflag,passageflag);
 		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
 
-		if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
-			file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
-		else
-			file<<halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
+		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
+		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
+		// else
+		// 	file<<halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
 
 		//Mark this halo as being done:
 		snapdata[halosnap].Halo[haloindex].doneflag = true;
@@ -608,7 +609,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
 
 	}
-	file.close();
+	// file.close();
 }
 
 void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
@@ -621,7 +622,6 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitda
 			snapdata[snap].Halo[i].doneflag = false;
 
 
-	bool done = false;
 	Int_t orbitID = 0;
 
 	// Now lets start at the starting snapshot and walk up the tree
@@ -634,12 +634,9 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitda
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
-			done = true;
-			break;
 			orbitID++;
 			
 		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
-		if(done) break;
 	}
 }
