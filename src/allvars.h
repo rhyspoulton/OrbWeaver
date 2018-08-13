@@ -47,8 +47,13 @@ using namespace H5;
 #include "adios.h"
 #endif
 
+
+//Define the output chunksize for the datasets
+#define HDFOUTCHUNKSIZE 8192
+
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDS 14
+#define NHDFFIELDSOUT 26
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -289,9 +294,6 @@ struct HDFCatalogNames{
 	// Store their datatype
 	vector<PredType> datasettypes;
 
-
-
-
 	HDFCatalogNames(){
 
 		grpbasename = "Snap_%03d";
@@ -341,10 +343,72 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 
-
 	};
+};
 
-	
+
+struct HDFOutputNames{
+
+	// Store the names of the datasets
+	vector<H5std_string> datasetnames;
+	// Store their datatype
+	vector<PredType> datasettypes;
+
+	HDFOutputNames(){
+
+		datasetnames.push_back("orbitID");
+		datasettypes.push_back(PredType::STD_I32LE);
+		datasetnames.push_back("entrytype");
+		datasettypes.push_back(PredType::STD_I32LE);
+		datasetnames.push_back("numorbits");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbitalperiod");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("closestapproach");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("masslossrate");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("scalefactor");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("X");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Y");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Z");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VX");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VY");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VZ");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Mass_200crit");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Vmax");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Rmax");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Xrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Yrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Zrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VXrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VYrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("VZrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("R_200crit_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Mass_200crit_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Vmax_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Rmax_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+	};
 };
 
 

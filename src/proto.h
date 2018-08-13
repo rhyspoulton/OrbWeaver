@@ -17,4 +17,6 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, OrbitData &orbitdata);
 OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo);
+
+void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);
 #endif //ifndef ORBPROTO_H

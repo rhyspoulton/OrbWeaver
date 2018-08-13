@@ -44,14 +44,14 @@ int main(int argc,char **argv)
 
         ProcessOrbits(opt, snapdata,orbitdata);
 
+        WriteOrbitData(opt,orbitdata);
+
     }
     catch(const exception&){
 
         return EXIT_CODE;
 
     }
-
-
 
 
 
