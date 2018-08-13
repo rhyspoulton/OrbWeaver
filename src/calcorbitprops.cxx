@@ -2,7 +2,7 @@
 
 #include "orbweaver.h"
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData tmporbitdata, SnapData *&snapdata){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, bool &orbitingflag, bool &passageflag){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
@@ -98,7 +98,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
-
+			//Any additional properties to be calculated here
 
 			//Now append it into the orbitdata dataset
 			orbitdata.push_back(tmporbitdata);
@@ -110,12 +110,172 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 	/* Check if the halo has gone past pericenter or apocenter */
 
-	// // Now lets see if the mulitplication of the two orbiting vector gives
-	// //out a -ve number (has undergone 1/2 an orbit)
-	// if(vr*prevvr<0){
-	// 	cout<<"Gone 1/2 orbit"<<endl;
-	// 	tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
-	// }
+	//Check if has undergone its first peri-centric passage (orbitingflag==true) and has undergone
+	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
+	//has had a pericentric passage within the host halos virial radius which then switches on
+	//the orbiting flag so the number of orbits is tracked
+	if((orbitingflag) & (vr*prevvr<0)){
+		// cout<<orbitinghalo.id<<" Gone 1/2 orbit "<<hosthalo.rvir<<endl;
+		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
+
+		//Check if lass passage was a peri-centric passage (passageflag==true)
+		//so the next passgage will be apo-centric
+		if(passageflag){
+
+			/* Store some properties of the orbit halo and its host at this point */
+
+			//Store what orbitID number this is
+			tmporbitdata.orbitID = orbitID;
+
+			//Mark this as a apo-centric passage
+			tmporbitdata.entrytype = -1;
+
+			//Store the scalefactor this happens at
+			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+			//The orbting halo
+			tmporbitdata.x = orbitinghalo.x;
+			tmporbitdata.y = orbitinghalo.y;
+			tmporbitdata.z = orbitinghalo.z;
+			tmporbitdata.vx = orbitinghalo.vx;
+			tmporbitdata.vy = orbitinghalo.vy;
+			tmporbitdata.vz = orbitinghalo.vz;
+			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.xrel = rx;
+			tmporbitdata.yrel = ry;
+			tmporbitdata.zrel = rz;
+			tmporbitdata.vxrel = vrx;
+			tmporbitdata.vyrel = vry;
+			tmporbitdata.vzrel = vrz;
+
+			//The host halo
+			tmporbitdata.rvirhost = hosthalo.rvir;
+			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.vmaxhost = hosthalo.vmax;
+			tmporbitdata.rmaxhost = hosthalo.rmax;
+
+			/* Calculate various properties to be outputted */
+
+			// Find the change mass in units of Msun/Gyr
+			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+			//Any additional properties to be calculated here
+
+			//Now append it into the orbitdata dataset
+			orbitdata.push_back(tmporbitdata);
+
+			//Mark this passage as a apo-centric passage
+			passageflag = false;
+
+			return;
+
+		}
+		else{
+
+			/* Store some properties of the orbit halo and its host at this point */
+
+			//Store what orbitID number this is
+			tmporbitdata.orbitID = orbitID;
+
+			//Mark this as a peri-centric passage
+			tmporbitdata.entrytype = 0;
+
+			//Store the scalefactor this happens at
+			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+			//The orbting halo
+			tmporbitdata.x = orbitinghalo.x;
+			tmporbitdata.y = orbitinghalo.y;
+			tmporbitdata.z = orbitinghalo.z;
+			tmporbitdata.vx = orbitinghalo.vx;
+			tmporbitdata.vy = orbitinghalo.vy;
+			tmporbitdata.vz = orbitinghalo.vz;
+			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.xrel = rx;
+			tmporbitdata.yrel = ry;
+			tmporbitdata.zrel = rz;
+			tmporbitdata.vxrel = vrx;
+			tmporbitdata.vyrel = vry;
+			tmporbitdata.vzrel = vrz;
+
+			//The host halo
+			tmporbitdata.rvirhost = hosthalo.rvir;
+			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.vmaxhost = hosthalo.vmax;
+			tmporbitdata.rmaxhost = hosthalo.rmax;
+
+			/* Calculate various properties to be outputted */
+
+			// Find the change mass in units of Msun/Gyr
+			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+			//Any additional properties to be calculated here
+
+			//Now append it into the orbitdata dataset
+			orbitdata.push_back(tmporbitdata);
+
+			//Mark this passage as a peri-centric passage
+			passageflag = true;
+
+			return;
+		}
+	}
+	else if((orbitingflag==false) & (vr*prevvr<0) & (r<hosthalo.rvir)){
+		// cout<<orbitinghalo.id<<" This halo has started to orbit "<<hosthalo.rvir<<endl;
+
+		//Now lets mark this halo as on an orbit
+		orbitingflag = true;
+
+		//Mark this passage a pericentric passage
+		passageflag = true;
+
+		/* Store some properties of the orbit halo and its host at this point */
+
+		//Store what orbitID number this is
+		tmporbitdata.orbitID = orbitID;
+
+		//Mark this as a peri-centric passage
+		tmporbitdata.entrytype = 0;
+
+		//Store the scalefactor this happens at
+		tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+		//The orbting halo
+		tmporbitdata.x = orbitinghalo.x;
+		tmporbitdata.y = orbitinghalo.y;
+		tmporbitdata.z = orbitinghalo.z;
+		tmporbitdata.vx = orbitinghalo.vx;
+		tmporbitdata.vy = orbitinghalo.vy;
+		tmporbitdata.vz = orbitinghalo.vz;
+		tmporbitdata.mvir = orbitinghalo.mvir;
+		tmporbitdata.vmax = orbitinghalo.vmax;
+		tmporbitdata.xrel = rx;
+		tmporbitdata.yrel = ry;
+		tmporbitdata.zrel = rz;
+		tmporbitdata.vxrel = vrx;
+		tmporbitdata.vyrel = vry;
+		tmporbitdata.vzrel = vrz;
+
+		//The host halo
+		tmporbitdata.rvirhost = hosthalo.rvir;
+		tmporbitdata.mvirhost = hosthalo.mvir;
+		tmporbitdata.vmaxhost = hosthalo.vmax;
+		tmporbitdata.rmaxhost = hosthalo.rmax;
+
+		/* Calculate various properties to be outputted */
+
+		// Find the change mass in units of Msun/Gyr
+		tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+		//Any additional properties to be calculated here
+
+		//Now append it into the orbitdata dataset
+		orbitdata.push_back(tmporbitdata);
+
+		return;
+	}
 
 }
 
@@ -358,6 +518,12 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	OrbitData tmporbitdata = {0};
 	Int_t prevsnap=halosnap-1;
 
+	//Flag to keep track if the halo is on a bound orbit
+	bool orbitingflag = false;
+
+	//Flag to keep track if passage was at pericenter == false or apocenter == true
+	bool passageflag= false;
+
 	//Keep track of the snapshot
 	Int_t currentsnap = snap;
 
@@ -413,7 +579,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
-		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata);
+		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata,orbitingflag,passageflag);
 		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
 
 		if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
