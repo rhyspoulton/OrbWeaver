@@ -440,6 +440,9 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double
 double LogInterp(double prevdata, double nextdata, double f){
 	return pow(nextdata,f) * pow(prevdata,1-f);
 }
+double LinInterp(double prevdata, double nextdata, double f){
+	return prevdata + (nextdata - prevdata)*f;
+}
 
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, SnapData *&snapdata){
 
@@ -519,7 +522,7 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			interphalos[j].vmax = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].vmax,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].vmax,f);
 
 			//cNFW of the halo
-			interphalos[j].cnfw = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].cnfw,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].cnfw,f);
+			interphalos[j].cnfw = LinInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].cnfw,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].cnfw,f);
 
 			//Check if we will be at the snapshot of the orginal descendant, if so
 			//lets have the interpolated halo point to it and the descendant point
