@@ -305,6 +305,19 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, Sna
 
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].vmax = doublebuff[nn] * Units.velocity;
 
+		// cNFW
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].cnfw = doublebuff[nn];
+
 		offset+=ichunk;			
 
 	}
@@ -364,10 +377,57 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 		Cosmo.h=doublebuff;
 	}
 
-	Cosmo.omegaM = 0.312100;
-	Cosmo.omegaL = 0.687900;
-	Cosmo.omegaR = 0;
-	Cosmo.omegaK = 0;
+	// Omega Lambda
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[2]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaL=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaL=doublebuff;
+	}
+
+	// Omega matter
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[3]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaM=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaM=doublebuff;
+	}
+
+	// Omega radiation
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[4]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaR=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaR=doublebuff;
+	}
+
+	// Omega k
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[5]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaK=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaK=doublebuff;
+	}
 
 	//Open up the Units header group and extract the information
 	unitgroup = Fhdf->openGroup(hdfnames.unithdrname);
@@ -967,6 +1027,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
+		/* cnfw */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfw;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
 		/* xrel */
 
 		//Create the dataset
@@ -1215,6 +1300,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Write out the dataset
 		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rmaxhost;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* cnfwhost */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfwhost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 
 		file.close();

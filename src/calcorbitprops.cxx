@@ -83,6 +83,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vz = orbitinghalo.vz;
 			tmporbitdata.mvir = orbitinghalo.mvir;
 			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.rmax = orbitinghalo.rmax;
+			tmporbitdata.cnfw = orbitinghalo.cnfw;
 			tmporbitdata.xrel = rx;
 			tmporbitdata.yrel = ry;
 			tmporbitdata.zrel = rz;
@@ -95,6 +97,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.mvirhost = hosthalo.mvir;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
+			tmporbitdata.cnfwhost = hosthalo.cnfw;
 
 			/* Calculate various properties to be outputted */
 
@@ -151,6 +154,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vz = orbitinghalo.vz;
 			tmporbitdata.mvir = orbitinghalo.mvir;
 			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.rmax = orbitinghalo.rmax;
+			tmporbitdata.cnfw = orbitinghalo.cnfw;
 			tmporbitdata.xrel = rx;
 			tmporbitdata.yrel = ry;
 			tmporbitdata.zrel = rz;
@@ -163,6 +168,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.mvirhost = hosthalo.mvir;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
+			tmporbitdata.cnfwhost = hosthalo.cnfw;
 
 			/* Calculate various properties to be outputted */
 
@@ -214,6 +220,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vz = orbitinghalo.vz;
 			tmporbitdata.mvir = orbitinghalo.mvir;
 			tmporbitdata.vmax = orbitinghalo.vmax;
+			tmporbitdata.rmax = orbitinghalo.rmax;
+			tmporbitdata.cnfw = orbitinghalo.cnfw;
 			tmporbitdata.xrel = rx;
 			tmporbitdata.yrel = ry;
 			tmporbitdata.zrel = rz;
@@ -226,6 +234,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.mvirhost = hosthalo.mvir;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
+			tmporbitdata.cnfwhost = hosthalo.cnfw;
 
 			/* Calculate various properties to be outputted */
 
@@ -284,6 +293,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.vz = orbitinghalo.vz;
 		tmporbitdata.mvir = orbitinghalo.mvir;
 		tmporbitdata.vmax = orbitinghalo.vmax;
+		tmporbitdata.rmax = orbitinghalo.rmax;
+		tmporbitdata.cnfw = orbitinghalo.cnfw;
 		tmporbitdata.xrel = rx;
 		tmporbitdata.yrel = ry;
 		tmporbitdata.zrel = rz;
@@ -296,6 +307,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.mvirhost = hosthalo.mvir;
 		tmporbitdata.vmaxhost = hosthalo.vmax;
 		tmporbitdata.rmaxhost = hosthalo.rmax;
+		tmporbitdata.cnfwhost = hosthalo.cnfw;
 
 		/* Calculate various properties to be outputted */
 
@@ -506,6 +518,8 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			//Vmax of the halo
 			interphalos[j].vmax = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].vmax,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].vmax,f);
 
+			//cNFW of the halo
+			interphalos[j].cnfw = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].cnfw,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].cnfw,f);
 
 			//Check if we will be at the snapshot of the orginal descendant, if so
 			//lets have the interpolated halo point to it and the descendant point
@@ -678,7 +692,7 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitda
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
-			
+
 		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
 	}

@@ -227,6 +227,20 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,atime,orbitForestI
 
 	cosmogrp.attrs["BoxSize"] = cosmodata["BoxSize"]
 	cosmogrp.attrs["Hubble_param"] = cosmodata["Hubble_param"]
+	cosmogrp.attrs["Omega_Lambda"] = cosmodata["Omega_Lambda"]
+	cosmogrp.attrs["Omega_m"] = cosmodata["Omega_m"]
+	cosmogrp.attrs["Omega_b"] = cosmodata["Omega_b"]
+
+	#Add the other omega's only if they exist otherwise set it to zero
+	if("Omega_r" in cosmodata):
+		cosmogrp.attrs["Omega_r"] = cosmodata["Omega_r"]
+	else:
+		cosmogrp.attrs["Omega_r"] = 0.0
+
+	if("Omega_k" in cosmodata):
+		cosmogrp.attrs["Omega_k"] = cosmodata["Omega_k"]
+	else:
+		cosmogrp.attrs["Omega_k"] = 0.0
 
 	# Put the data per snapshot
 	for snap in range(numsnaps):
@@ -244,8 +258,3 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,atime,orbitForestI
 
 
 	hdffile.close()
-
-
-
-
-

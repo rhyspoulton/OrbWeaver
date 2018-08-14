@@ -52,8 +52,8 @@ using namespace H5;
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDS 14
-#define NHDFFIELDSOUT 27
+#define NHDFFIELDS 15
+#define NHDFFIELDSOUT 29
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -141,6 +141,9 @@ struct HaloData{
 	//Vmax of the halo
 	double vmax;
 
+	//Concentration of the halo
+	double cnfw;
+
 	//Flag to mark if the halo has been process or no
 	bool doneflag;
 	
@@ -219,6 +222,9 @@ struct OrbitData{
 	//The rmax of the orbiting halo
 	float rmax;
 
+	//The concentration of the orbiting halo
+	float cnfw;
+
 	//The relative x position to the host
 	float xrel;
 
@@ -248,6 +254,9 @@ struct OrbitData{
 
 	//The rmax of the host halo
 	float rmaxhost;
+
+	//The concentration of the host halo
+	float cnfwhost;
 };
 
 struct OrbitProps{
@@ -330,6 +339,10 @@ struct HDFCatalogNames{
 
 		cosmoattrnames.push_back("BoxSize");
 		cosmoattrnames.push_back("Hubble_param");
+		cosmoattrnames.push_back("Omega_Lambda");
+		cosmoattrnames.push_back("Omega_m");
+		cosmoattrnames.push_back("Omega_r");
+		cosmoattrnames.push_back("Omega_k");
 
 		unitattrnames.push_back("Comoving_or_Physical");
 		unitattrnames.push_back("Length_unit_to_kpc");
@@ -354,6 +367,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("VZc");
 		datasetnames.push_back("Rmax");
 		datasetnames.push_back("Vmax");
+		datasetnames.push_back("cNFW");
 
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -363,6 +377,7 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::STD_U64LE);
 		// datasettypes.push_back(PredType::STD_I64LE);
 		datasettypes.push_back(PredType::STD_I64LE);
+		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -418,6 +433,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("cNFW");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Xrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Yrel");
@@ -437,6 +454,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("Vmax_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rmax_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("cNFW_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 	};
 };
