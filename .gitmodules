@@ -4,3 +4,4 @@
 [submodule "python-tools/VELOCIraptor_Python_Tools"]
 	path = python-tools/VELOCIraptor_Python_Tools
 	url = https://github.com/pelahi/VELOCIraptor_Python_Tools.git
+	ignore=dirty
