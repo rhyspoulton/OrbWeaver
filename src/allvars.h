@@ -53,7 +53,7 @@ using namespace H5;
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDS 14
-#define NHDFFIELDSOUT 26
+#define NHDFFIELDSOUT 27
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -183,6 +183,9 @@ struct OrbitData{
 	//Closest approach for this halo to the halo it is orbiting
 	float closestapproach;
 
+	//The orbital eccentricity
+	float orbitecc;
+
 	//Mass loss rate
 	float masslossrate;
 
@@ -245,6 +248,31 @@ struct OrbitData{
 
 	//The rmax of the host halo
 	float rmaxhost;
+};
+
+struct OrbitProps{
+	//Flag to keep track if the halo is on a bound orbit
+	bool orbitingflag;
+
+	//Flag to keep track if passage was at pericenter == false or apocenter == true
+	bool passageflag;
+
+	// //Value to keep track of the time the halo started to orbit
+	// double orbitstartscalefactor;
+
+	//Value to keep track of the time of the previous apo/peri-centric pasage
+	double prevpassagetime;
+
+	//Keep track of the previous passage's radial distance
+	double prevpassager;
+
+	OrbitProps(){
+		orbitingflag = false;
+		passageflag = false;
+		// orbitstartscalefactor = 0.0;
+		prevpassagetime = 0.0;
+		prevpassager = 0.0;
+	};
 };
 
 struct UnitsData{
@@ -365,6 +393,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitalperiod");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("closestapproach");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbitecc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

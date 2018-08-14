@@ -2,7 +2,7 @@
 
 #include "orbweaver.h"
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, bool &orbitingflag, bool &passageflag){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
@@ -71,6 +71,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Store the scalefactor this happens at
 			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
 
+			//Set the orbit period as -1.0 here as only calculated at the passages
+			tmporbitdata.orbitperiod = -1.0;
+
 			//The orbting halo
 			tmporbitdata.x = orbitinghalo.x;
 			tmporbitdata.y = orbitinghalo.y;
@@ -100,6 +103,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 			//Any additional properties to be calculated here
 
+			//Set the orbit period and eccentricty as -1.0 if the halo is not yet orbiting
+			if(orbitprops.orbitingflag==false){
+				tmporbitdata.orbitperiod = -1.0;
+				tmporbitdata.orbitecc = -1.0;
+			}
+
 			//Now append it into the orbitdata dataset
 			orbitdata.push_back(tmporbitdata);
 
@@ -114,13 +123,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
-	if((orbitingflag) & (vr*prevvr<0)){
+	if((orbitprops.orbitingflag) & (vr*prevvr<0)){
 		// cout<<orbitinghalo.id<<" Gone 1/2 orbit "<<hosthalo.rvir<<endl;
 		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
 
 		//Check if lass passage was a peri-centric passage (passageflag==true)
 		//so the next passgage will be apo-centric
-		if(passageflag){
+		if(orbitprops.passageflag){
 
 			/* Store some properties of the orbit halo and its host at this point */
 
@@ -160,13 +169,25 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
+			//Re calculate the orbital eccentricity only at the passages, this is for apo-centric passage
+			tmporbitdata.orbitecc = (r - orbitprops.prevpassager)/(r + orbitprops.prevpassager);
+
+			//Calculate the orbit period as 2x the previous passage
+			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
+
 			//Any additional properties to be calculated here
 
 			//Now append it into the orbitdata dataset
 			orbitdata.push_back(tmporbitdata);
 
 			//Mark this passage as a apo-centric passage
-			passageflag = false;
+			orbitprops.passageflag = false;
+
+			//Update the previous passage time
+			orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
+
+			//Keep track of the previous passage radial distance
+			orbitprops.prevpassager = r;
 
 			return;
 
@@ -208,6 +229,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 			/* Calculate various properties to be outputted */
 
+			//Calculate the orbit period as 2x the previous passage
+			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
+
+			//Re calculate the orbital eccentricity only at the passages, this is for peri-centric passage
+			tmporbitdata.orbitecc = (orbitprops.prevpassager - r)/(orbitprops.prevpassager + r);
+
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
@@ -217,19 +244,22 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			orbitdata.push_back(tmporbitdata);
 
 			//Mark this passage as a peri-centric passage
-			passageflag = true;
+			orbitprops.passageflag = true;
+
+			//Update the previous passage time
+			orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
+
+			//Keep track of the previous passage radial distance
+			orbitprops.prevpassager = r;
 
 			return;
 		}
 	}
-	else if((orbitingflag==false) & (vr*prevvr<0) & (r<hosthalo.rvir)){
+	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<hosthalo.rvir)){
 		// cout<<orbitinghalo.id<<" This halo has started to orbit "<<hosthalo.rvir<<endl;
 
 		//Now lets mark this halo as on an orbit
-		orbitingflag = true;
-
-		//Mark this passage a pericentric passage
-		passageflag = true;
+		orbitprops.orbitingflag = true;
 
 		/* Store some properties of the orbit halo and its host at this point */
 
@@ -241,6 +271,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Store the scalefactor this happens at
 		tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+		//Mark this orbit as having a period of -1.0 as it cannot be calculated yet
+		tmporbitdata.orbitperiod = -1.0;
 
 		//The orbting halo
 		tmporbitdata.x = orbitinghalo.x;
@@ -266,6 +299,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		/* Calculate various properties to be outputted */
 
+		//Set the orbit period and eccentricty as -1.0 as these cannot be calculated yet
+		tmporbitdata.orbitperiod = -1.0;
+		tmporbitdata.orbitecc = -1.0;
+
 		// Find the change mass in units of Msun/Gyr
 		tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
@@ -273,6 +310,15 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Now append it into the orbitdata dataset
 		orbitdata.push_back(tmporbitdata);
+
+		//Mark this passage a pericentric passage
+		orbitprops.passageflag = true;
+
+		//Mark the time this passage happens
+		orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
+
+		//Keep track of the previous passage radial distance
+		orbitprops.prevpassager = r;
 
 		return;
 	}
@@ -518,11 +564,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	OrbitData tmporbitdata = {0};
 	Int_t prevsnap=halosnap-1;
 
-	//Flag to keep track if the halo is on a bound orbit
-	bool orbitingflag = false;
-
-	//Flag to keep track if passage was at pericenter == false or apocenter == true
-	bool passageflag= false;
+	//Keep track of the properties of this orbit
+	OrbitProps orbitprops;
 
 	//Keep track of the snapshot
 	Int_t currentsnap = snap;
@@ -580,7 +623,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
-		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata,orbitingflag,passageflag);
+		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata,orbitprops);
 		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
