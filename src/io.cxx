@@ -659,8 +659,8 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) intbuff[j] = orbitdata[j].entrytype;
-		dataset.write(intbuff,hdfdatasetnames.datasettypes[idataset]);
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].entrytype;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
 		/* numorbits */

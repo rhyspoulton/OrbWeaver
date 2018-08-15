@@ -56,7 +56,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	}
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
-	for(int i = 3;i>=0;i--){
+	for(float i = 3.0;i>0.0;i-=0.5){
 
 		// Less check to see if the previous halo was beyond the host Rvir and
 		//if the current halo is within the host Rvir so it has infallen

@@ -53,7 +53,7 @@ using namespace H5;
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDS 15
-#define NHDFFIELDSOUT 29
+#define NHDFFIELDSOUT 30
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -175,7 +175,7 @@ struct OrbitData{
 	int orbitID;
 
 	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
-	int entrytype;
+	float entrytype;
 
 	//The number of orbits the halo has undergone
 	float numorbits;
@@ -407,7 +407,7 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitID");
 		datasettypes.push_back(PredType::STD_I32LE);
 		datasetnames.push_back("entrytype");
-		datasettypes.push_back(PredType::STD_I32LE);
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("numorbits");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitalperiod");
