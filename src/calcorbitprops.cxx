@@ -31,7 +31,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	vr = (rx * vrx + ry * vry * rz * vrz) / r;
 
 	//Lets check if we are at the base of this branch i.e. the progenitor ID is the same as the halo's
-	if((orbitinghalo.progenitor==orbitinghalo.id) & (orbitinghalo.id!=0)){
+	if(orbitinghalo.progenitor==orbitinghalo.id){
 		tmporbitdata.closestapproach = r;
 	}
 
@@ -81,7 +81,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vx = orbitinghalo.vx;
 			tmporbitdata.vy = orbitinghalo.vy;
 			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.mass = orbitinghalo.mass;
 			tmporbitdata.vmax = orbitinghalo.vmax;
 			tmporbitdata.rmax = orbitinghalo.rmax;
 			tmporbitdata.cnfw = orbitinghalo.cnfw;
@@ -94,7 +94,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 			//The host halo
 			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
 			tmporbitdata.cnfwhost = hosthalo.cnfw;
@@ -102,7 +102,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			/* Calculate various properties to be outputted */
 
 			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
 			//Any additional properties to be calculated here
 
@@ -152,7 +152,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vx = orbitinghalo.vx;
 			tmporbitdata.vy = orbitinghalo.vy;
 			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.mass = orbitinghalo.mass;
 			tmporbitdata.vmax = orbitinghalo.vmax;
 			tmporbitdata.rmax = orbitinghalo.rmax;
 			tmporbitdata.cnfw = orbitinghalo.cnfw;
@@ -165,7 +165,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 			//The host halo
 			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
 			tmporbitdata.cnfwhost = hosthalo.cnfw;
@@ -173,7 +173,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			/* Calculate various properties to be outputted */
 
 			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
 			//Re calculate the orbital eccentricity only at the passages, this is for apo-centric passage
 			tmporbitdata.orbitecc = (r - orbitprops.prevpassager)/(r + orbitprops.prevpassager);
@@ -218,7 +218,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vx = orbitinghalo.vx;
 			tmporbitdata.vy = orbitinghalo.vy;
 			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mvir = orbitinghalo.mvir;
+			tmporbitdata.mass = orbitinghalo.mass;
 			tmporbitdata.vmax = orbitinghalo.vmax;
 			tmporbitdata.rmax = orbitinghalo.rmax;
 			tmporbitdata.cnfw = orbitinghalo.cnfw;
@@ -231,7 +231,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 			//The host halo
 			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.mvirhost = hosthalo.mvir;
+			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
 			tmporbitdata.rmaxhost = hosthalo.rmax;
 			tmporbitdata.cnfwhost = hosthalo.cnfw;
@@ -245,7 +245,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.orbitecc = (orbitprops.prevpassager - r)/(orbitprops.prevpassager + r);
 
 			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
 			//Any additional properties to be calculated here
 
@@ -291,7 +291,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.vx = orbitinghalo.vx;
 		tmporbitdata.vy = orbitinghalo.vy;
 		tmporbitdata.vz = orbitinghalo.vz;
-		tmporbitdata.mvir = orbitinghalo.mvir;
+		tmporbitdata.mass = orbitinghalo.mass;
 		tmporbitdata.vmax = orbitinghalo.vmax;
 		tmporbitdata.rmax = orbitinghalo.rmax;
 		tmporbitdata.cnfw = orbitinghalo.cnfw;
@@ -304,7 +304,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//The host halo
 		tmporbitdata.rvirhost = hosthalo.rvir;
-		tmporbitdata.mvirhost = hosthalo.mvir;
+		tmporbitdata.masshost = hosthalo.mass;
 		tmporbitdata.vmaxhost = hosthalo.vmax;
 		tmporbitdata.rmaxhost = hosthalo.rmax;
 		tmporbitdata.cnfwhost = hosthalo.cnfw;
@@ -316,7 +316,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.orbitecc = -1.0;
 
 		// Find the change mass in units of Msun/Gyr
-		tmporbitdata.masslossrate = (orbitinghalo.mvir - prevorbitinghalo.mvir)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
 		//Any additional properties to be calculated here
 
@@ -510,7 +510,7 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			f = (snapdata[currentsnap].uniage - snapdata[halosnaps[i]].uniage)/(snapdata[halosnaps[i+1]].uniage - snapdata[halosnaps[i]].uniage);
 
 			//Virial mass of the halo
-			interphalos[j].mvir = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].mvir,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].mvir,f);
+			interphalos[j].mass = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].mass,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].mass,f);
 
 			//Virial radius of the halo
 			interphalos[j].rvir = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].rvir,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].rvir,f);

@@ -124,7 +124,7 @@ struct HaloData{
 	long long orbitinghaloid; 
 
 	//Virial mass of the halo
-	double mvir;
+	double mass;
 
 	//Virial radius of the halo
 	double rvir;
@@ -214,7 +214,7 @@ struct OrbitData{
 	float vz;
 
 	//The viral mass of the orbiting halo
-	float mvir;
+	float mass;
 
 	//The vmax of the orbiting halo
 	float vmax;
@@ -247,7 +247,7 @@ struct OrbitData{
 	float rvirhost;
 
 	//The viral mass of the host halo
-	float mvirhost;
+	float masshost;
 
 	//The vmax of the host halo
 	float vmaxhost;

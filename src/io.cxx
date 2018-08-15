@@ -224,7 +224,7 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, Sna
 		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
 		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
 
-		for(int nn=0;nn<ichunk;nn++) Halo[count++].mvir = doublebuff[nn] * Units.mass;			
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].mass = doublebuff[nn] * Units.mass;
 
 		// R_200crit
 		ifield++;
@@ -952,7 +952,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* mvir */
+		/* mass */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -973,7 +973,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mvir;
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mass;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1227,7 +1227,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* mvirhost */
+		/* masshost */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1248,7 +1248,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mvirhost;
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].masshost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
