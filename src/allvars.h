@@ -189,6 +189,9 @@ struct OrbitData{
 	//The orbital eccentricity
 	float orbitecc;
 
+	//The orbital angular momentum
+	float Lorbit;
+
 	//Mass loss rate
 	float masslossrate;
 
@@ -295,6 +298,7 @@ struct UnitsData{
 struct CosmoData{
 	double h;
 	double boxsize;
+	double G;
 	double omegaM;
 	double omegaL;
 	double omegaR;
@@ -339,6 +343,7 @@ struct HDFCatalogNames{
 
 		cosmoattrnames.push_back("BoxSize");
 		cosmoattrnames.push_back("Hubble_param");
+		cosmoattrnames.push_back("Gravity");
 		cosmoattrnames.push_back("Omega_Lambda");
 		cosmoattrnames.push_back("Omega_m");
 		cosmoattrnames.push_back("Omega_r");
@@ -410,6 +415,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("closestapproach");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitecc");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Lorbit");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

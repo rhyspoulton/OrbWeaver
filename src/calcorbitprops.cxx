@@ -47,6 +47,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
 	prevvr = (prevrx * prevvrx + prevry * prevvry * prevrz * prevvrz) / r;
 
+	//Define varibles for the calculations
+	double mu, E, ecc;
 
 	//Lets find if this halo has the closest approach so far
 	if(r<tmporbitdata.closestapproach){
@@ -110,6 +112,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			if(orbitprops.orbitingflag==false){
 				tmporbitdata.orbitperiod = -1.0;
 				tmporbitdata.orbitecc = -1.0;
+				tmporbitdata.Lorbit = -1.0;
 			}
 
 			//Now append it into the orbitdata dataset
@@ -175,11 +178,20 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
-			//Re calculate the orbital eccentricity only at the passages, this is for apo-centric passage
-			tmporbitdata.orbitecc = (r - orbitprops.prevpassager)/(r + orbitprops.prevpassager);
-
 			//Calculate the orbit period as 2x the previous passage
 			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
+
+			//The halos reduced mass
+			mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+			//The halos orbital energy
+			E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
+
+			//The halos orbital angular momentum
+			tmporbitdata.Lorbit = mu * r * vr;
+
+			//The halos orbital eccentricity
+			tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
 
 			//Any additional properties to be calculated here
 
@@ -241,11 +253,20 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Calculate the orbit period as 2x the previous passage
 			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
 
-			//Re calculate the orbital eccentricity only at the passages, this is for peri-centric passage
-			tmporbitdata.orbitecc = (orbitprops.prevpassager - r)/(orbitprops.prevpassager + r);
-
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+			//The halos reduced mass
+			mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+			//The halos orbital energy
+			E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
+
+			//The halos orbital angular momentum
+			tmporbitdata.Lorbit = mu * r * vr;
+
+			//The halos orbital eccentricity
+			tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
 
 			//Any additional properties to be calculated here
 
@@ -311,9 +332,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		/* Calculate various properties to be outputted */
 
-		//Set the orbit period and eccentricty as -1.0 as these cannot be calculated yet
+		//Set the orbit period, angular momentum and eccentricty as -1.0 as these cannot be calculated yet
 		tmporbitdata.orbitperiod = -1.0;
 		tmporbitdata.orbitecc = -1.0;
+		tmporbitdata.Lorbit = -1.0;
 
 		// Find the change mass in units of Msun/Gyr
 		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);

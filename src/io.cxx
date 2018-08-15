@@ -344,91 +344,6 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 	DataSpace attrdataspace;
 	FloatType floattype;
 
-
-
-	//Open up the cosmology header group and extract the information
-	cosmogroup = Fhdf->openGroup(hdfnames.cosmohdrname);
-
-	// boxsize
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[0]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.boxsize=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.boxsize=doublebuff;
-	}
-	Cosmo.boxsize = 40000;
-	cout<<"SETTING THE BOXSIZE AS 40,000 KPC!!"<<endl;
-
-	// h
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[1]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.h=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.h=doublebuff;
-	}
-
-	// Omega Lambda
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[2]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.omegaL=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.omegaL=doublebuff;
-	}
-
-	// Omega matter
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[3]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.omegaM=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.omegaM=doublebuff;
-	}
-
-	// Omega radiation
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[4]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.omegaR=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.omegaR=doublebuff;
-	}
-
-	// Omega k
-	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[5]);
-	attrdataspace = attr.getSpace();
-	floattype = attr.getFloatType();
-	if (floattype.getSize()==sizeof(float)) {
-		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Cosmo.omegaK=floatbuff;
-	}
-	if (floattype.getSize()==sizeof(double)) {
-		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Cosmo.omegaK=doublebuff;
-	}
-
 	//Open up the Units header group and extract the information
 	unitgroup = Fhdf->openGroup(hdfnames.unithdrname);
 
@@ -438,7 +353,7 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 	attr.read(PredType::NATIVE_HBOOL,&boolbuff);
 	Units.distFlag=boolbuff;
 
-	// Length in Mpc
+	// Length in kpc
 	attr = unitgroup.openAttribute(hdfnames.unitattrnames[1]);
 	attrdataspace = attr.getSpace();
 	floattype = attr.getFloatType();
@@ -474,6 +389,102 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 	if (floattype.getSize()==sizeof(double)) {
 		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
 		Units.velocity=doublebuff;
+	}
+
+	//Open up the cosmology header group and extract the information
+	cosmogroup = Fhdf->openGroup(hdfnames.cosmohdrname);
+
+	// boxsize
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[0]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.boxsize=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.boxsize=doublebuff;
+	}
+	Cosmo.boxsize = 40000;
+	cout<<"SETTING THE BOXSIZE AS 40,000 KPC!!"<<endl;
+
+	// h
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[1]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.h=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.h=doublebuff;
+	}
+
+	// G
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[2]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.G=floatbuff /(1e10/Units.mass);
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.G=doublebuff /(1e10/Units.mass);
+	}
+
+	// Omega Lambda
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[3]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaL=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaL=doublebuff;
+	}
+
+	// Omega matter
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[4]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaM=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaM=doublebuff;
+	}
+
+	// Omega radiation
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[5]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaR=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaR=doublebuff;
+	}
+
+	// Omega k
+	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[6]);
+	attrdataspace = attr.getSpace();
+	floattype = attr.getFloatType();
+	if (floattype.getSize()==sizeof(float)) {
+		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+		Cosmo.omegaK=floatbuff;
+	}
+	if (floattype.getSize()==sizeof(double)) {
+		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
+		Cosmo.omegaK=doublebuff;
 	}
 
 	return;
@@ -749,6 +760,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Write out the dataset
 		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* Lorbit */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].Lorbit;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

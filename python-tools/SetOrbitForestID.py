@@ -218,15 +218,16 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,atime,orbitForestI
 
 	unitgrp=hdrgrp.create_group("Units")
 
-	unitgrp.attrs["Comoving_or_Physical"] = False
-	unitgrp.attrs["Length_unit_to_kpc"] = 1000
-	unitgrp.attrs["Mass_unit_to_solarmass"] = 1.0
-	unitgrp.attrs["Velocity_unit_to_kms"] = 1.0
+	unitgrp.attrs["Comoving_or_Physical"] = unitdata["Comoving_or_Physical"]
+	unitgrp.attrs["Length_unit_to_kpc"] = unitdata["Length_unit_to_kpc"]
+	unitgrp.attrs["Mass_unit_to_solarmass"] = unitdata["Mass_unit_to_solarmass"]
+	unitgrp.attrs["Velocity_unit_to_kms"] = unitdata["Velocity_unit_to_kms"]
 
 	cosmogrp=hdrgrp.create_group("Cosmology")
 
 	cosmogrp.attrs["BoxSize"] = cosmodata["BoxSize"]
 	cosmogrp.attrs["Hubble_param"] = cosmodata["Hubble_param"]
+	cosmogrp.attrs["Gravity"] = cosmodata["Gravity"]
 	cosmogrp.attrs["Omega_Lambda"] = cosmodata["Omega_Lambda"]
 	cosmogrp.attrs["Omega_m"] = cosmodata["Omega_m"]
 	cosmogrp.attrs["Omega_b"] = cosmodata["Omega_b"]

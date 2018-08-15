@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 
 np.set_printoptions(threshold=10)
 
-atime,tree,numhalos,halodata,cosmodata,unitdata = VPT.ReadUnifiedTreeandHaloCatalog("/mnt/su3ctm/pelahi/waves/analysis/waves_40_512/oldtree/VELOCIraptor.tree.t4.unifiedhalotree",desiredfields=["ID","Head","Tail","RootTail","RootHead","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW"])
+atime,tree,numhalos,halodata,cosmodata,unitdata = VPT.ReadUnifiedTreeandHaloCatalog("/mnt/su3ctm/rpoulton/waves/analysis/waves_40_512/VELOCIraptor.tree.t4.unifiedhalotree",desiredfields=["ID","Head","Tail","RootTail","RootHead","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW"])
 
 atime = atime[::-1]
 numhalos = numhalos[::-1]
