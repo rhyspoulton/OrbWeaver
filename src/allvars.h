@@ -52,8 +52,8 @@ using namespace H5;
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDS 15
-#define NHDFFIELDSOUT 30
+#define NHDFFIELDS 16
+#define NHDFFIELDSOUT 32
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -110,6 +110,9 @@ struct HaloData{
 
 	//The ID of the halo
 	unsigned long long id;
+
+	//The original ID of the halo
+	unsigned long long origid;
 
 	//The descendant of the halo
 	unsigned long long descendant;
@@ -173,6 +176,12 @@ struct OrbitData{
 
 	//The orbit number
 	int orbitID;
+
+	//The ID of the halo
+	unsigned long long haloID;
+
+	//The ID of its host halo
+	unsigned long long hosthaloID;
 
 	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
 	float entrytype;
@@ -361,6 +370,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Yc");
 		datasetnames.push_back("Zc");
 		datasetnames.push_back("ID");
+		datasetnames.push_back("origID");
 		datasetnames.push_back("Head");
 		datasetnames.push_back("Tail");
 		// datasetnames.push_back("hostHaloID");
@@ -377,6 +387,7 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
+		datasettypes.push_back(PredType::STD_U64LE);
 		datasettypes.push_back(PredType::STD_U64LE);
 		datasettypes.push_back(PredType::STD_U64LE);
 		datasettypes.push_back(PredType::STD_U64LE);
@@ -406,6 +417,10 @@ struct HDFOutputNames{
 
 		datasetnames.push_back("orbitID");
 		datasettypes.push_back(PredType::STD_I32LE);
+		datasetnames.push_back("haloID");
+		datasettypes.push_back(PredType::STD_U64LE);
+		datasetnames.push_back("hosthaloID");
+		datasettypes.push_back(PredType::STD_U64LE);
 		datasetnames.push_back("entrytype");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("numorbits");

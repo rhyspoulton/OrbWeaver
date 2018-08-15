@@ -1,7 +1,9 @@
 | Field  | Units  | Description |  
 |---|---|---|
 | orbitID  | N/A | Unique ID to identify this orbit |
-| entrytype  | N/A | This value tell if this entry is either -1 = Apo-center, 0 = pericenter or if >0 then this is the be entrytype * Rvir_host passage (either infalling or outgoing)  |
+| haloID  | N/A | Unique ID to identify this halo in the orignal catlogue |
+| hosthaloID  | N/A | Unique ID to identify the host halo in the orginal catalogue |
+| entrytype  | N/A | This value tell if this entry is either -1 = Apo-center, 0 = pericenter or if >0 then this is the entrytype * Rvir_host passage (either infalling or outgoing)  |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
 | orbitecc  | N/A | Current eccentricity of its orbit |

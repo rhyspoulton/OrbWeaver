@@ -77,6 +77,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.orbitperiod = -1.0;
 
 			//The orbting halo
+			tmporbitdata.haloID = orbitinghalo.id;
 			tmporbitdata.x = orbitinghalo.x;
 			tmporbitdata.y = orbitinghalo.y;
 			tmporbitdata.z = orbitinghalo.z;
@@ -95,6 +96,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vzrel = vrz;
 
 			//The host halo
+			tmporbitdata.hosthaloID = hosthalo.id;
 			tmporbitdata.rvirhost = hosthalo.rvir;
 			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
@@ -149,6 +151,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
 
 			//The orbting halo
+			tmporbitdata.haloID = orbitinghalo.origid;
 			tmporbitdata.x = orbitinghalo.x;
 			tmporbitdata.y = orbitinghalo.y;
 			tmporbitdata.z = orbitinghalo.z;
@@ -167,6 +170,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vzrel = vrz;
 
 			//The host halo
+			tmporbitdata.hosthaloID = hosthalo.origid;
 			tmporbitdata.rvirhost = hosthalo.rvir;
 			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
@@ -224,6 +228,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
 
 			//The orbting halo
+			tmporbitdata.haloID = orbitinghalo.origid;
 			tmporbitdata.x = orbitinghalo.x;
 			tmporbitdata.y = orbitinghalo.y;
 			tmporbitdata.z = orbitinghalo.z;
@@ -242,6 +247,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.vzrel = vrz;
 
 			//The host halo
+			tmporbitdata.hosthaloID = hosthalo.origid;
 			tmporbitdata.rvirhost = hosthalo.rvir;
 			tmporbitdata.masshost = hosthalo.mass;
 			tmporbitdata.vmaxhost = hosthalo.vmax;
@@ -306,6 +312,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.orbitperiod = -1.0;
 
 		//The orbting halo
+		tmporbitdata.haloID = orbitinghalo.origid;
 		tmporbitdata.x = orbitinghalo.x;
 		tmporbitdata.y = orbitinghalo.y;
 		tmporbitdata.z = orbitinghalo.z;
@@ -324,6 +331,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.vzrel = vrz;
 
 		//The host halo
+		tmporbitdata.hosthaloID = hosthalo.origid;
 		tmporbitdata.rvirhost = hosthalo.rvir;
 		tmporbitdata.masshost = hosthalo.mass;
 		tmporbitdata.vmaxhost = hosthalo.vmax;
