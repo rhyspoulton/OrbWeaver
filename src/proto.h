@@ -16,7 +16,7 @@ double GetUniverseAge(double scalefactor);
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, SnapData *&snapdata);
 void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, OrbitData &orbitdata);
-OrbitData CalcOrbitProps(HaloData &orbitinghalo, HaloData &hosthalo);
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops);
 
 void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);
 #endif //ifndef ORBPROTO_H

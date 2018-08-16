@@ -28,7 +28,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	vry = hosthalo.vy - orbitinghalo.vy;
 	vrz = hosthalo.vz - orbitinghalo.vz;
 	r = sqrt(rx * rx + ry * ry + rz * rz);
-	vr = (rx * vrx + ry * vry * rz * vrz) / r;
+	vr = (rx * vrx + ry * vry + rz * vrz) / r;
 
 	//Lets check if we are at the base of this branch i.e. the progenitor ID is the same as the halo's
 	if(orbitinghalo.progenitor==orbitinghalo.id){
@@ -45,7 +45,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvry = prevhosthalo.vy - prevorbitinghalo.vy;
 	prevvrz = prevhosthalo.vz - prevorbitinghalo.vz;
 	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
-	prevvr = (prevrx * prevvrx + prevry * prevvry * prevrz * prevvrz) / r;
+	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / r;
 
 	//Define varibles for the calculations
 	double mu, E, ecc;
@@ -148,7 +148,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.entrytype = -1;
 
 			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
 			//The orbting halo
 			tmporbitdata.haloID = orbitinghalo.origid;
@@ -225,7 +225,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.entrytype = 0;
 
 			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
 			//The orbting halo
 			tmporbitdata.haloID = orbitinghalo.origid;
@@ -302,11 +302,15 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Store what orbitID number this is
 		tmporbitdata.orbitID = orbitID;
 
+		//Set this halo as done 1/2 orbit
+		tmporbitdata.numorbits = 0.5;
+
 		//Mark this as a peri-centric passage
 		tmporbitdata.entrytype = 0;
 
 		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+		// cout<<abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor))<<" "<<abs((vr/(vr - prevvr)) * (snapdata[currentsnap].scalefactor - snapdata[prevsnap].scalefactor))<<endl;
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
 		//Mark this orbit as having a period of -1.0 as it cannot be calculated yet
 		tmporbitdata.orbitperiod = -1.0;
@@ -580,6 +584,10 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 	//snapshots and also add to the number of halos at each snapshot
 	for(int i=0;i<ninterp;i++){
 		snapdata[interpsnaps[i]].Halo.push_back(interphalos[i]);
+
+		//insert these halos into the halosnaps and indexes
+		// halosnaps.insert(halosnaps.begin()+interpsnaps[i]-halosnaps[0],interpsnaps[i]);
+		// haloindexes.insert(haloindexes.begin()+interpsnaps[i]-halosnaps[0],snapdata[interpsnaps[i]].numhalos);
 		snapdata[interpsnaps[i]].numhalos++;
 	}
 
@@ -608,7 +616,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	//Keep track of the previous halos halodata and orbitdata
 	HaloData prevorbitinghalo = snapdata[halosnap].Halo[haloindex];
 	HaloData prevhosthalo;
-	OrbitData tmporbitdata = {0};
+	vector<OrbitData> branchorbitdata;
+	OrbitData tmporbitdata={0};
 	Int_t prevsnap=halosnap-1;
 
 	//Keep track of the properties of this orbit
@@ -662,7 +671,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
 
 	// ofstream file;
-	// file.open("../analysis/data/lininterp.dat");
+	// file.open("../analysis/data/circ.dat");
 
 	while(true){
 
@@ -670,7 +679,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
-		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,orbitdata,tmporbitdata,snapdata,orbitprops);
+		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
 		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
@@ -700,6 +709,14 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 
 	}
 	// file.close();
+
+	//Now another interpolation can be done to find the actual positions of the passage points
+
+
+	//Now finished with this branches orbital calculations so it can be added
+	//into the orbitdata vector that contains all halos, it only needs to be
+	//moved rather than copied
+	orbitdata.insert(orbitdata.end(),make_move_iterator(branchorbitdata.begin()),make_move_iterator(branchorbitdata.end()));
 }
 
 void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
