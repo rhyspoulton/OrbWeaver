@@ -2,7 +2,35 @@
 
 #include "orbweaver.h"
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &orbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops){
+
+double LogInterp(double prevdata, double nextdata, double f){
+	return pow(nextdata,f) * pow(prevdata,1-f);
+}
+double LinInterp(double prevdata, double nextdata, double f){
+	return prevdata + (nextdata - prevdata)*f;
+}
+
+void InterpPassageHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, SnapData *&snapdata){
+
+	double f = (interpuniage - currentuniage)/(prevuniage - currentuniage);
+
+	//Interpolate the orbiting halo's properties
+	tmporbitdata.mass = LogInterp(prevorbitinghalo.mass,orbitinghalo.mass,f);
+	tmporbitdata.vmax = LogInterp(prevorbitinghalo.vmax,orbitinghalo.vmax,f);
+	tmporbitdata.rmax = LogInterp(prevorbitinghalo.rmax,orbitinghalo.rmax,f);
+	tmporbitdata.cnfw = LinInterp(prevorbitinghalo.cnfw,orbitinghalo.cnfw,f);
+
+	//Interpolate the host halo properties
+	tmporbitdata.masshost = LogInterp(prevhosthalo.mass,hosthalo.mass,f);
+	tmporbitdata.rvirhost = LogInterp(prevhosthalo.rvir,hosthalo.rvir,f);
+	tmporbitdata.vmaxhost = LogInterp(prevhosthalo.vmax,hosthalo.vmax,f);
+	tmporbitdata.rmaxhost = LogInterp(prevhosthalo.rmax,hosthalo.rmax,f);
+	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
+
+}
+
+
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
@@ -48,7 +76,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / r;
 
 	//Define varibles for the calculations
-	double mu, E, ecc;
+	double mu, E, ecc, currentuniage;
 
 	//Lets find if this halo has the closest approach so far
 	if(r<tmporbitdata.closestapproach){
@@ -118,7 +146,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			}
 
 			//Now append it into the orbitdata dataset
-			orbitdata.push_back(tmporbitdata);
+			branchorbitdata.push_back(tmporbitdata);
 
 			//If has undergone a crossing then there is no need to check the other crossings
 			return;
@@ -147,35 +175,19 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Mark this as a apo-centric passage
 			tmporbitdata.entrytype = -1;
 
-			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
 			//The orbting halo
 			tmporbitdata.haloID = orbitinghalo.origid;
-			tmporbitdata.x = orbitinghalo.x;
-			tmporbitdata.y = orbitinghalo.y;
-			tmporbitdata.z = orbitinghalo.z;
-			tmporbitdata.vx = orbitinghalo.vx;
-			tmporbitdata.vy = orbitinghalo.vy;
-			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mass = orbitinghalo.mass;
-			tmporbitdata.vmax = orbitinghalo.vmax;
-			tmporbitdata.rmax = orbitinghalo.rmax;
-			tmporbitdata.cnfw = orbitinghalo.cnfw;
-			tmporbitdata.xrel = rx;
-			tmporbitdata.yrel = ry;
-			tmporbitdata.zrel = rz;
-			tmporbitdata.vxrel = vrx;
-			tmporbitdata.vyrel = vry;
-			tmporbitdata.vzrel = vrz;
 
 			//The host halo
 			tmporbitdata.hosthaloID = hosthalo.origid;
-			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.masshost = hosthalo.mass;
-			tmporbitdata.vmaxhost = hosthalo.vmax;
-			tmporbitdata.rmaxhost = hosthalo.rmax;
-			tmporbitdata.cnfwhost = hosthalo.cnfw;
+
+			//Store the scalefactor this happens at
+			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+			//From this scalefactor we can find the age of the universe
+			currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+			InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
 
 			/* Calculate various properties to be outputted */
 
@@ -183,7 +195,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
 
 			//Calculate the orbit period as 2x the previous passage
-			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
+			tmporbitdata.orbitperiod = 2.0* (currentuniage - orbitprops.prevpassagetime);
 
 			//The halos reduced mass
 			mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
@@ -200,13 +212,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Any additional properties to be calculated here
 
 			//Now append it into the orbitdata dataset
-			orbitdata.push_back(tmporbitdata);
+			branchorbitdata.push_back(tmporbitdata);
 
 			//Mark this passage as a apo-centric passage
 			orbitprops.passageflag = false;
 
 			//Update the previous passage time
-			orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
+			orbitprops.prevpassagetime = currentuniage;
 
 			//Keep track of the previous passage radial distance
 			orbitprops.prevpassager = r;
@@ -224,40 +236,24 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Mark this as a peri-centric passage
 			tmporbitdata.entrytype = 0;
 
-			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
 			//The orbting halo
 			tmporbitdata.haloID = orbitinghalo.origid;
-			tmporbitdata.x = orbitinghalo.x;
-			tmporbitdata.y = orbitinghalo.y;
-			tmporbitdata.z = orbitinghalo.z;
-			tmporbitdata.vx = orbitinghalo.vx;
-			tmporbitdata.vy = orbitinghalo.vy;
-			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mass = orbitinghalo.mass;
-			tmporbitdata.vmax = orbitinghalo.vmax;
-			tmporbitdata.rmax = orbitinghalo.rmax;
-			tmporbitdata.cnfw = orbitinghalo.cnfw;
-			tmporbitdata.xrel = rx;
-			tmporbitdata.yrel = ry;
-			tmporbitdata.zrel = rz;
-			tmporbitdata.vxrel = vrx;
-			tmporbitdata.vyrel = vry;
-			tmporbitdata.vzrel = vrz;
 
 			//The host halo
 			tmporbitdata.hosthaloID = hosthalo.origid;
-			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.masshost = hosthalo.mass;
-			tmporbitdata.vmaxhost = hosthalo.vmax;
-			tmporbitdata.rmaxhost = hosthalo.rmax;
-			tmporbitdata.cnfwhost = hosthalo.cnfw;
+
+			//Store the scalefactor this happens at
+			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+			//From this scalefactor we can find the age of the universe
+			currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+			InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
 
 			/* Calculate various properties to be outputted */
 
 			//Calculate the orbit period as 2x the previous passage
-			tmporbitdata.orbitperiod = 2.0* (snapdata[currentsnap].uniage - orbitprops.prevpassagetime);
+			tmporbitdata.orbitperiod = 2.0* (currentuniage - orbitprops.prevpassagetime);
 
 			// Find the change mass in units of Msun/Gyr
 			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
@@ -277,13 +273,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Any additional properties to be calculated here
 
 			//Now append it into the orbitdata dataset
-			orbitdata.push_back(tmporbitdata);
+			branchorbitdata.push_back(tmporbitdata);
 
 			//Mark this passage as a peri-centric passage
 			orbitprops.passageflag = true;
 
 			//Update the previous passage time
-			orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
+			orbitprops.prevpassagetime = currentuniage;
 
 			//Keep track of the previous passage radial distance
 			orbitprops.prevpassager = r;
@@ -308,39 +304,19 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Mark this as a peri-centric passage
 		tmporbitdata.entrytype = 0;
 
-		//Store the scalefactor this happens at
-		// cout<<abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor))<<" "<<abs((vr/(vr - prevvr)) * (snapdata[currentsnap].scalefactor - snapdata[prevsnap].scalefactor))<<endl;
-		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
-		//Mark this orbit as having a period of -1.0 as it cannot be calculated yet
-		tmporbitdata.orbitperiod = -1.0;
-
 		//The orbting halo
 		tmporbitdata.haloID = orbitinghalo.origid;
-		tmporbitdata.x = orbitinghalo.x;
-		tmporbitdata.y = orbitinghalo.y;
-		tmporbitdata.z = orbitinghalo.z;
-		tmporbitdata.vx = orbitinghalo.vx;
-		tmporbitdata.vy = orbitinghalo.vy;
-		tmporbitdata.vz = orbitinghalo.vz;
-		tmporbitdata.mass = orbitinghalo.mass;
-		tmporbitdata.vmax = orbitinghalo.vmax;
-		tmporbitdata.rmax = orbitinghalo.rmax;
-		tmporbitdata.cnfw = orbitinghalo.cnfw;
-		tmporbitdata.xrel = rx;
-		tmporbitdata.yrel = ry;
-		tmporbitdata.zrel = rz;
-		tmporbitdata.vxrel = vrx;
-		tmporbitdata.vyrel = vry;
-		tmporbitdata.vzrel = vrz;
 
 		//The host halo
 		tmporbitdata.hosthaloID = hosthalo.origid;
-		tmporbitdata.rvirhost = hosthalo.rvir;
-		tmporbitdata.masshost = hosthalo.mass;
-		tmporbitdata.vmaxhost = hosthalo.vmax;
-		tmporbitdata.rmaxhost = hosthalo.rmax;
-		tmporbitdata.cnfwhost = hosthalo.cnfw;
+
+		//Store the scalefactor this happens at
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+		//From this scalefactor we can find the age of the universe
+		currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+		InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
 
 		/* Calculate various properties to be outputted */
 
@@ -355,7 +331,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Any additional properties to be calculated here
 
 		//Now append it into the orbitdata dataset
-		orbitdata.push_back(tmporbitdata);
+		branchorbitdata.push_back(tmporbitdata);
 
 		//Mark this passage a pericentric passage
 		orbitprops.passageflag = true;
@@ -470,14 +446,6 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double
 
 }
 
-
-double LogInterp(double prevdata, double nextdata, double f){
-	return pow(nextdata,f) * pow(prevdata,1-f);
-}
-double LinInterp(double prevdata, double nextdata, double f){
-	return prevdata + (nextdata - prevdata)*f;
-}
-
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, SnapData *&snapdata){
 
 
@@ -586,13 +554,66 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 		snapdata[interpsnaps[i]].Halo.push_back(interphalos[i]);
 
 		//insert these halos into the halosnaps and indexes
-		// halosnaps.insert(halosnaps.begin()+interpsnaps[i]-halosnaps[0],interpsnaps[i]);
-		// haloindexes.insert(haloindexes.begin()+interpsnaps[i]-halosnaps[0],snapdata[interpsnaps[i]].numhalos);
+		halosnaps.insert(halosnaps.begin()+interpsnaps[i]-halosnaps[0],interpsnaps[i]);
+		haloindexes.insert(haloindexes.begin()+interpsnaps[i]-halosnaps[0],snapdata[interpsnaps[i]].numhalos);
 		snapdata[interpsnaps[i]].numhalos++;
 	}
-
-
 }
+
+void InterpPassagePoints(vector<Int_t> halosnaps,vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
+
+	vector<double> interpuniages;
+	for(int i = 0; i<branchorbitdata.size();i++){
+
+		//Only extract the scalfactor if this is a passage entry
+		if(branchorbitdata[i].entrytype<=0){
+			//Find the age of the universe
+			interpuniages.push_back(GetUniverseAge(branchorbitdata[i].scalefactor));
+		}
+	}
+	int ninterp = interpuniages.size();
+	int nhalo = halosnaps.size();
+	cout<<nhalo<<" "<<ninterp<<endl;
+	double halouniages[nhalo];
+	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
+	for(int i = 0;i<nhalo;i++)
+		halouniages[i] =  snapdata[halosnaps[i]].uniage;
+
+	vector<HaloData> interphalos;
+	interphalos.resize(ninterp);
+	vector<HaloData> interphosthalos;
+	interphosthalos.resize(ninterp);
+
+	InterpHaloPosVel(nhalo, ninterp, halouniages, interpuniages, halosnaps, haloindexes,snapdata,interphalos);
+	InterpHaloPosVel(nhalo, ninterp, halouniages, interpuniages, halosnaps, hostindexes,snapdata,interphosthalos);
+
+	int j = 0;
+	for(int i = 0; i<branchorbitdata.size();i++){
+
+		//Only extract the scalfactor if this is a passage entry
+		if(branchorbitdata[i].entrytype<=0){
+			//Find the age of the universe
+			// cout<<"Orginal "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
+			// cout<<"Orginal "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
+			branchorbitdata[i].x = interphalos[j].x;
+			branchorbitdata[i].y = interphalos[j].y;
+			branchorbitdata[i].z = interphalos[j].z;
+			branchorbitdata[i].vx = interphalos[j].vx;
+			branchorbitdata[i].vy = interphalos[j].vy;
+			branchorbitdata[i].vz = interphalos[j].vz;
+			branchorbitdata[i].xrel = interphosthalos[j].x - interphalos[j].x;
+			branchorbitdata[i].yrel = interphosthalos[j].y - interphalos[j].y;
+			branchorbitdata[i].zrel = interphosthalos[j].z - interphalos[j].z;
+			branchorbitdata[i].vxrel = interphosthalos[j].vx - interphalos[j].vx;
+			branchorbitdata[i].vyrel = interphosthalos[j].vy - interphalos[j].vy;
+			branchorbitdata[i].vzrel = interphosthalos[j].vz - interphalos[j].vz;
+			// cout<<"Update  "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
+			// cout<<"Update  "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
+			j++;
+		}
+	}
+}
+
 
 
 void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
@@ -608,6 +629,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	//Keep track of this halo's snap and index for interpolation
 	vector<Int_t> halosnaps;
 	vector<Int_t> haloindexes;
+	vector<Int_t> hostindexes;
 	vector<Int_t> interpsnaps;
 
 	//Store the index of the halo it is orbiting
@@ -677,6 +699,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+		hostindexes.push_back(orbitinghaloindex);
 
 		//Lets set this halos orbit data
 		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
@@ -711,6 +734,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	// file.close();
 
 	//Now another interpolation can be done to find the actual positions of the passage points
+	InterpPassagePoints(halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
+
 
 
 	//Now finished with this branches orbital calculations so it can be added
