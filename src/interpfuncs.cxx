@@ -27,7 +27,7 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double
 
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++)
-		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x;
+			tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x;
 
 	//Intialize the data for the spline
 	gsl_spline_init (spline, halouniages, tmpdata, nhalo);
@@ -238,21 +238,10 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 }
 
-void InterpPassagePoints(vector<Int_t> halosnaps,vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
+void InterpPassagePoints(int nhalo, int ninterp, vector<double> interpuniages, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
 
-	vector<double> interpuniages;
-	for(int i = 0; i<branchorbitdata.size();i++){
-
-		//Only extract the scalfactor if this is a passage entry
-		if(branchorbitdata[i].entrytype<=0){
-			//Find the age of the universe
-			interpuniages.push_back(GetUniverseAge(branchorbitdata[i].scalefactor));
-		}
-	}
-	int ninterp = interpuniages.size();
-	int nhalo = halosnaps.size();
-	cout<<nhalo<<" "<<ninterp<<endl;
 	double halouniages[nhalo];
+
 	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
 	for(int i = 0;i<nhalo;i++)
 		halouniages[i] =  snapdata[halosnaps[i]].uniage;

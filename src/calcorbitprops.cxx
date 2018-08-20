@@ -341,11 +341,11 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	Int_t orbitinghaloindex;
 
 	//Keep track of the previous halos halodata and orbitdata
-	HaloData prevorbitinghalo = snapdata[halosnap].Halo[haloindex];
-	HaloData prevhosthalo;
+	HaloData prevorbitinghalo = {0};
+	HaloData prevhosthalo = {0};
 	vector<OrbitData> branchorbitdata;
 	OrbitData tmporbitdata={0};
-	Int_t prevsnap=halosnap-1;
+	Int_t prevsnap=halosnap;
 
 	//Keep track of the properties of this orbit
 	OrbitProps orbitprops;
@@ -407,8 +407,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		hostindexes.push_back(orbitinghaloindex);
 
 		//Lets set this halos orbit data
-		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
-		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
+		if(prevsnap!=halosnap)
+			CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -421,8 +421,9 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		//See if have reached the end of this branch
 		if(descendantID==haloID) break;
 
-		//Update the previous halo data and snapshot
+		//Update the previous halo and its host
 		prevorbitinghalo = snapdata[halosnap].Halo[haloindex];
+		prevhosthalo = snapdata[halosnap].Halo[orbitinghaloindex];
 		prevsnap = halosnap;
 
 		//lets move onto the descendant
@@ -439,7 +440,21 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	// file.close();
 
 	//Now another interpolation can be done to find the actual positions of the passage points
-	InterpPassagePoints(halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
+	vector<double> interpuniages;
+	for(int i = 0; i<branchorbitdata.size();i++){
+		//Only extract the scalfactor if this is a passage entry
+		if(branchorbitdata[i].entrytype<=0){
+			//Find the age of the universe
+			interpuniages.push_back(GetUniverseAge(branchorbitdata[i].scalefactor));
+		}
+	}
+
+	int nhalo = halosnaps.size();
+	int ninterp = interpuniages.size();
+
+	//Lets see if there is anything to interpolate but only if the halo exists
+	//for more than 3 snapshots is it possible to interpolate
+	if((ninterp>0) & (nhalo>3)) InterpPassagePoints(nhalo,ninterp,interpuniages,halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
 
 
 
