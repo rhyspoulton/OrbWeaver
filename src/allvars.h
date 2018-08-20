@@ -275,9 +275,6 @@ struct OrbitProps{
 	//Flag to keep track if the halo is on a bound orbit
 	bool orbitingflag;
 
-	//Flag to keep track if passage was at pericenter == false or apocenter == true
-	bool passageflag;
-
 	// //Value to keep track of the time the halo started to orbit
 	// double orbitstartscalefactor;
 
@@ -289,7 +286,6 @@ struct OrbitProps{
 
 	OrbitProps(){
 		orbitingflag = false;
-		passageflag = false;
 		// orbitstartscalefactor = 0.0;
 		prevpassagetime = 0.0;
 		prevpassager = 0.0;

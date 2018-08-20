@@ -133,132 +133,79 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
 	if((orbitprops.orbitingflag) & (vr*prevvr<0)){
-		// cout<<orbitinghalo.id<<" Gone 1/2 orbit "<<hosthalo.rvir<<endl;
+
+		//Add 0.5 an orbit
 		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
 
-		//Check if lass passage was a peri-centric passage (passageflag==true)
-		//so the next passgage will be apo-centric
-		if(orbitprops.passageflag){
-
-			/* Store some properties of the orbit halo and its host at this point */
-
-			//Store what orbitID number this is
-			tmporbitdata.orbitID = orbitID;
-
-			//Mark this as a apo-centric passage
+		//Check if las passage was a peri-centric passage (prevpassager<r)
+		//so the next passgage will be apo-centric (-1)
+		if(orbitprops.prevpassager<r)
 			tmporbitdata.entrytype = -1;
-
-			//The orbting halo
-			tmporbitdata.haloID = orbitinghalo.origid;
-
-			//The host halo
-			tmporbitdata.hosthaloID = hosthalo.origid;
-
-			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
-			//From this scalefactor we can find the age of the universe
-			currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
-
-			InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
-
-			/* Calculate various properties to be outputted */
-
-			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
-
-			//Calculate the orbit period as 2x the previous passage
-			tmporbitdata.orbitperiod = 2.0* (currentuniage - orbitprops.prevpassagetime);
-
-			//The halos reduced mass
-			mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
-
-			//The halos orbital energy
-			E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
-
-			//The halos orbital angular momentum
-			tmporbitdata.Lorbit = mu * r * vr;
-
-			//The halos orbital eccentricity
-			tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
-
-			//Any additional properties to be calculated here
-
-			//Now append it into the orbitdata dataset
-			branchorbitdata.push_back(tmporbitdata);
-
-			//Mark this passage as a apo-centric passage
-			orbitprops.passageflag = false;
-
-			//Update the previous passage time
-			orbitprops.prevpassagetime = currentuniage;
-
-			//Keep track of the previous passage radial distance
-			orbitprops.prevpassager = r;
-
-			return;
-
-		}
 		else{
-
-			/* Store some properties of the orbit halo and its host at this point */
-
-			//Store what orbitID number this is
-			tmporbitdata.orbitID = orbitID;
-
-			//Mark this as a peri-centric passage
 			tmporbitdata.entrytype = 0;
 
-			//The orbting halo
-			tmporbitdata.haloID = orbitinghalo.origid;
-
-			//The host halo
-			tmporbitdata.hosthaloID = hosthalo.origid;
-
-			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
-			//From this scalefactor we can find the age of the universe
-			currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
-
-			InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
-
-			/* Calculate various properties to be outputted */
-
-			//Calculate the orbit period as 2x the previous passage
-			tmporbitdata.orbitperiod = 2.0* (currentuniage - orbitprops.prevpassagetime);
-
-			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
-
-			//The halos reduced mass
-			mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
-
-			//The halos orbital energy
-			E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
-
-			//The halos orbital angular momentum
-			tmporbitdata.Lorbit = mu * r * vr;
-
-			//The halos orbital eccentricity
-			tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
-
-			//Any additional properties to be calculated here
-
-			//Now append it into the orbitdata dataset
-			branchorbitdata.push_back(tmporbitdata);
-
-			//Mark this passage as a peri-centric passage
-			orbitprops.passageflag = true;
-
-			//Update the previous passage time
-			orbitprops.prevpassagetime = currentuniage;
-
-			//Keep track of the previous passage radial distance
-			orbitprops.prevpassager = r;
-
-			return;
+			//If this halo has undergone 1 orbit and is undergoing a pericentric passage 
+			//then the first passage point needs to be updated as apocentric passage
+			if(tmporbitdata.numorbits==1.0){
+				for(int i = 0;i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==0){
+					branchorbitdata[i].entrytype = -1;
+					break;
+				}
+			}
 		}
+
+		/* Store some properties of the orbit halo and its host at this point */
+
+		//Store what orbitID number this is
+		tmporbitdata.orbitID = orbitID;
+
+		//The orbting halo
+		tmporbitdata.haloID = orbitinghalo.origid;
+
+		//The host halo
+		tmporbitdata.hosthaloID = hosthalo.origid;
+
+		//Store the scalefactor this happens at
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+		//From this scalefactor we can find the age of the universe
+		currentuniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+		InterpPassageHaloProps(currentuniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
+
+		/* Calculate various properties to be outputted */
+
+		//Calculate the orbit period as 2x the previous passage
+		tmporbitdata.orbitperiod = 2.0* (currentuniage - orbitprops.prevpassagetime);
+
+		// Find the change mass in units of Msun/Gyr
+		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+		//The halos reduced mass
+		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+		//The halos orbital energy
+		E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
+
+		//The halos orbital angular momentum
+		tmporbitdata.Lorbit = mu * r * vr;
+
+		//The halos orbital eccentricity
+		tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
+
+		//Any additional properties to be calculated here
+
+		//Now append it into the orbitdata dataset
+		branchorbitdata.push_back(tmporbitdata);
+
+		//Update the previous passage time
+		orbitprops.prevpassagetime = currentuniage;
+
+		//Keep track of the previous passage radial distance
+		orbitprops.prevpassager = r;
+
+		return;
+
 	}
 	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<hosthalo.rvir)){
 		// cout<<orbitinghalo.id<<" This halo has started to orbit "<<hosthalo.rvir<<endl;
@@ -273,9 +220,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Set this halo as done 1/2 orbit
 		tmporbitdata.numorbits = 0.5;
-
-		//Mark this as a peri-centric passage
-		tmporbitdata.entrytype = 0;
 
 		//The orbting halo
 		tmporbitdata.haloID = orbitinghalo.origid;
@@ -305,9 +249,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
-
-		//Mark this passage a pericentric passage
-		orbitprops.passageflag = true;
 
 		//Mark the time this passage happens
 		orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
