@@ -198,8 +198,17 @@ struct OrbitData{
 	//The orbital eccentricity
 	float orbitecc;
 
+	//The orbital eccentricity from ratio of passage distances
+	float orbiteccratio;
+
 	//The orbital angular momentum
 	float Lorbit;
+
+	//The peri-centric distance
+	float rperi;
+
+	//The apo-centric distance
+	float rapo;
 
 	//Mass loss rate
 	float masslossrate;
@@ -427,7 +436,13 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitecc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbiteccratio");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Lorbit");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Rperi");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Rapo");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

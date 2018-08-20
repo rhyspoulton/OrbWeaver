@@ -137,27 +137,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Add 0.5 an orbit
 		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
 
-		//Check if las passage was a peri-centric passage (prevpassager<r)
-		//so the next passgage will be apo-centric (-1)
-		if(orbitprops.prevpassager<r)
-			tmporbitdata.entrytype = -1;
-		else{
-			tmporbitdata.entrytype = 0;
-
-			//If this halo has undergone 1 orbit and is undergoing a pericentric passage 
-			//then the first passage point needs to be updated as apocentric passage
-			if(tmporbitdata.numorbits==1.0){
-				for(int i = 0;i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==0){
-					branchorbitdata[i].entrytype = -1;
-					break;
-				}
-			}
-		}
-
 		/* Store some properties of the orbit halo and its host at this point */
 
 		//Store what orbitID number this is
 		tmporbitdata.orbitID = orbitID;
+
+		//Set this as a passage point
+		tmporbitdata.entrytype = 0.0;
 
 		//The orbting halo
 		tmporbitdata.haloID = orbitinghalo.origid;
@@ -193,6 +179,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//The halos orbital eccentricity
 		tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
 
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rperi = (tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((1+tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rapo = (tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((1-tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
 		//Any additional properties to be calculated here
 
 		//Now append it into the orbitdata dataset
@@ -201,14 +193,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Update the previous passage time
 		orbitprops.prevpassagetime = currentuniage;
 
-		//Keep track of the previous passage radial distance
-		orbitprops.prevpassager = r;
-
 		return;
 
 	}
 	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<hosthalo.rvir)){
-		// cout<<orbitinghalo.id<<" This halo has started to orbit "<<hosthalo.rvir<<endl;
 
 		//Now lets mark this halo as on an orbit
 		orbitprops.orbitingflag = true;
@@ -217,6 +205,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Store what orbitID number this is
 		tmporbitdata.orbitID = orbitID;
+
+		//Set this as a passage point
+		tmporbitdata.entrytype = 0.0;
 
 		//Set this halo as done 1/2 orbit
 		tmporbitdata.numorbits = 0.5;
@@ -251,16 +242,49 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		branchorbitdata.push_back(tmporbitdata);
 
 		//Mark the time this passage happens
-		orbitprops.prevpassagetime = snapdata[currentsnap].uniage;
-
-		//Keep track of the previous passage radial distance
-		orbitprops.prevpassager = r;
+		orbitprops.prevpassagetime = currentuniage;
 
 		return;
 	}
 
 }
 
+void SetPassageType(vector<OrbitData> &branchorbitdata){
+
+	double r,prevr=0;
+
+	//Now that the positions of the passages are set can now set the entry
+	//type for these points and the orbit eccentricities at these points
+	for(int i = 0; i<branchorbitdata.size();i++){
+
+		//Only interested in passage points
+		if(branchorbitdata[i].entrytype==0.0){
+
+			//Find the radial distance to its host
+			r = sqrt((branchorbitdata[i].xrel * branchorbitdata[i].xrel) + (branchorbitdata[i].yrel * branchorbitdata[i].yrel) + (branchorbitdata[i].zrel * branchorbitdata[i].zrel));
+
+			//Can only do this if the previous radial distance has been set
+			if(prevr>0){
+
+				// If the current distance is greater that the previous radial distance then
+				//this is a apo-centric passage, otherwise it is a pericentric passage
+				if(r>prevr){
+					branchorbitdata[i].entrytype = -1;
+					branchorbitdata[i].orbiteccratio = (r - prevr)/(r + prevr);
+				}
+				else{
+					branchorbitdata[i].orbiteccratio = (prevr - r)/(prevr + r);
+
+					//If the 2nd passage was a pericentric passage then set the initial passage as
+					//a apocentric passage
+					if(branchorbitdata[i].numorbits==1.0)
+						branchorbitdata[i].entrytype = -1;
+				}
+			}
+			prevr = r;
+		}
+	}
+}
 
 void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
 
@@ -397,6 +421,9 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	//for more than 3 snapshots is it possible to interpolate
 	if((ninterp>0) & (nhalo>3)) InterpPassagePoints(nhalo,ninterp,interpuniages,halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
 
+	//Now have set the distances for the passages then the entry types and ratio
+	//eccentricities can be calculated
+	SetPassageType(branchorbitdata);
 
 
 	//Now finished with this branches orbital calculations so it can be added

@@ -6,8 +6,11 @@
 | entrytype  | N/A | This value tell if this entry is either -1 = Apo-center, 0 = pericenter or if >0 then this is the entrytype * Rvir_host passage (either infalling or outgoing)  |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
-| orbitecc  | N/A | Current eccentricity of its orbit |
+| orbitecc  | N/A | The calculated eccentricity of its orbit |
+| orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
 | Lorbit  | Mpc km/s | Angular momentum of its orbit |
+| Rperi | Mpc | The calculated peri-centric distance |
+| Rapo | Mpc | The calculated apo-centric distance |
 | scalefactor  | N/A | Scalefactor of this entry |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
 | masslossrate  | solar masses/Gyr | Rate at which the halo is currently losing mass |
