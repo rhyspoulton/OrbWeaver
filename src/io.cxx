@@ -420,8 +420,6 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
 		Cosmo.boxsize=doublebuff;
 	}
-	Cosmo.boxsize = 40000;
-	cout<<"SETTING THE BOXSIZE AS 40,000 KPC!!"<<endl;
 
 	// h
 	attr = cosmogroup.openAttribute(hdfnames.cosmoattrnames[1]);
@@ -1538,4 +1536,4 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 
 
-#endif //USEHDF
+#endif //USEHDF 

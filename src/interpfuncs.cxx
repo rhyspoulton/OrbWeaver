@@ -258,10 +258,20 @@ void InterpPassagePoints(int nhalo, int ninterp, vector<double> interpuniages, v
 	for(int i = 0; i<branchorbitdata.size();i++){
 
 		//Only extract the scalfactor if this is a passage entry
-		if(branchorbitdata[i].entrytype<=0){
+		if(branchorbitdata[i].entrytype==0){
 			//Find the age of the universe
 			// cout<<"Orginal "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
 			// cout<<"Orginal "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
+
+
+			//Do a periodicity correction
+			if((interphalos[j].x - interphosthalos[j].x)>0.5*Cosmo.boxsize) interphalos[j].x-=Cosmo.boxsize;
+			if((interphalos[j].y - interphosthalos[j].y)>0.5*Cosmo.boxsize) interphalos[j].y-=Cosmo.boxsize;
+			if((interphalos[j].z - interphosthalos[j].z)>0.5*Cosmo.boxsize) interphalos[j].z-=Cosmo.boxsize;
+			if((interphalos[j].x - interphosthalos[j].x)<-0.5*Cosmo.boxsize) interphalos[j].x+=Cosmo.boxsize;
+			if((interphalos[j].y - interphosthalos[j].y)<-0.5*Cosmo.boxsize) interphalos[j].y+=Cosmo.boxsize;
+			if((interphalos[j].z - interphosthalos[j].z)<-0.5*Cosmo.boxsize) interphalos[j].z+=Cosmo.boxsize;
+
 			branchorbitdata[i].x = interphalos[j].x;
 			branchorbitdata[i].y = interphalos[j].y;
 			branchorbitdata[i].z = interphalos[j].z;
@@ -276,6 +286,7 @@ void InterpPassagePoints(int nhalo, int ninterp, vector<double> interpuniages, v
 			branchorbitdata[i].vzrel = interphosthalos[j].vz - interphalos[j].vz;
 			// cout<<"Update  "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
 			// cout<<"Update  "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
+
 			j++;
 		}
 	}

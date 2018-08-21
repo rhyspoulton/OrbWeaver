@@ -6,12 +6,7 @@
 void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops){
 
 	//First correct for periodicity compared to the host halo
-	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize){
-		// cout<<"The position was "<<orbitinghalo.x<<endl;
-		orbitinghalo.x-=Cosmo.boxsize;
-		// cout<<"Corrected the position to "<<orbitinghalo.x<<endl;
-	}
-
+	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
 	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
 	if((orbitinghalo.z - hosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
 	if((orbitinghalo.x - hosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
@@ -49,7 +44,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / r;
 
 	//Define varibles for the calculations
-	double mu, E, ecc, currentuniage;
+	double mu, E, ecc, currentuniage ,Lx ,Ly, Lz;
 
 	//Lets find if this halo has the closest approach so far
 	if(r<tmporbitdata.closestapproach){
@@ -174,7 +169,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		E = 0.5 * mu * vr * vr - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
 
 		//The halos orbital angular momentum
-		tmporbitdata.Lorbit = mu * r * vr;
+		Lx = (ry * vrz) - (rz * vry);
+		Ly = -((rx * vrz) - (rz * vrx));
+		Lz = (rx * vry) - (ry * vrx);
+		tmporbitdata.Lorbit = mu * sqrt(Lx*Lx + Ly*Ly + Lz*Lz);
 
 		//The halos orbital eccentricity
 		tmporbitdata.orbitecc = sqrt(1 + (2*E*tmporbitdata.Lorbit*tmporbitdata.Lorbit)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu));
@@ -252,6 +250,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 	double r,prevr=0;
+	int preventrytype=-2;
+	vector<int> deleteindx;
 
 	//Now that the positions of the passages are set can now set the entry
 	//type for these points and the orbit eccentricities at these points
@@ -269,11 +269,25 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 				// If the current distance is greater that the previous radial distance then
 				//this is a apo-centric passage, otherwise it is a pericentric passage
 				if(r>prevr){
+
+					//If the previous entry type was a apocentric, then delete this one and
+					//wait until the halo goes past pericenter
+					if(preventrytype==-1){
+						deleteindx.push_back(i);
+						continue;
+					}
 					branchorbitdata[i].entrytype = -1;
-					branchorbitdata[i].orbiteccratio = (r - prevr)/(r + prevr);
+					branchorbitdata[i].orbiteccratio = sqrt(1-prevr*prevr/r*r);
 				}
 				else{
-					branchorbitdata[i].orbiteccratio = (prevr - r)/(prevr + r);
+
+					//If the previous entry type was a pericentric, then delete this one and
+					//wait until the halo goes past apocenter
+					if(preventrytype==0){
+						deleteindx.push_back(i);
+						continue;
+					}
+					branchorbitdata[i].orbiteccratio = sqrt(1-r*r/prevr*prevr);
 
 					//If the 2nd passage was a pericentric passage then set the initial passage as
 					//a apocentric passage
@@ -282,8 +296,12 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 				}
 			}
 			prevr = r;
+			preventrytype = branchorbitdata[i].entrytype;
 		}
 	}
+
+	for(int i =deleteindx.size()-1 ;i>=0; i--)
+		branchorbitdata.erase(branchorbitdata.begin()+deleteindx[i]);
 }
 
 void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
