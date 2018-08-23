@@ -290,14 +290,10 @@ struct OrbitProps{
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
 
-	//Keep track of the previous passage's radial distance
-	double prevpassager;
-
 	OrbitProps(){
 		orbitingflag = false;
 		// orbitstartscalefactor = 0.0;
 		prevpassagetime = 0.0;
-		prevpassager = 0.0;
 	};
 };
 
@@ -380,7 +376,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Tail");
 		// datasetnames.push_back("hostHaloID");
 		datasetnames.push_back("OrbitingHaloID");
-		datasetnames.push_back("Mass_200crit");
+		datasetnames.push_back("Mass_tot");
 		datasetnames.push_back("R_200crit");
 		datasetnames.push_back("VXc");
 		datasetnames.push_back("VYc");
