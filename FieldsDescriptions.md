@@ -12,6 +12,7 @@
 | Rperi | Mpc | The calculated peri-centric distance |
 | Rapo | Mpc | The calculated apo-centric distance |
 | scalefactor  | N/A | Scalefactor of this entry |
+| uniage | Gyr | Age of the universe of this entry |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
 | masslossrate  | solar masses/Gyr | Rate at which the halo is currently losing mass |
 | X  | Mpc | X position of the halo in the simulation |
@@ -23,7 +24,9 @@
 | Mass  | solar masses | Mass of the halo (depends on mass definition given) |
 | Rmax  | Mpc | Radial distance of Vmax |
 | Vmax  | km/s | Maxiumum circular velocity of the halo |
+| Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |
 | cNFW | N/A  | Concentration of the halo |
+| Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | Mpc | X position of the halo relative to its host |
 | Yrel  | Mpc | Y position of the halo relative to its host |
 | Zrel  | Mpc | Z position of the halo relative to its host |
@@ -34,5 +37,5 @@
 | R\_200crit_host  | Mpc | Virial radius of its host |
 | Rmax_host  | Mpc | Radial distance of Vmax for its host |
 | Vmax_host  | km/s | Maximum circular velocity of its host
-| cNFW | N/A  | Concentration of its host |
+| cNFW_host | N/A  | Concentration of its host |
 

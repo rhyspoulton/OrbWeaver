@@ -975,6 +975,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
+		/* uniage */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].uniage;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
 		/* x */
 
 		//Create the dataset
@@ -1175,6 +1200,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
+		/* vmaxpeak */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmaxpeak;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
 		/* rmax */
 
 		//Create the dataset
@@ -1222,6 +1272,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Write out the dataset
 		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfw;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* vtan */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vtan;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

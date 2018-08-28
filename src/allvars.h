@@ -216,6 +216,9 @@ struct OrbitData{
 	//The scalefactor
 	float scalefactor;
 
+	//The age of the universe
+	float uniage;
+
 	//The x position
 	float x;
 
@@ -240,11 +243,17 @@ struct OrbitData{
 	//The vmax of the orbiting halo
 	float vmax;
 
+	//The peak vmax up to this point
+	float vmaxpeak;
+
 	//The rmax of the orbiting halo
 	float rmax;
 
 	//The concentration of the orbiting halo
 	float cnfw;
+
+	//The tangential velocity of the halo with respect to its host
+	float vtan;
 
 	//The relative x position to the host
 	float xrel;
@@ -444,6 +453,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("scalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("uniage");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("X");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Y");
@@ -460,9 +471,13 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Vmaxpeak");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("cNFW");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Vtan");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Xrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
