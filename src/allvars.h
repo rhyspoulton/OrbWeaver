@@ -201,9 +201,6 @@ struct OrbitData{
 	//The orbital eccentricity from ratio of passage distances
 	float orbiteccratio;
 
-	//The orbital angular momentum
-	float Lorbit;
-
 	//The peri-centric distance
 	float rperi;
 
@@ -273,6 +270,15 @@ struct OrbitData{
 	//The relative z velocity to the host
 	float vzrel;
 
+	//The average orbital angular momentum in x-direction since last passage
+	float lxrel;
+
+	//The average orbital angular momentum in y-direction since last passage
+	float lyrel;
+
+	//The average orbital angular momentum in z-direction since last passage
+	float lzrel;
+
 	//The viral radius of the host
 	float rvirhost;
 
@@ -293,16 +299,33 @@ struct OrbitProps{
 	//Flag to keep track if the halo is on a bound orbit
 	bool orbitingflag;
 
-	// //Value to keep track of the time the halo started to orbit
-	// double orbitstartscalefactor;
+	//Value to keep track of the time the halo started to orbit
+	int prevpassagesnap;
 
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
 
+	double mu;
+
+	// Store the angular momentum vectors so the average can be calculated
+	double lx;
+	double ly;
+	double lz;
+	double ltot;
+
+	double E;
+
 	OrbitProps(){
 		orbitingflag = false;
-		// orbitstartscalefactor = 0.0;
+		prevpassagesnap = 0;
 		prevpassagetime = 0.0;
+		mu=0.0;
+		lx=0.0;
+		ly=0.0;
+		lz=0.0;
+		ltot=0.0;
+		E=0.0;
+
 	};
 };
 
@@ -385,7 +408,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Tail");
 		// datasetnames.push_back("hostHaloID");
 		datasetnames.push_back("OrbitingHaloID");
-		datasetnames.push_back("Mass_tot");
+		datasetnames.push_back("Mass_200crit");
 		datasetnames.push_back("R_200crit");
 		datasetnames.push_back("VXc");
 		datasetnames.push_back("VYc");
@@ -443,8 +466,6 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbiteccratio");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Lorbit");
-		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rperi");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rapo");
@@ -490,6 +511,12 @@ struct HDFOutputNames{
 		datasetnames.push_back("VYrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LXrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LYrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LZrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("R_200crit_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
