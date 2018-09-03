@@ -210,6 +210,15 @@ struct OrbitData{
 	//Mass loss rate
 	float masslossrate;
 
+	//The longitude of the ascending node with respect to the intial orbital plane
+	float longascnode;
+
+	//The inclination with respect to the intial orbital plane
+	float inc;
+
+	//The argument of pariapsis with respect to the intial orbital plane
+	float argpariap;
+
 	//The scalefactor
 	float scalefactor;
 
@@ -408,7 +417,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Tail");
 		// datasetnames.push_back("hostHaloID");
 		datasetnames.push_back("OrbitingHaloID");
-		datasetnames.push_back("Mass_200crit");
+		datasetnames.push_back("Mass_tot");
 		datasetnames.push_back("R_200crit");
 		datasetnames.push_back("VXc");
 		datasetnames.push_back("VYc");
@@ -471,6 +480,12 @@ struct HDFOutputNames{
 		datasetnames.push_back("Rapo");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LongAscNode");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Inclination");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("ArgPariap");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("scalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

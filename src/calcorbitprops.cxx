@@ -309,16 +309,62 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Mark the snapshot that this passage happens
 		orbitprops.prevpassagesnap = currentsnap;
-
 		return;
 	}
 
 }
 
+double *computeAngles(double prevpos[3], OrbitData orbitdata){
+
+	double x[3],y[3],z[3], mag;
+	double* angles = new double[3];
+
+	//Get the x-axis which is along the semi-major axis
+	x[0] = orbitdata.xrel - prevpos[0];
+	x[1] = orbitdata.yrel - prevpos[1];
+	x[2] = orbitdata.zrel - prevpos[2];
+
+	//The z-axis which is the angular momentum
+	z[0] = orbitdata.lxrel;
+	z[1] = orbitdata.lyrel;
+	z[2] = orbitdata.lzrel;
+
+	//Find the cross product of these to to find the y-axis
+	y[0] = (x[1] * z[2]) - (x[2] * z[1]);
+	y[1] = -((x[0] * z[2]) - (x[2] * z[0]));
+	y[2] = (x[0] * z[1]) - (x[1] * z[0]);
+
+
+	//Now we can find the x vector that is perpendicular to the y and z vectors
+	x[0] = (y[1] * z[2]) - (y[2] * z[1]);
+	x[1] = -((y[0] * z[2]) - (y[2] * z[0]));
+	x[2] = (y[0] * z[1]) - (y[1] * z[0]);
+
+	//Normalize the vectors
+	mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
+	x[0] /= mag;
+	x[1] /= mag;
+	x[2] /= mag;
+	mag = sqrt(y[0]*y[0] + y[1]*y[1] + y[2]*y[2]);
+	y[0] /= mag;
+	y[1] /= mag;
+	y[2] /= mag;
+	mag = sqrt(z[0]*z[0] + z[1]*z[1] + z[2]*z[2]);
+	z[0] /= mag;
+	z[1] /= mag;
+	z[2] /= mag;
+
+	//Compute the Euler angles
+	angles[0] = acos(-z[1]/sqrt(1-z[2]*z[2]));
+	angles[1] = acos(z[2]);
+	angles[2] = acos(y[2]/sqrt(1-z[2]*z[2]));
+
+	return angles;
+}
 
 void SetPassageType(vector<OrbitData> &branchorbitdata){
 
-	double r,prevr=0;
+	double r,prevr=0,prevpos[3], *currangles, *refangles;
 	int firstpassageindex,preventrytype=-2;
 	vector<int> deleteindx;
 	bool apofirst = false;
@@ -336,32 +382,38 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 			//Can only do this if the previous radial distance has been set
 			if(prevr>0){
 
+				//Now we have the the semi-major axis vector
+				if((refangles[0] + refangles[1] + refangles[2])==0.0)
+					refangles = computeAngles(prevpos,branchorbitdata[i]);
+
+				//Compute the current angles of the orbital plane
+				currangles = computeAngles(prevpos,branchorbitdata[i]);
+
+				//Compute the difference in the angles
+				branchorbitdata[i].longascnode = currangles[0] - refangles[0];
+				branchorbitdata[i].inc = currangles[1] - refangles[1];
+				branchorbitdata[i].argpariap = currangles[2] - refangles[2];
+
+
 				// If the current distance is greater that the previous radial distance then
 				//this is a apo-centric passage, otherwise it is a pericentric passage
 				if(r>prevr){
 
 					//If the previous entry type was a apocentric, then delete this one and
 					//wait until the halo goes past pericenter
-					if((preventrytype==-1) | ((r-prevr)<0.1)){
+					if((preventrytype==-1) | ((r-prevr)<0.05)){
 						deleteindx.push_back(i);
 						continue;
 					}
 					branchorbitdata[i].entrytype = -1;
 					branchorbitdata[i].orbiteccratio = (r-prevr)/(r+prevr);
 
-					if(apofirst){
-						currvector[0] = branchorbitdata[i].xrel - prevpos[0];
-						currvector[1] = branchorbitdata[i].yrel - prevpos[1];
-						currvector[2] = branchorbitdata[i].zrel - prevpos[2];
-
-
-					}
 				}
 				else{
 
 					//If the previous entry type was a pericentric, then delete this one and
 					//wait until the halo goes past apocenter
-					if((preventrytype==0) | ((prevr-r)<0.1)){
+					if((preventrytype==0) | ((prevr-r)<0.05)){
 						deleteindx.push_back(i);
 						continue;
 					}
@@ -377,10 +429,14 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 			}
 			prevr = r;
 			preventrytype = branchorbitdata[i].entrytype;
+			prevpos[0] = branchorbitdata[i].xrel;
+			prevpos[1] = branchorbitdata[i].yrel;
+			prevpos[2] = branchorbitdata[i].zrel;
 
 			//Store the index of the first passage and the relative position vector
 			if(branchorbitdata[i].numorbits==0.5)
 				firstpassageindex = i;
+
 		}
 	}
 
@@ -549,7 +605,9 @@ void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitda
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
+	// Int_t snap = 55;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	// Int_t i = 991;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			//Lets first check if this halo has been processed or is not orbiting a halo
