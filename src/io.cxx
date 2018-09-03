@@ -291,7 +291,46 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, Sna
 		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
 		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
 
-		for(int nn=0;nn<ichunk;nn++) Halo[count++].vz = doublebuff[nn] * Units.velocity;		
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].vz = doublebuff[nn] * Units.velocity;	
+
+		// Lx
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].lx = doublebuff[nn] * Units.mass * Units.velocity *Cosmo.h/snapdata[snap].scalefactor * Units.length;			
+
+		// Ly
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].ly = doublebuff[nn] * Units.mass * Units.velocity *Cosmo.h/snapdata[snap].scalefactor * Units.length;			
+
+		// Lz
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].lz = doublebuff[nn] * Units.mass * Units.velocity *Cosmo.h/snapdata[snap].scalefactor * Units.length;		
 
 		// Rmax
 		ifield++;
@@ -997,6 +1036,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Write out the dataset
 		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].argpariap;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* hostalignment */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].hostalignment;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

@@ -27,7 +27,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	vr = (rx * vrx + ry * vry + rz * vrz) / r;
 	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
-	double mu, lx, ly, lz, e, count;
+	double mu, lx, ly, lz, e, count, deltat;
+	//The difference in time since the previous snapshot
+	deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
+
 	// Find the average reduced mass, angular momentum and energy of this orbit
 	// once the halo is found to be orbiting its host
 	if(orbitprops.orbitingflag){
@@ -40,15 +43,25 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		lx = (ry * vrz) - (rz * vry);
 		ly = -((rx * vrz) - (rz * vrx));
 		lz = (rx * vry) - (ry * vrx);
-		orbitprops.lx += lx;
-		orbitprops.ly += ly;
-		orbitprops.lz += lz;
+		orbitprops.lx += mu * lx;
+		orbitprops.ly += mu * ly;
+		orbitprops.lz += mu * lz;
 
 		//The halos total orbital angular momentum
-		orbitprops.ltot += mu * sqrt(lx*lx + ly*ly + lz*lz);
+		orbitprops.ltot += sqrt(lx*lx + ly*ly + lz*lz);
 
 		//The halos orbital energy
 		orbitprops.E += 0.5 * mu * vrel * vrel - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
+
+		//Keep track of the host's angular momentum vectors
+		orbitprops.hostlx += hosthalo.lx;
+		orbitprops.hostly += hosthalo.ly;
+		orbitprops.hostlz += hosthalo.lz;
+
+
+
+		// Find the change mass in units of Msun/Gyr
+		orbitprops.masslossrate += (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 	}
 
 	//Store the peak vmax in the orbiting halos history
@@ -75,7 +88,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 	//Define varibles for the calculations
-	double omega, deltat, ltot, E;
+	double omega, ltot, E;
 
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
@@ -148,6 +161,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.lxrel = -1.0;
 			tmporbitdata.lyrel = -1.0;
 			tmporbitdata.lzrel = -1.0;
+			tmporbitdata.hostalignment = 0.0;
 
 			//Now append it into the orbitdata dataset
 			branchorbitdata.push_back(tmporbitdata);
@@ -182,6 +196,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//The host halo
 		tmporbitdata.hosthaloID = hosthalo.origid;
 
+		//The average mass loss rate
+		tmporbitdata.masslossrate = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
+
 		//Store the scalefactor this happens at
 		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
@@ -194,12 +211,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Calculate the orbit period as 2x the previous passage
 		tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
-
-		//The difference in time since the previous snapshot
-		deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
-
-		// Find the change mass in units of Msun/Gyr
-		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 
 		//Find the average energy, total angular momentum and reduced mass
 		E = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -226,6 +237,14 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.lyrel = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
 		tmporbitdata.lzrel = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
 
+		//Find the average angular momentum of the host halo
+		orbitprops.hostlx /= (double)(currentsnap - orbitprops.prevpassagesnap);
+		orbitprops.hostly /= (double)(currentsnap - orbitprops.prevpassagesnap);
+		orbitprops.hostlz /= (double)(currentsnap - orbitprops.prevpassagesnap);
+
+		//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
+		tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel) + (orbitprops.hostly*tmporbitdata.lyrel)	+ (orbitprops.hostlz*tmporbitdata.lzrel))/(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel*tmporbitdata.lxrel + tmporbitdata.lyrel*tmporbitdata.lyrel + tmporbitdata.lzrel*tmporbitdata.lzrel)));
+
 		//Reset the total angular momentum in the orbit props to zero
 		orbitprops.lx = 0.0;
 		orbitprops.ly = 0.0;
@@ -233,6 +252,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		orbitprops.E = 0.0;
 		orbitprops.ltot = 0.0;
 		orbitprops.mu = 0.0;
+		orbitprops.hostlx = 0.0;
+		orbitprops.hostly = 0.0;
+		orbitprops.hostlz = 0.0;
+		orbitprops.masslossrate = 0.0;
 
 		//Any additional properties to be calculated here
 

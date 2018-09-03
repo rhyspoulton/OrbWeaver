@@ -52,8 +52,8 @@ using namespace H5;
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDS 16
-#define NHDFFIELDSOUT 32
+#define NHDFFIELDS 19
+#define NHDFFIELDSOUT 44
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -138,6 +138,9 @@ struct HaloData{
 	//Velocity of the halo
 	double vx,vy,vz;
 
+	//Angular momentum of the halo
+	double lx,ly,lz;
+
 	//Rmax of the halo
 	double rmax;
 
@@ -218,6 +221,9 @@ struct OrbitData{
 
 	//The argument of pariapsis with respect to the intial orbital plane
 	float argpariap;
+
+	//How aligned the average orbital angular momentum is with the average host's angular momentum
+	float hostalignment;
 
 	//The scalefactor
 	float scalefactor;
@@ -314,12 +320,18 @@ struct OrbitProps{
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
 
+	//Use to calculate the average mass loss rate
+	double masslossrate;
+
 	double mu;
 
 	// Store the angular momentum vectors so the average can be calculated
 	double lx;
 	double ly;
 	double lz;
+	double hostlx;
+	double hostly;
+	double hostlz;
 	double ltot;
 
 	double E;
@@ -422,6 +434,9 @@ struct HDFCatalogNames{
 		datasetnames.push_back("VXc");
 		datasetnames.push_back("VYc");
 		datasetnames.push_back("VZc");
+		datasetnames.push_back("Lx");
+		datasetnames.push_back("Ly");
+		datasetnames.push_back("Lz");
 		datasetnames.push_back("Rmax");
 		datasetnames.push_back("Vmax");
 		datasetnames.push_back("cNFW");
@@ -435,6 +450,9 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::STD_U64LE);
 		// datasettypes.push_back(PredType::STD_I64LE);
 		datasettypes.push_back(PredType::STD_I64LE);
+		datasettypes.push_back(PredType::NATIVE_DOUBLE);
+		datasettypes.push_back(PredType::NATIVE_DOUBLE);
+		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -487,6 +505,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("ArgPariap");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("HostAlignment");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("scalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("uniage");
@@ -503,7 +523,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Mass_200crit");
+		datasetnames.push_back("Mass");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
@@ -535,7 +555,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("R_200crit_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Mass_200crit_host");
+		datasetnames.push_back("Mass_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

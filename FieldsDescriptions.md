@@ -8,13 +8,16 @@
 | orbitalperiod  | Gyr | Current period of its orbit |
 | orbitecc  | N/A | The calculated eccentricity of its orbit |
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
-| Lorbit  | Mpc km/s | Angular momentum of its orbit |
 | Rperi | Mpc | The calculated peri-centric distance |
 | Rapo | Mpc | The calculated apo-centric distance |
 | scalefactor  | N/A | Scalefactor of this entry |
 | uniage | Gyr | Age of the universe of this entry |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
-| masslossrate  | solar masses/Gyr | Rate at which the halo is currently losing mass |
+| masslossrate  | solar masses/Gyr | The average rate at which the halo is losing mass |
+| LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined here: https://en.wikipedia.org/wiki/Orbital_elements |
+| Inclination | Radian | The inclination of the halos orbit with respect to the intial orbital plane |
+| ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |
+| HostAlignment | Radian | The alignment of the orbital angular momentum vector with the host halo's angular momentum vector |
 | X  | Mpc | X position of the halo in the simulation |
 | Y  | Mpc | Y position of the halo in the simulation |
 | Z  | Mpc | Z position of the halo in the simulation |
@@ -33,6 +36,9 @@
 | VXrel  | km/s | X component of the halos velocity relative to its host |
 | VYrel  | km/s | Y component of the halos velocity relative to its host |
 | Vzrel  | km/s | Z component of the halos velocity relative to its host |
+| Lxrel | solar masses Mpc km/s | The x comoponent of average  orbital angular momentum vector |
+| Lyrel | solar masses Mpc km/s | The x comoponent of average  orbital angular momentum vector |
+| Lzrel | solar masses Mpc km/s | The x comoponent of average orbital angular momentum vector |
 | Mass_host  | solar masses | Mass of its host (depends on mass definition given) |
 | R\_200crit_host  | Mpc | Virial radius of its host |
 | Rmax_host  | Mpc | Radial distance of Vmax for its host |
