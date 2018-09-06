@@ -10,14 +10,15 @@
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
 | Rperi | Mpc | The calculated peri-centric distance |
 | Rapo | Mpc | The calculated apo-centric distance |
-| scalefactor  | N/A | Scalefactor of this entry |
-| uniage | Gyr | Age of the universe of this entry |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
 | masslossrate  | solar masses/Gyr | The average rate at which the halo is losing mass |
 | LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined here: https://en.wikipedia.org/wiki/Orbital_elements |
 | Inclination | Radian | The inclination of the halos orbit with respect to the intial orbital plane |
 | ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |
 | HostAlignment | Radian | The alignment of the orbital angular momentum vector with the host halo's angular momentum vector |
+| MergerTimeScale | Gyr | How long the halo takes to merge once crossing 1.0 Rvir of its host halo, this is set the first time the orbiting halo crosses 1.0 Rvir |
+| scalefactor  | N/A | Scalefactor of this entry |
+| uniage | Gyr | Age of the universe of this entry |
 | X  | Mpc | X position of the halo in the simulation |
 | Y  | Mpc | Y position of the halo in the simulation |
 | Z  | Mpc | Z position of the halo in the simulation |

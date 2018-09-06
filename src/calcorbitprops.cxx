@@ -166,6 +166,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			//Now append it into the orbitdata dataset
 			branchorbitdata.push_back(tmporbitdata);
 
+			if((i==1.0) & (orbitprops.crossrvirtime==0.0)){
+
+				//Set the universe age at the time start orbiting
+				orbitprops.crossrvirtime = tmporbitdata.uniage;
+
+			}
+
 			//If has undergone a crossing then there is no need to check the other crossings
 			break;
 		}
@@ -332,6 +339,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 		//Mark the snapshot that this passage happens
 		orbitprops.prevpassagesnap = currentsnap;
+
 		return;
 	}
 
@@ -592,6 +600,12 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		if(branchorbitdata[i].entrytype<=0){
 			//Find the age of the universe
 			interpuniages.push_back(GetUniverseAge(branchorbitdata[i].scalefactor));
+		}
+		//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
+		//be set if the branch does not exist at the end of the simulation (has merged with another halo)
+		if((branchorbitdata[i].entrytype==1.0) & (orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata[-1].scalefactor)){
+			branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
+			orbitprops.crossrvirtime=0.0;
 		}
 	}
 

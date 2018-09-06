@@ -225,6 +225,9 @@ struct OrbitData{
 	//How aligned the average orbital angular momentum is with the average host's angular momentum
 	float hostalignment;
 
+	//The time since crossing 1 rvir to the time the halo is lost
+	float mergertimescale;
+
 	//The scalefactor
 	float scalefactor;
 
@@ -323,9 +326,13 @@ struct OrbitProps{
 	//Use to calculate the average mass loss rate
 	double masslossrate;
 
-	double mu;
+	//The time the halo crossed 1Rvir
+	double crossrvirtime;
 
-	// Store the angular momentum vectors so the average can be calculated
+	// Store the reduced mass,angular momentum vectors for the orbiting halo 
+	// and its host, total orbital angular momentum and orbital energy so the 
+	// average can be calculated
+	double mu;
 	double lx;
 	double ly;
 	double lz;
@@ -333,13 +340,13 @@ struct OrbitProps{
 	double hostly;
 	double hostlz;
 	double ltot;
-
 	double E;
 
 	OrbitProps(){
 		orbitingflag = false;
 		prevpassagesnap = 0;
 		prevpassagetime = 0.0;
+		crossrvirtime=0.0;
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;
@@ -506,6 +513,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("ArgPariap");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("HostAlignment");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("MergerTimeScale");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("scalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
