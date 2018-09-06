@@ -107,37 +107,21 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 			tmporbitdata.entrytype = i;
 
 			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs(((r/hosthalo.rvir)-i)/((r/hosthalo.rvir)-(prevr/prevhosthalo.rvir))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+			//From this scalefactor we can find the age of the universe
+			tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+			InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
 
 			//Set the orbit period as -1.0 here as only calculated at the passages
 			tmporbitdata.orbitperiod = -1.0;
 
 			//The orbting halo
 			tmporbitdata.haloID = orbitinghalo.origid;
-			tmporbitdata.x = orbitinghalo.x;
-			tmporbitdata.y = orbitinghalo.y;
-			tmporbitdata.z = orbitinghalo.z;
-			tmporbitdata.vx = orbitinghalo.vx;
-			tmporbitdata.vy = orbitinghalo.vy;
-			tmporbitdata.vz = orbitinghalo.vz;
-			tmporbitdata.mass = orbitinghalo.mass;
-			tmporbitdata.vmax = orbitinghalo.vmax;
-			tmporbitdata.rmax = orbitinghalo.rmax;
-			tmporbitdata.cnfw = orbitinghalo.cnfw;
-			tmporbitdata.xrel = rx;
-			tmporbitdata.yrel = ry;
-			tmporbitdata.zrel = rz;
-			tmporbitdata.vxrel = vrx;
-			tmporbitdata.vyrel = vry;
-			tmporbitdata.vzrel = vrz;
 
 			//The host halo
 			tmporbitdata.hosthaloID = hosthalo.origid;
-			tmporbitdata.rvirhost = hosthalo.rvir;
-			tmporbitdata.masshost = hosthalo.mass;
-			tmporbitdata.vmaxhost = hosthalo.vmax;
-			tmporbitdata.rmaxhost = hosthalo.rmax;
-			tmporbitdata.cnfwhost = hosthalo.cnfw;
 
 			/* Calculate various properties to be outputted */
 
@@ -301,7 +285,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		tmporbitdata.hosthaloID = hosthalo.origid;
 
 		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((prevvr/(prevvr - vr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
 		//From this scalefactor we can find the age of the universe
 		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
@@ -517,7 +501,6 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		//for the halos that are to be interpolated
 		while(currentsnap!=halosnap){
 			interpsnaps.push_back(currentsnap);
-
 			currentsnap++;
 		}
 
@@ -551,11 +534,12 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
 
+
+
 	// ofstream file;
 	// file.open("../analysis/data/circ.dat");
 
 	while(true){
-
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 		hostindexes.push_back(orbitinghaloindex);
@@ -593,28 +577,19 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	}
 	// file.close();
 
-	//Now another interpolation can be done to find the actual positions of the passage points
-	vector<double> interpuniages;
-	for(int i = 0; i<branchorbitdata.size();i++){
-		//Only extract the scalfactor if this is a passage entry
-		if(branchorbitdata[i].entrytype<=0){
-			//Find the age of the universe
-			interpuniages.push_back(GetUniverseAge(branchorbitdata[i].scalefactor));
-		}
-		//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
-		//be set if the branch does not exist at the end of the simulation (has merged with another halo)
-		if((branchorbitdata[i].entrytype==1.0) & (orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata[-1].scalefactor)){
-			branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
-			orbitprops.crossrvirtime=0.0;
+	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
+	//be set if the branch does not exist at the end of the simulation (has merged with another halo)
+	if((orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata[-1].scalefactor)){
+		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==1.0){
+				branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
+				break;
 		}
 	}
-
 	int nhalo = halosnaps.size();
-	int ninterp = interpuniages.size();
 
 	//Lets see if there is anything to interpolate but only if the halo exists
 	//for more than 3 snapshots is it possible to interpolate
-	if((ninterp>0) & (nhalo>3)) InterpPassagePoints(nhalo,ninterp,interpuniages,halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
+	if(nhalo>3) InterpPassagePoints(nhalo,halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
 
 	//Now have set the distances for the passages then the entry types and ratio
 	//eccentricities can be calculated

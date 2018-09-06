@@ -9,7 +9,7 @@ double LinInterp(double prevdata, double nextdata, double f){
 }
 
 //Use a cubic spline to interpolate the position and velocity of the halo
-void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double> &interpuniages, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, SnapData *&snapdata, vector<HaloData> &interphalos){
+void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *interpuniages, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, SnapData *&snapdata, vector<HaloData> &interphalos){
 
 	// Create a temporary dataset to store the known data points
 	double tmpdata[nhalo];
@@ -19,9 +19,6 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double
 	//Intialize the acceleration and the spline routine
 	gsl_interp_accel *acc = gsl_interp_accel_alloc();
 	gsl_spline *spline = gsl_spline_alloc (gsl_interp_cspline, nhalo);
-
-	//The length of interpuniages is the amount of halos to be interpolated
-	ninterp = interpuniages.size();
 
 	/*  x-pos  */
 
@@ -108,13 +105,12 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, vector<double
 
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, SnapData *&snapdata){
 
-
 	//Set the number of halos and the number that need to interpolated
 	Int_t nhalo = halosnaps.size(), ninterp = interpsnaps.size();
 
 	//The halouniages has to be an array for the interpolation routine
 	double halouniages[nhalo],f;
-	vector <double> interpuniages(ninterp);
+	double interpuniages[ninterp];
 	int j=0;
 	Int_t currentsnap,progensnap, progenindex, descsnap, descindex, orbitinghalosnap, orbitinghaloindex;
 
@@ -238,13 +234,20 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 }
 
-void InterpPassagePoints(int nhalo, int ninterp, vector<double> interpuniages, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
+void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
 
 	double halouniages[nhalo];
+	int ninterp = branchorbitdata.size();
+	double interpuniages[ninterp];
 
 	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
 	for(int i = 0;i<nhalo;i++)
 		halouniages[i] =  snapdata[halosnaps[i]].uniage;
+
+	//Now extract all the universe age for all the points in branchorbitdata
+	for(int i = 0; i<ninterp;i++)
+		interpuniages[i] = branchorbitdata[i].uniage;
+
 
 	vector<HaloData> interphalos;
 	interphalos.resize(ninterp);
@@ -254,40 +257,32 @@ void InterpPassagePoints(int nhalo, int ninterp, vector<double> interpuniages, v
 	InterpHaloPosVel(nhalo, ninterp, halouniages, interpuniages, halosnaps, haloindexes,snapdata,interphalos);
 	InterpHaloPosVel(nhalo, ninterp, halouniages, interpuniages, halosnaps, hostindexes,snapdata,interphosthalos);
 
-	int j = 0;
-	for(int i = 0; i<branchorbitdata.size();i++){
+	for(int i = 0; i<ninterp;i++){
 
-		//Only extract the scalfactor if this is a passage entry
-		if(branchorbitdata[i].entrytype==0){
-			//Find the age of the universe
-			// cout<<"Orginal "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
-			// cout<<"Orginal "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
+		// cout<<"Orginal "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
+		// cout<<"Orginal "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
 
+		//Do a periodicity correction
+		if((interphalos[i].x - interphosthalos[i].x)>0.5*Cosmo.boxsize) interphalos[i].x-=Cosmo.boxsize;
+		if((interphalos[i].y - interphosthalos[i].y)>0.5*Cosmo.boxsize) interphalos[i].y-=Cosmo.boxsize;
+		if((interphalos[i].z - interphosthalos[i].z)>0.5*Cosmo.boxsize) interphalos[i].z-=Cosmo.boxsize;
+		if((interphalos[i].x - interphosthalos[i].x)<-0.5*Cosmo.boxsize) interphalos[i].x+=Cosmo.boxsize;
+		if((interphalos[i].y - interphosthalos[i].y)<-0.5*Cosmo.boxsize) interphalos[i].y+=Cosmo.boxsize;
+		if((interphalos[i].z - interphosthalos[i].z)<-0.5*Cosmo.boxsize) interphalos[i].z+=Cosmo.boxsize;
 
-			//Do a periodicity correction
-			if((interphalos[j].x - interphosthalos[j].x)>0.5*Cosmo.boxsize) interphalos[j].x-=Cosmo.boxsize;
-			if((interphalos[j].y - interphosthalos[j].y)>0.5*Cosmo.boxsize) interphalos[j].y-=Cosmo.boxsize;
-			if((interphalos[j].z - interphosthalos[j].z)>0.5*Cosmo.boxsize) interphalos[j].z-=Cosmo.boxsize;
-			if((interphalos[j].x - interphosthalos[j].x)<-0.5*Cosmo.boxsize) interphalos[j].x+=Cosmo.boxsize;
-			if((interphalos[j].y - interphosthalos[j].y)<-0.5*Cosmo.boxsize) interphalos[j].y+=Cosmo.boxsize;
-			if((interphalos[j].z - interphosthalos[j].z)<-0.5*Cosmo.boxsize) interphalos[j].z+=Cosmo.boxsize;
-
-			branchorbitdata[i].x = interphalos[j].x;
-			branchorbitdata[i].y = interphalos[j].y;
-			branchorbitdata[i].z = interphalos[j].z;
-			branchorbitdata[i].vx = interphalos[j].vx;
-			branchorbitdata[i].vy = interphalos[j].vy;
-			branchorbitdata[i].vz = interphalos[j].vz;
-			branchorbitdata[i].xrel = interphosthalos[j].x - interphalos[j].x;
-			branchorbitdata[i].yrel = interphosthalos[j].y - interphalos[j].y;
-			branchorbitdata[i].zrel = interphosthalos[j].z - interphalos[j].z;
-			branchorbitdata[i].vxrel = interphosthalos[j].vx - interphalos[j].vx;
-			branchorbitdata[i].vyrel = interphosthalos[j].vy - interphalos[j].vy;
-			branchorbitdata[i].vzrel = interphosthalos[j].vz - interphalos[j].vz;
-			// cout<<"Update  "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
-			// cout<<"Update  "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
-
-			j++;
-		}
+		branchorbitdata[i].x = interphalos[i].x;
+		branchorbitdata[i].y = interphalos[i].y;
+		branchorbitdata[i].z = interphalos[i].z;
+		branchorbitdata[i].vx = interphalos[i].vx;
+		branchorbitdata[i].vy = interphalos[i].vy;
+		branchorbitdata[i].vz = interphalos[i].vz;
+		branchorbitdata[i].xrel = interphosthalos[i].x - interphalos[i].x;
+		branchorbitdata[i].yrel = interphosthalos[i].y - interphalos[i].y;
+		branchorbitdata[i].zrel = interphosthalos[i].z - interphalos[i].z;
+		branchorbitdata[i].vxrel = interphosthalos[i].vx - interphalos[i].vx;
+		branchorbitdata[i].vyrel = interphosthalos[i].vy - interphalos[i].vy;
+		branchorbitdata[i].vzrel = interphosthalos[i].vz - interphalos[i].vz;
+		// cout<<"Update  "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
+		// cout<<"Update  "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;	
 	}
 }
