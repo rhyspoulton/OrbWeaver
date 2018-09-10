@@ -468,12 +468,13 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
-	unsigned long long descendantID = snapdata[snap].Halo[i].descendant;
-	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-	Int_t descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	unsigned long long haloID = snapdata[snap].Halo[i].id;
 	Int_t halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	Int_t haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
+	unsigned long long descendantID = snapdata[snap].Halo[i].descendant;
+	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
+	Int_t descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+	unsigned long long descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 
 	//Keep track of this halo's snap and index for interpolation
@@ -511,8 +512,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 			currentsnap++;
 		}
 
-		//See if have reached the end of this branch
-		if(descendantID==haloID) break;
+		//See if have reached the end of this branch or have merged with its host
+		if((descendantID==haloID) | (descendantProgenID!=haloID)) break;
 
 		//Lets move to the descendant
 		haloID = descendantID;
@@ -520,29 +521,34 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 		haloindex = descendantindex;
 
 
-		//Extract its descendant
+		//Extract its descendant and its progenitor
 		descendantID = snapdata[halosnap].Halo[haloindex].descendant;
 		descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
 		descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+		descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 		//Interate keeping track of the snapshots
 		currentsnap++;
 	}
 
+	//If a halo exist less than 10 snapshots then lets remove it from the catalogue
 	if((halosnaps.size()+interpsnaps.size())<10) return;
 
 	//If the interp snapshots contains snapshots then interpolation needs to be done
-	//but only if the halo exists for more than 3 snapshots is it possible
-	if((interpsnaps.size()>0) & (halosnaps.size()>3)) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
+	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
 
 	//Reset the tree info to back at the base of the tree
-	descendantID = snapdata[snap].Halo[i].descendant;
-	descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-	descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	haloID = snapdata[snap].Halo[i].id;
 	halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
+	descendantID = snapdata[snap].Halo[i].descendant;
+	descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
+	descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+	descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
+
+	//Flag to keep track if the halo has merged
+	bool merged = false;
 
 
 	// ofstream file;
@@ -565,8 +571,13 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 		//Mark this halo as being done:
 		snapdata[halosnap].Halo[haloindex].doneflag = true;
 
-		//See if have reached the end of this branch
-		if(descendantID==haloID) break;
+		//See if have reached the end of this branch or has merged with its host
+		if(descendantID==haloID)
+			break;
+		else if(descendantProgenID!=haloID){
+			merged = true;
+			break;
+		}
 
 		//Update the previous halo and its host
 		prevorbitinghalo = snapdata[halosnap].Halo[haloindex];
@@ -578,22 +589,24 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 		halosnap = descendantsnap;
 		haloindex = descendantindex;
 
-		//Extract its descendant
+		//Extract its descendant and its progenitor
 		descendantID = snapdata[halosnap].Halo[haloindex].descendant;
 		descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
 		descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+		descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 	}
 	// file.close();
 
 	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
-	//be set if the branch does not exist at the end of the simulation (has merged with another halo)
-	if((orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata.back().scalefactor)){
+	//be set if the branch has merged with its host 
+	if((merged) & (orbitprops.crossrvirtime>0.0)){
 		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==1.0){
 				branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
 				break;
 		}
 	}
+
 	int nhalo = halosnaps.size();
 
 	//Lets see if there is anything to interpolate but only if the halo exists

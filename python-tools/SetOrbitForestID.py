@@ -12,6 +12,7 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 	"""
 
 	#Lets first walk down extracting the haloIDs for this branch of interest
+	mainHaloIDs = -1 * np.ones(numsnaps,dtype=np.int64)
 	mainOrbitHaloIDs = -1 * np.ones(numsnaps,dtype=np.int64)
 	snap = int(HaloID/TEMPORALHALOIDVAL)
 	index = int(HaloID%TEMPORALHALOIDVAL-1)
@@ -58,6 +59,7 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 
 		#Store the mainOrbitID
 		mainOrbitHaloIDs[snap] = mainOrbitHaloID
+		mainHaloIDs[snap]=ID
 
 		# Lets re-map the tree information
 		if((snap==mainRootTailSnap) & (snap==mainRootHeadSnap)):
@@ -171,10 +173,22 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 					orbitingHaloID = np.uint64(haloSnap * TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
 					orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
-					# Mark the end of the branch if it has merged with something else or end of its existence or at the end of the main orbiting halo's existence
-					if((headTail!=ID) | (head==ID) | (haloSnap==mainRootHeadSnap)):
+					# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
+					if((head==ID) | (haloSnap==mainRootHeadSnap)):
 						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
 						orbitdata[haloSnap]["Head"].append(orbitingHaloID)
+						break
+					elif(headTail!=ID): # If its heads tail is not pointing back to itself then it has merged with something
+
+						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+
+						#See if this halo merges with the halo its is orbiting if so then set it to merge with it or have it point back to itself
+						sel = np.where(mainOrbitHaloIDs==head)[0]
+						if(sel):
+							orbitdata[haloSnap]["Head"].append(mainOrbitHaloIDs[sel])
+						else:
+							orbitdata[haloSnap]["Head"].append(orbitingHaloID)
+
 						break
 
 					elif((haloSnap==tailSnap) | (tailSnap<=mainRootTailSnap)): # If at the base of the branch or when the main orbiting halo formed
