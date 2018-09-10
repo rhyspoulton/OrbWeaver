@@ -3,7 +3,7 @@
 #include "orbweaver.h"
 
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, SnapData *&snapdata, OrbitProps &orbitprops){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
@@ -92,75 +92,82 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
+	float numrvircrossing=0;
 	for(float i = 3.0;i>0.0;i-=0.5){
 
 		// Less check to see if the previous halo was beyond the host Rvir and
-		//if the current halo is within the host Rvir so it has infallen
-		if(((prevr>i*prevhosthalo.rvir) & (r<i*hosthalo.rvir)) | ((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir))){
+		//if the current halo is within the host Rvir so it has infallen or if it
+		//is the other way around so has outfallen
+		if((prevr>i*prevhosthalo.rvir) & (r<i*hosthalo.rvir)){
+			numrvircrossing = i;
 
-			/* Store some properties of the orbit halo and its host at this point */
-
-			//Store what orbitID number this is
-			tmporbitdata.orbitID = orbitID;
-
-			//Store how many rvir this entry is
-			tmporbitdata.entrytype = i;
-
-			//Store the scalefactor this happens at
-			tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs(((r/hosthalo.rvir)-i)/((r/hosthalo.rvir)-(prevr/prevhosthalo.rvir))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
-			//From this scalefactor we can find the age of the universe
-			tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
-
-			InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
-
-			//Set the orbit period as -1.0 here as only calculated at the passages
-			tmporbitdata.orbitperiod = -1.0;
-
-			//The orbting halo
-			tmporbitdata.haloID = orbitinghalo.origid;
-
-			//The host halo
-			tmporbitdata.hosthaloID = hosthalo.origid;
-
-			/* Calculate various properties to be outputted */
-
-			//The difference in time since the previous snapshot
-			deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
-
-			// Find the change mass in units of Msun/Gyr
-			tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
-
-			//Find the angular distance
-			omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
-
-			//The tangential velocity of the orbiting halo with respect to its host
-			tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
-
-			//Any additional properties to be calculated here
-
-			//Set the orbit period and eccentricty as -1.0
-			tmporbitdata.orbitperiod = -1.0;
-			tmporbitdata.orbitecc = -1.0;
-			tmporbitdata.lxrel = -1.0;
-			tmporbitdata.lyrel = -1.0;
-			tmporbitdata.lzrel = -1.0;
-			tmporbitdata.hostalignment = 0.0;
-
-			//Now append it into the orbitdata dataset
-			branchorbitdata.push_back(tmporbitdata);
-
-			if((i==1.0) & (orbitprops.crossrvirtime==0.0)){
-
-				//Set the universe age at the time start orbiting
-				orbitprops.crossrvirtime = tmporbitdata.uniage;
-
-			}
-
-			//If has undergone a crossing then there is no need to check the other crossings
-			break;
+			//Prioritize first infall when crossing rvir since this will set the merger timescale
+			if((i==1.0) & (orbitprops.crossrvirtime==0.0)) 	break;
 		}
+		else if((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir))
+			numrvircrossing = -i;
+
+
 	}
+	if(numrvircrossing!=0){
+
+		/* Store some properties of the orbit halo and its host at this point */
+
+		//Store what orbitID number this is
+		tmporbitdata.orbitID = orbitID;
+
+		//Store how many rvir this entry is
+		tmporbitdata.entrytype = numrvircrossing;
+
+		//Store the scalefactor this happens at
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) - abs(((r/hosthalo.rvir)-abs(numrvircrossing))/((r/hosthalo.rvir)-(prevr/prevhosthalo.rvir))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+
+		//From this scalefactor we can find the age of the universe
+		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
+
+		InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
+
+		//Set the orbit period as -1.0 here as only calculated at the passages
+		tmporbitdata.orbitperiod = -1.0;
+
+		//The orbting halo
+		tmporbitdata.haloID = orbitinghalo.origid;
+
+		//The host halo
+		tmporbitdata.hosthaloID = hosthalo.origid;
+
+		/* Calculate various properties to be outputted */
+
+		//The difference in time since the previous snapshot
+		deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
+
+		// Find the change mass in units of Msun/Gyr
+		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
+
+		//Find the angular distance
+		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
+
+		//The tangential velocity of the orbiting halo with respect to its host
+		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
+
+		//Any additional properties to be calculated here
+
+		//Set the orbit period and eccentricty as -1.0
+		tmporbitdata.orbitperiod = -1.0;
+		tmporbitdata.orbitecc = -1.0;
+		tmporbitdata.lxrel = -1.0;
+		tmporbitdata.lyrel = -1.0;
+		tmporbitdata.lzrel = -1.0;
+		tmporbitdata.hostalignment = 0.0;
+
+		//Now append it into the orbitdata dataset
+		branchorbitdata.push_back(tmporbitdata);
+
+		//Set the time when this halo first crosses 1 rvir of its host halo
+		if((numrvircrossing==1.0) & (orbitprops.crossrvirtime==0.0))
+			orbitprops.crossrvirtime = tmporbitdata.uniage;
+	}
+
 
 	/* Check if the halo has gone past pericenter or apocenter */
 
@@ -416,11 +423,11 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 					//If the previous entry type was a apocentric, then delete this one and
 					//wait until the halo goes past pericenter
-					if((preventrytype==-1) | ((r-prevr)<0.05)){
+					if((preventrytype==-99) | ((r-prevr)<0.05)){
 						deleteindx.push_back(i);
 						continue;
 					}
-					branchorbitdata[i].entrytype = -1;
+					branchorbitdata[i].entrytype = -99;
 					branchorbitdata[i].orbiteccratio = (r-prevr)/(r+prevr);
 
 				}
@@ -438,7 +445,7 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 					//a apocentric passage
 					if(branchorbitdata[i].numorbits==1.0){
 						cout<<firstpassageindex<<endl;
-						branchorbitdata[firstpassageindex].entrytype = -1;
+						branchorbitdata[firstpassageindex].entrytype = -99;
 					}
 				}
 			}
@@ -459,7 +466,7 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 		branchorbitdata.erase(branchorbitdata.begin()+deleteindx[i]);
 }
 
-void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long descendantID = snapdata[snap].Halo[i].descendant;
 	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
@@ -522,6 +529,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 		currentsnap++;
 	}
 
+	if((halosnaps.size()+interpsnaps.size())<10) return;
+
 	//If the interp snapshots contains snapshots then interpolation needs to be done
 	//but only if the halo exists for more than 3 snapshots is it possible
 	if((interpsnaps.size()>0) & (halosnaps.size()>3)) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
@@ -579,7 +588,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 
 	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
 	//be set if the branch does not exist at the end of the simulation (has merged with another halo)
-	if((orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata[-1].scalefactor)){
+	if((orbitprops.crossrvirtime>0.0) & (snapdata[halosnap].scalefactor!=snapdata.back().scalefactor)){
 		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==1.0){
 				branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
 				break;
@@ -602,7 +611,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, SnapData *&sna
 	orbitdata.insert(orbitdata.end(),make_move_iterator(branchorbitdata.begin()),make_move_iterator(branchorbitdata.end()));
 }
 
-void ProcessOrbits(Options &opt, SnapData *&snapdata, vector<OrbitData> &orbitdata){
+void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	int numsnaps =  opt.fsnap - opt.isnap+1;
 

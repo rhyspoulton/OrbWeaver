@@ -170,8 +170,8 @@ struct SnapData{
 		Halo.empty();
 	};	
 	~SnapData(){
-		for(int i;i<Halo.size();i++)
-			delete &Halo[i];
+		Halo.clear();
+		Halo.shrink_to_fit();
 	};
 };
 

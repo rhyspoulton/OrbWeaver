@@ -19,7 +19,7 @@ bool FileExists(const char *fname) {
 
 #ifdef USEHDF
 
-vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, SnapData *&snapdata, HDFCatalogNames hdfnames){
+vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames){
 	
 	int ichunk, chunksize=8192;
 	Attribute snapattr;
@@ -541,7 +541,7 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 	return;
 }
 
-void ReadData(Options &opt, SnapData *&snapdata){
+void ReadData(Options &opt, vector<SnapData> &snapdata){
 
 	H5File *Fhdf;
 	Fhdf=new H5File;

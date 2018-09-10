@@ -9,7 +9,7 @@ double LinInterp(double prevdata, double nextdata, double f){
 }
 
 //Use a cubic spline to interpolate the position and velocity of the halo
-void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *interpuniages, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, SnapData *&snapdata, vector<HaloData> &interphalos){
+void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *interpuniages, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, vector<HaloData> &interphalos){
 
 	// Create a temporary dataset to store the known data points
 	double tmpdata[nhalo];
@@ -103,7 +103,7 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *inter
 
 }
 
-HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, SnapData *&snapdata){
+HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, vector<SnapData> &snapdata){
 
 	//Set the number of halos and the number that need to interpolated
 	Int_t nhalo = halosnaps.size(), ninterp = interpsnaps.size();
@@ -216,7 +216,7 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 	}
 }
 
-void InterpPassageHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, SnapData *&snapdata){
+void InterpPassageHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata){
 
 	double f = (interpuniage - currentuniage)/(prevuniage - currentuniage);
 
@@ -234,7 +234,7 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 }
 
-void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, SnapData *&snapdata, vector<OrbitData> &branchorbitdata){
+void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata){
 
 	double halouniages[nhalo];
 	int ninterp = branchorbitdata.size();

@@ -29,8 +29,8 @@ int main(int argc,char **argv)
         GetArgs(argc,argv,opt);
         cout.precision(10);
 
-        SnapData *snapdata;
-        snapdata = new SnapData[opt.numsnaps];
+        vector<SnapData> snapdata;
+        snapdata.resize(opt.numsnaps);
 
         // First need to load in the catalogue data from VELOCIraptor and TreeFrog catalogues
         ReadData(opt,snapdata);
