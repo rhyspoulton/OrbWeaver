@@ -167,6 +167,9 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			//Find the difference in the fraction of uniage to find where the intepolation should be done
 			f = (snapdata[currentsnap].uniage - snapdata[halosnaps[i]].uniage)/(snapdata[halosnaps[i+1]].uniage - snapdata[halosnaps[i]].uniage);
 
+			//Number of particles in the halo
+			interphalos[j].npart = (unsigned long long)LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].npart,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].npart,f);
+
 			//Virial mass of the halo
 			interphalos[j].mass = LogInterp(snapdata[halosnaps[i]].Halo[haloindexes[i]].mass,snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].mass,f);
 
@@ -221,12 +224,14 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	double f = (interpuniage - currentuniage)/(prevuniage - currentuniage);
 
 	//Interpolate the orbiting halo's properties
+	tmporbitdata.npart = (unsigned long long)LogInterp(prevorbitinghalo.npart,orbitinghalo.npart,f);
 	tmporbitdata.mass = LogInterp(prevorbitinghalo.mass,orbitinghalo.mass,f);
 	tmporbitdata.vmax = LogInterp(prevorbitinghalo.vmax,orbitinghalo.vmax,f);
 	tmporbitdata.rmax = LogInterp(prevorbitinghalo.rmax,orbitinghalo.rmax,f);
 	tmporbitdata.cnfw = LinInterp(prevorbitinghalo.cnfw,orbitinghalo.cnfw,f);
 
 	//Interpolate the host halo properties
+	tmporbitdata.nparthost = (unsigned long long)LogInterp(prevhosthalo.npart,hosthalo.npart,f);
 	tmporbitdata.masshost = LogInterp(prevhosthalo.mass,hosthalo.mass,f);
 	tmporbitdata.rvirhost = LogInterp(prevhosthalo.rvir,hosthalo.rvir,f);
 	tmporbitdata.vmaxhost = LogInterp(prevhosthalo.vmax,hosthalo.vmax,f);

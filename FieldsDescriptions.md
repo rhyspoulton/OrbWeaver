@@ -25,11 +25,13 @@
 | VX  | km/s | X component of the halos velocity in the simulation |
 | VY  | km/s | Y component of the halos velocity in the simulation |
 | VZ  | km/s | Z component of the halos velocity in the simulation |
+| Npart | N/A | Number of particles in the orbiting halo |
 | Mass  | solar masses | Mass of the halo (depends on mass definition given) |
 | Rmax  | Mpc | Radial distance of Vmax |
 | Vmax  | km/s | Maxiumum circular velocity of the halo |
 | Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |
 | cNFW | N/A  | Concentration of the halo |
+| hostFlag | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | Mpc | X position of the halo relative to its host |
 | Yrel  | Mpc | Y position of the halo relative to its host |
@@ -40,9 +42,11 @@
 | Lxrel | solar masses Mpc km/s | The x comoponent of average  orbital angular momentum vector |
 | Lyrel | solar masses Mpc km/s | The x comoponent of average  orbital angular momentum vector |
 | Lzrel | solar masses Mpc km/s | The x comoponent of average orbital angular momentum vector |
+|Npart_host | N/A | Number of particle in its host halo |
 | Mass_host  | solar masses | Mass of its host (depends on mass definition given) |
 | R\_200crit_host  | Mpc | Virial radius of its host |
 | Rmax_host  | Mpc | Radial distance of Vmax for its host |
 | Vmax_host  | km/s | Maximum circular velocity of its host
 | cNFW_host | N/A  | Concentration of its host |
+|hostFlag_host | N/A | If this halo host is the top of its spatial hierachy (not a subhalo), where: 0 = No, 1 = Yes |
 

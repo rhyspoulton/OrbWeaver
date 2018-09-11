@@ -52,8 +52,8 @@ using namespace H5;
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDS 19
-#define NHDFFIELDSOUT 44
+#define NHDFFIELDSIN 21
+#define NHDFFIELDSOUT 49
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -115,16 +115,19 @@ struct HaloData{
 	unsigned long long origid;
 
 	//The descendant of the halo
-	unsigned long long descendant;
+	long long descendant;
 
 	//The progenitor of the halo
-	unsigned long long progenitor;
+	long long progenitor;
 
-	//The ID of the host of this halo
-	long long hosthaloid;
+	//If te halo is a subhalo
+	bool hostFlag;
 
 	//The ID of the halo which it is currently orbiting
 	long long orbitinghaloid; 
+
+	//The number of particles in this halo
+	unsigned long long npart;
 
 	//Virial mass of the halo
 	double mass;
@@ -252,6 +255,9 @@ struct OrbitData{
 	//The z velocity
 	float vz;
 
+	//The number of particles in the orbiting halo
+	unsigned long long npart;
+
 	//The viral mass of the orbiting halo
 	float mass;
 
@@ -266,6 +272,9 @@ struct OrbitData{
 
 	//The concentration of the orbiting halo
 	float cnfw;
+
+	//Boolean flag if this halo is a host halo (top of it spatial herachy)
+	bool hostFlag;
 
 	//The tangential velocity of the halo with respect to its host
 	float vtan;
@@ -297,6 +306,9 @@ struct OrbitData{
 	//The average orbital angular momentum in z-direction since last passage
 	float lzrel;
 
+	//The number of particles in the host halo
+	unsigned long long nparthost;
+
 	//The viral radius of the host
 	float rvirhost;
 
@@ -311,6 +323,9 @@ struct OrbitData{
 
 	//The concentration of the host halo
 	float cnfwhost;
+
+	//Boolean flag if the host halo is a host halo (top of it spatial herachy)
+	bool hostFlaghost;
 };
 
 struct OrbitProps{
@@ -427,17 +442,18 @@ struct HDFCatalogNames{
 		snapattrnames.push_back("NHalos");
 		snapattrnames.push_back("scalefactor");
 
-		datasetnames.push_back("Xc");
-		datasetnames.push_back("Yc");
-		datasetnames.push_back("Zc");
 		datasetnames.push_back("ID");
 		datasetnames.push_back("origID");
 		datasetnames.push_back("Head");
 		datasetnames.push_back("Tail");
-		// datasetnames.push_back("hostHaloID");
 		datasetnames.push_back("OrbitingHaloID");
-		datasetnames.push_back("Mass_tot");
+		datasetnames.push_back("npart");
+		datasetnames.push_back("hostFlag");
+		datasetnames.push_back("Mass_200crit");
 		datasetnames.push_back("R_200crit");
+		datasetnames.push_back("Xc");
+		datasetnames.push_back("Yc");
+		datasetnames.push_back("Zc");
 		datasetnames.push_back("VXc");
 		datasetnames.push_back("VYc");
 		datasetnames.push_back("VZc");
@@ -448,15 +464,16 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Vmax");
 		datasetnames.push_back("cNFW");
 
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
-		datasettypes.push_back(PredType::STD_U64LE);
-		datasettypes.push_back(PredType::STD_U64LE);
-		datasettypes.push_back(PredType::STD_U64LE);
-		datasettypes.push_back(PredType::STD_U64LE);
-		// datasettypes.push_back(PredType::STD_I64LE);
-		datasettypes.push_back(PredType::STD_I64LE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -532,6 +549,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Npart");
+		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("Mass");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
@@ -542,6 +561,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("cNFW");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("hostFlag");
+		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasetnames.push_back("Vtan");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Xrel");
@@ -562,6 +583,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LZrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Npart_host");
+		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("R_200crit_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Mass_host");
@@ -572,6 +595,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("cNFW_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("hostFlag_host");
+		datasettypes.push_back(PredType::NATIVE_UINT8);
 	};
 };
 

@@ -106,9 +106,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		}
 		else if((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir))
 			numrvircrossing = -i;
-
-
 	}
+
+	//Keep track if this halo and its host is top of spatial herachy
+	tmporbitdata.hostFlag = orbitinghalo.hostFlag;
+	tmporbitdata.hostFlaghost = hosthalo.hostFlag;
+
 	if(numrvircrossing!=0){
 
 		/* Store some properties of the orbit halo and its host at this point */
@@ -423,7 +426,7 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 					//If the previous entry type was a apocentric, then delete this one and
 					//wait until the halo goes past pericenter
-					if((preventrytype==-99) | ((r-prevr)<0.05)){
+					if(preventrytype==-99){
 						deleteindx.push_back(i);
 						continue;
 					}
@@ -435,7 +438,7 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 					//If the previous entry type was a pericentric, then delete this one and
 					//wait until the halo goes past apocenter
-					if((preventrytype==0) | ((prevr-r)<0.05)){
+					if(preventrytype==0){
 						deleteindx.push_back(i);
 						continue;
 					}
