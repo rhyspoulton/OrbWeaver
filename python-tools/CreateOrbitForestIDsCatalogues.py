@@ -13,6 +13,9 @@ atime = atime[::-1]
 numhalos = numhalos[::-1]
 halodata = halodata[::-1]
 
+#Extract all the datatypes from the numpy arrays
+datatypes = {field:halodata[0][field].dtype for field in desiredfields}
+
 
 numsnaps = 200
 
@@ -22,18 +25,23 @@ NpartLim = 100000
 MinSnapExist = 20
 TEMPORALHALOIDVAL = 1000000000000
 iverbose = 1
-numOrbitalForestPerFile = 50
+numOrbitalForestPerFile = 2000
 outfilebasename = "/mnt/su3ctm/rpoulton/orbitdata/cat"
 
 # Build a new data stucture to contain the information for this file
-treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostHaloID"]
-orbitalfields = ["Mass_200crit","Mass_tot","Mass_FOF","R_200crit","npart","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Lx","Ly","Lz"]
+treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostFlag"]
+orbitalfields = ["Mass_200crit","Mass_FOF","R_200crit","npart","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Lx","Ly","Lz"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(numsnaps)]
+
+#Add in the extra datatypes for the extra orbit fields
+datatypes["origID"] =np.dtype("uint64")
+datatypes["hostFlag"] = np.dtype("bool")
+datatypes["OrbitingHaloID"] = np.dtype("uint64")
 
 #initialize the dictionaries
 for snap in range(numsnaps):
-	#store id and snap and mass of last major merger and while we're at it, store number of major mergers
-	halodata[snap]["OrbitingHaloID"] = np.zeros(numhalos[snap],dtype=np.int64)
+	#Set a done flag for the halos who's orbits around have already be analysed
+	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
 
 # built KD tree to quickly search for near neighbours. only build if not passed.
 start=time.clock()
@@ -65,19 +73,20 @@ for j in range(numsnaps-1,-1,-1):
 	haloIndexes = np.where((halodata[j]["npart"]>NpartLim) & ((halodata[j]["RootHead"]/TEMPORALHALOIDVAL-halodata[j]["RootTail"]/TEMPORALHALOIDVAL).astype(int)>=MinSnapExist))[0]
 	#Loop over all the interesting halos
 	for indx in haloIndexes:
-		#Skip if we have already set this halos OrbitForestID
-		if(halodata[j]["OrbitingHaloID"][indx]!=0): continue
+
+		#Skip if this halo's orbits have already been extracted
+		if(halodata[j]["doneFlag"][indx]): continue
 
 		start3 = time.clock()
 		#Set the OrbitalForestID
-		print("On forest",orbitforestidval)
-		SOF.SetOrbitalForestID(j,numsnaps,halodata,halodata[j]["ID"][indx],orbitforestidval,orbitdata,treefields,orbitalfields,pos_tree)
+		print("On oribital forest",orbitforestidval)
+		SOF.SetOrbitalForestID(j,numsnaps,numhalos,halodata,halodata[j]["ID"][indx],orbitforestidval,orbitdata,treefields,orbitalfields,pos_tree)
 
-		
+		#Keep track of the current number of forest
 		inumForest+=1
 
 		if(inumForest==numOrbitalForestPerFile):
-			SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+			SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
 
 			inumForest = 0
 			prevorbitforestidval = orbitforestidval +1
@@ -92,7 +101,7 @@ for j in range(numsnaps-1,-1,-1):
 	if (iverbose): print("Done snap",j,time.clock()-start2)
 
 if(orbitforestidval!=prevorbitforestidval -1):
-	SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+	SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
 print("Done generating forest",time.clock()-start)
 
 

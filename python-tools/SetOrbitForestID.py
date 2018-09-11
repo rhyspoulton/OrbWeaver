@@ -2,14 +2,18 @@ import numpy as np
 from scipy.interpolate import interp1d
 import h5py
 
-
-def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,treefields,orbitalfields,pos_tree,
+def SetOrbitalForestID(snap,numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata,treefields,orbitalfields,pos_tree,
 	TEMPORALHALOIDVAL = 1000000000000,searchSnapLim=5,numRvirSearch=4,ireversesnaporder=False):
 	"""
 	Sets the orbital forestID by finding any halos which come with numRvirSearch x Rvir of
 	the branch of interest over all the snapshots that it exists in
 
 	"""
+
+	#Set a dataset to mark a halo as done within this orbitID
+	processedFlag = [[] for i in range(numsnaps)]
+	for i in range(numsnaps):
+		processedFlag[i] = np.zeros(numhalos[i],dtype=bool)
 
 	#Lets first walk down extracting the haloIDs for this branch of interest
 	mainHaloIDs = -1 * np.ones(numsnaps,dtype=np.int64)
@@ -28,14 +32,34 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 	#Lets extract the full history of this halo
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
 
+		#Set the re-mapped tree information for this branch
+		orbitdata[snap]["origID"].append(np.uint64(ID))
+		mainOrbitHaloID = np.uint64(snap * TEMPORALHALOIDVAL + len(orbitdata[snap]["ID"]) + 1)
+		orbitdata[snap]["ID"].append(mainOrbitHaloID)
+
+
+		# #Set it orbiting forest ID and its Orbiting halo ID
+		# orbitdata[snap]["OrbitForestID"].append(orbitforestid)
+		orbitdata[snap]["OrbitingHaloID"].append(-1)
+
+		#Store the mainOrbitID
+		mainOrbitHaloIDs[snap] = mainOrbitHaloID
+		mainHaloIDs[snap]=ID
+
 
 		#Extract all the information for this halo if it exists
 		if(ID!=0):
-			# halodata[snap]["OrbitForestID"][haloIndex]=orbitforestid
+
+			#Set a boolean if this halo is a host halo or not
+			orbitdata[snap]["hostFlag"].append(True if halodata[snap]["hostHaloID"][haloIndex]==-1 else False)
+
 			for field in orbitalfields:
 				orbitdata[snap][field].append(halodata[snap][field][haloIndex])
 
 		else: # Otherwise lets interpolate its properties
+
+			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
+			orbitdata[snap]["hostFlag"].append(True if((halodata[haloSnap]["hostHaloID"][haloIndex]==-1) & (halodata[headSnap]["hostHaloID"][headIndex]==-1)) else False)
 
 			for field in orbitalfields:
 
@@ -44,22 +68,6 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 
 				#Do the interpolation
 				orbitdata[snap][field].append(f(snap))
-
-		#Set the re-mapped tree information for this branch
-		orbitdata[snap]["origID"].append(np.uint64(ID))
-		mainOrbitHaloID = np.uint64(snap * TEMPORALHALOIDVAL + len(orbitdata[snap]["ID"]) + 1)
-		orbitdata[snap]["ID"].append(mainOrbitHaloID)
-
-		# #Set it orbiting forest ID and its Orbiting halo ID
-		# orbitdata[snap]["OrbitForestID"].append(orbitforestid)
-		orbitdata[snap]["OrbitingHaloID"].append(-1)
-
-		halodata[snap]["OrbitingHaloID"][haloIndex]=mainOrbitHaloID
-
-
-		#Store the mainOrbitID
-		mainOrbitHaloIDs[snap] = mainOrbitHaloID
-		mainHaloIDs[snap]=ID
 
 		# Lets re-map the tree information
 		if((snap==mainRootTailSnap) & (snap==mainRootHeadSnap)):
@@ -83,6 +91,12 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 			head = halodata[snap]["Head"][haloIndex]
 			headSnap = int(head/TEMPORALHALOIDVAL)
 			headIndex = int(head%TEMPORALHALOIDVAL-1)
+
+			#Mark this halo as done in the global
+			halodata[snap]["doneFlag"][haloIndex]=True
+
+			#Mark this halo as done so it is not walked again in this orbital forest ID
+			processedFlag[snap][haloIndex]=True
 
 		#Lets check if the head is at the next snapshot
 		if(headSnap==snap+1):
@@ -112,7 +126,7 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 		# Walk along the branches of the halos within numRvirSearch
 		for iindex in indexes:
 			#Skip this halo if its orbital halo ID has already been set to this one or the halo is greater than the number of particles in the halo currently being orbited
-			if((halodata[snap]["OrbitingHaloID"][iindex]==mainOrbitHaloID) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
+			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
 				continue
 
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver
@@ -155,23 +169,24 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 					#Check we are still on the main branch
 					headTail = halodata[headSnap]["Tail"][headIndex]
 
-
-					# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
-					halodata[haloSnap]["OrbitingHaloID"][haloIndex] = mainOrbitHaloIDs[haloSnap]
-					#Lets set all its orbital properties
-					# for field in orbitalfields:
-					# 	orbitdata[haloSnap][field].append(halodata[haloSnap][field][haloIndex])
-
+					#Have a list of all the extracted indexes per
 					extractIndexes[haloSnap].append(haloIndex)
 
 					# Set this halos orbital forest ID and the halo it is orbiting
 					# orbitdata[haloSnap]["OrbitForestID"].append(orbitforestid)
 					orbitdata[haloSnap]["OrbitingHaloID"].append(mainOrbitHaloIDs[haloSnap])
 
+					#Set a boolean if this halo is a host halo or not
+					orbitdata[haloSnap]["hostFlag"].append(True if halodata[haloSnap]["hostHaloID"][haloIndex]==-1 else False)
+
 					# Re-map its tree properties
 					orbitdata[haloSnap]["origID"].append(np.uint64(ID))
 					orbitingHaloID = np.uint64(haloSnap * TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
 					orbitdata[haloSnap]["ID"].append(orbitingHaloID)
+
+					#Mark this halo as done so it is not walked again in this orbital forest ID
+					# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
+					processedFlag[haloSnap][haloIndex] = True
 
 					# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
 					if((head==ID) | (haloSnap==mainRootHeadSnap)):
@@ -220,10 +235,12 @@ def SetOrbitalForestID(snap,numsnaps,halodata,HaloID,orbitforestid,orbitdata,tre
 		for field in orbitalfields:
 			orbitdata[snap][field].extend(halodata[snap][field][extractIndexes[snap]].tolist())
 
-def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata):
+def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata):
 
 	#Set the filename for the catalog
-	filename = basefilename + ".orbweaver.orbitForestIDs.%05d-%05d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
+	filename = basefilename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
+
+	print("Outputting data to file",filename)
 
 	# Open up the hdf5 file
 	hdffile = h5py.File(filename,"w")
@@ -269,7 +286,7 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,atime,orbitForestI
 		# Output each of the datasets to the file
 		for field in orbitdata[snap].keys():
 
-			snapgrp.create_dataset(field,data=orbitdata[snap][field],compression='gzip', compression_opts=6)
+			snapgrp.create_dataset(field,data=np.asarray(orbitdata[snap][field],dtype = datatypes[field]),compression='gzip', compression_opts=6)
 
 
 	hdffile.close()
