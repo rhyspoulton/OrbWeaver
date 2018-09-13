@@ -112,7 +112,7 @@ struct HaloData{
 	unsigned long long id;
 
 	//The original ID of the halo
-	unsigned long long origid;
+	long long origid;
 
 	//The descendant of the halo
 	long long descendant;
@@ -237,6 +237,9 @@ struct OrbitData{
 	//The age of the universe
 	float uniage;
 
+	//Flag to identify if this galaxy would of merged in a hydrodynamical simulation
+	bool mergedflag;
+
 	//The x position
 	float x;
 
@@ -344,6 +347,9 @@ struct OrbitProps{
 	//The time the halo crossed 1Rvir
 	double crossrvirtime;
 
+	//The time merged if before the halo is lost
+	double mergertime;
+
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
 	// and its host, total orbital angular momentum and orbital energy so the 
 	// average can be calculated
@@ -362,6 +368,7 @@ struct OrbitProps{
 		prevpassagesnap = 0;
 		prevpassagetime = 0.0;
 		crossrvirtime=0.0;
+		mergertime=0.0;
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;
@@ -465,10 +472,10 @@ struct HDFCatalogNames{
 		datasetnames.push_back("cNFW");
 
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
-		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
-		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -502,7 +509,7 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitID");
 		datasettypes.push_back(PredType::STD_I32LE);
 		datasetnames.push_back("haloID");
-		datasettypes.push_back(PredType::STD_U64LE);
+		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("hosthaloID");
 		datasettypes.push_back(PredType::STD_U64LE);
 		datasetnames.push_back("entrytype");
@@ -537,6 +544,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("uniage");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("MergedFlag");
+		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasetnames.push_back("X");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Y");

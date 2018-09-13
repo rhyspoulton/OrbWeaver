@@ -239,11 +239,14 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 }
 
-void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata){
+void InterpPassagePoints(vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata, OrbitProps &orbitprops){
 
-	double halouniages[nhalo];
+	int nhalo = halosnaps.size();
 	int ninterp = branchorbitdata.size();
+	double halouniages[nhalo];
 	double interpuniages[ninterp];
+	double r;
+	bool merged=false;
 
 	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
 	for(int i = 0;i<nhalo;i++)
@@ -264,8 +267,6 @@ void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloi
 
 	for(int i = 0; i<ninterp;i++){
 
-		// cout<<"Orginal "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
-		// cout<<"Orginal "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;
 
 		//Do a periodicity correction
 		if((interphalos[i].x - interphosthalos[i].x)>0.5*Cosmo.boxsize) interphalos[i].x-=Cosmo.boxsize;
@@ -287,7 +288,16 @@ void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps, vector<Int_t> haloi
 		branchorbitdata[i].vxrel = interphosthalos[i].vx - interphalos[i].vx;
 		branchorbitdata[i].vyrel = interphosthalos[i].vy - interphalos[i].vy;
 		branchorbitdata[i].vzrel = interphosthalos[i].vz - interphalos[i].vz;
-		// cout<<"Update  "<<interphosthalos[i].x<<" "<<interphalos[i].x<<" "<<interphosthalos[i].y<<" "<<interphalos[i].y<<" "<<interphosthalos[i].z<<" "<<interphalos[i].z<<endl;
-		// cout<<"Update  "<<branchorbitdata[i].xrel<<" "<<branchorbitdata[i].yrel<<" "<<branchorbitdata[i].zrel<<endl;	
+
+		//Lets see if after the interoplation of the halo, it has merged with its host 
+		r = sqrt(branchorbitdata[i].xrel*branchorbitdata[i].xrel + branchorbitdata[i].yrel*branchorbitdata[i].yrel + branchorbitdata[i].zrel*branchorbitdata[i].zrel);
+		if((r<0.1 * interphosthalos[i].rvir) & (interpuniages[i]<orbitprops.mergertime)){
+			orbitprops.mergertime=interpuniages[i];
+			merged=true;
+		}
+
+		if(merged){
+			branchorbitdata[i].mergedflag=true;
+		}
 	}
 }

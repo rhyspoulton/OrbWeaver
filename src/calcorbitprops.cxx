@@ -337,6 +337,13 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		return;
 	}
 
+	//If got here and numrvircrossing==0 then lets check if this galaxy would of merged by going within 0.1 of its host Rvir which can be interpolated
+	if((numrvircrossing==0) & (r<0.1*hosthalo.rvir) & (tmporbitdata.mergedflag==false) & (orbitprops.crossrvirtime>0)){
+			tmporbitdata.mergedflag=true;
+			orbitprops.mergertime=GetUniverseAge(exp(log(snapdata[currentsnap].scalefactor) - abs(((r/hosthalo.rvir)-0.1)/((r/hosthalo.rvir)-(prevr/prevhosthalo.rvir))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor))));
+	}
+
+
 }
 
 double *computeAngles(double prevpos[3], OrbitData orbitdata){
@@ -599,27 +606,29 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 		descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 	}
+
 	// file.close();
+	//Now interoplate all the passage and crossing points
+	InterpPassagePoints(halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata,orbitprops);
 
 	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
 	//be set if the branch has merged with its host 
-	if((merged) & (orbitprops.crossrvirtime>0.0)){
+	if((orbitprops.mergertime>0.0) & (orbitprops.crossrvirtime>0.0)){
+		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==1.0){
+				branchorbitdata[i].mergertimescale = orbitprops.mergertime - orbitprops.crossrvirtime;
+				break;
+		}
+	}
+	else if((merged) & (orbitprops.crossrvirtime>0.0)){
 		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==1.0){
 				branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
 				break;
 		}
 	}
 
-	int nhalo = halosnaps.size();
-
-	//Lets see if there is anything to interpolate but only if the halo exists
-	//for more than 3 snapshots is it possible to interpolate
-	if(nhalo>3) InterpPassagePoints(nhalo,halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata);
-
 	//Now have set the distances for the passages then the entry types and ratio
 	//eccentricities can be calculated
 	SetPassageType(branchorbitdata);
-
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
@@ -652,7 +661,6 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
-
 		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
 	}

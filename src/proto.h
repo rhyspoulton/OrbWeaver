@@ -18,7 +18,7 @@ double LinInterp(double prevdata, double nextdata, double f);
 void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *interpuniages, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, vector<HaloData> &interphalos);
 void InterpPassageHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata);
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, vector<SnapData> &snapdata);
-void InterpPassagePoints(int nhalo, vector<Int_t> halosnaps,vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata);
+void InterpPassagePoints(vector<Int_t> halosnaps,vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata, OrbitProps &orbitprops);
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, OrbitData &orbitdata);
