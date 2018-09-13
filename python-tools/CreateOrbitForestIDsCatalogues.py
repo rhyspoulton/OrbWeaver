@@ -21,7 +21,7 @@ numsnaps = 200
 
 numRvirSearch = 4
 
-NpartLim = 100000
+NpartLim = 10000
 MinSnapExist = 20
 TEMPORALHALOIDVAL = 1000000000000
 iverbose = 1
@@ -34,9 +34,9 @@ orbitalfields = ["Mass_200crit","Mass_FOF","R_200crit","npart","Xc","Yc","Zc","V
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(numsnaps)]
 
 #Add in the extra datatypes for the extra orbit fields
-datatypes["origID"] =np.dtype("uint64")
+datatypes["origID"] =np.dtype("int64")
 datatypes["hostFlag"] = np.dtype("bool")
-datatypes["OrbitingHaloID"] = np.dtype("uint64")
+datatypes["OrbitingHaloID"] = np.dtype("int64")
 
 #initialize the dictionaries
 for snap in range(numsnaps):
