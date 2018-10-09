@@ -16,22 +16,21 @@ halodata = halodata[::-1]
 #Extract all the datatypes from the numpy arrays
 datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 
-
-numsnaps = 200
-
-numRvirSearch = 4
-
-NpartLim = 10000
-MinSnapExist = 20
-TEMPORALHALOIDVAL = 1000000000000
+buildparams = {}
+buildparams["VERSION"] = 0.10
+buildparams["numsnaps"] = 200
+buildparams["numRvirSearch"] = 4
+buildparams["NpartLimHost"] = 100000
+buildparams["MinSnapExist"] = 20
+buildparams["TEMPORALHALOIDVAL"] = 1000000000000
+buildparams["numOrbitalForestPerFile"] = 2000
 iverbose = 1
-numOrbitalForestPerFile = 2000
 outfilebasename = "/mnt/su3ctm/rpoulton/orbitdata/cat"
 
 # Build a new data stucture to contain the information for this file
 treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostFlag"]
 orbitalfields = ["Mass_200crit","Mass_FOF","R_200crit","npart","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Lx","Ly","Lz"]
-orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(numsnaps)]
+orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(buildparams["numsnaps"])]
 
 #Add in the extra datatypes for the extra orbit fields
 datatypes["origID"] =np.dtype("int64")
@@ -39,7 +38,7 @@ datatypes["hostFlag"] = np.dtype("bool")
 datatypes["OrbitingHaloID"] = np.dtype("int64")
 
 #initialize the dictionaries
-for snap in range(numsnaps):
+for snap in range(buildparams["numsnaps"]):
 	#Set a done flag for the halos who's orbits around have already be analysed
 	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
 
@@ -47,11 +46,11 @@ for snap in range(numsnaps):
 start=time.clock()
 boxsize=cosmodata['BoxSize']
 hval=cosmodata['Hubble_param']
-pos=[[]for j in range(numsnaps)]
-pos_tree=[[]for j in range(numsnaps)]
+pos=[[]for j in range(buildparams["numsnaps"])]
+pos_tree=[[]for j in range(buildparams["numsnaps"])]
 start=time.clock()
 if (iverbose): print("KD tree build")
-for snap in range(numsnaps-1,-1,-1):
+for snap in range(buildparams["numsnaps"]-1,-1,-1):
 	if (numhalos[snap]>0):
 		boxval=boxsize*atime[snap]/hval
 		pos[snap]=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
@@ -66,11 +65,11 @@ orbitforestidval=0
 start=time.clock()
 inumForest = 0
 prevorbitforestidval=0
-for j in range(numsnaps-1,-1,-1):
+for j in range(buildparams["numsnaps"]-1,-1,-1):
 	start2=time.clock()
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
-	haloIndexes = np.where((halodata[j]["npart"]>NpartLim) & ((halodata[j]["RootHead"]/TEMPORALHALOIDVAL-halodata[j]["RootTail"]/TEMPORALHALOIDVAL).astype(int)>=MinSnapExist))[0]
+	haloIndexes = np.where((halodata[j]["npart"]>buildparams["NpartLimHost"]) & ((halodata[j]["RootHead"]/buildparams["TEMPORALHALOIDVAL"]-halodata[j]["RootTail"]/buildparams["TEMPORALHALOIDVAL"]).astype(int)>=buildparams["MinSnapExist"]))[0]
 	#Loop over all the interesting halos
 	for indx in haloIndexes:
 
@@ -80,19 +79,19 @@ for j in range(numsnaps-1,-1,-1):
 		start3 = time.clock()
 		#Set the OrbitalForestID
 		print("On oribital forest",orbitforestidval)
-		SOF.SetOrbitalForestID(j,numsnaps,numhalos,halodata,halodata[j]["ID"][indx],orbitforestidval,orbitdata,treefields,orbitalfields,pos_tree)
+		SOF.SetOrbitalForestID(buildparams["numsnaps"],numhalos,halodata,halodata[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,buildparams["TEMPORALHALOIDVAL"],buildparams["numRvirSearch"])
 
 		#Keep track of the current number of forest
 		inumForest+=1
 
-		if(inumForest==numOrbitalForestPerFile):
-			SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+		if(inumForest==buildparams["numOrbitalForestPerFile"]):
+			SOF.OutputOrbitalForestIDFile(buildparams["numsnaps"],outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata,buildparams)
 
 			inumForest = 0
 			prevorbitforestidval = orbitforestidval +1
 
 			#Reset the orbitdat
-			orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(numsnaps)]
+			orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(buildparams["numsnaps"])]
 
 		#Iterate the orbitforestidval
 		orbitforestidval+=1
@@ -101,13 +100,13 @@ for j in range(numsnaps-1,-1,-1):
 	if (iverbose): print("Done snap",j,time.clock()-start2)
 
 if(orbitforestidval!=prevorbitforestidval -1):
-	SOF.OutputOrbitalForestIDFile(numsnaps,outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+	SOF.OutputOrbitalForestIDFile(buildparams["numsnaps"],outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata,buildparams)
 print("Done generating forest",time.clock()-start)
 
 
 # #get the size of each forest
 # OrbitForestSize=np.zeros(orbitforestidval,dtype=np.int64)
-# for j in range(numsnaps):
+# for j in range(buildparams["numsnaps"]):
 # 	if (numhalos[j]==0): continue
 # 	uniqueforest,counts=np.unique(halodata[j]['OrbitForestID'],return_counts=True)
 # 	for icount in range(len(uniqueforest)):

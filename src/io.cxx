@@ -383,8 +383,7 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, vec
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].cnfw = doublebuff[nn];
 
 		offset+=ichunk;	
-
-	}
+		}
 
 
 	delete[] doublebuff;

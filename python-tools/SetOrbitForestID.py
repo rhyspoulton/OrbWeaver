@@ -2,8 +2,8 @@ import numpy as np
 from scipy.interpolate import interp1d
 import h5py
 
-def SetOrbitalForestID(snap,numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata,treefields,orbitalfields,pos_tree,
-	TEMPORALHALOIDVAL = 1000000000000,searchSnapLim=5,numRvirSearch=4,ireversesnaporder=False):
+def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,
+	TEMPORALHALOIDVAL = 1000000000000,numRvirSearch=4):
 	"""
 	Sets the orbital forestID by finding any halos which come with numRvirSearch x Rvir of
 	the branch of interest over all the snapshots that it exists in
@@ -66,8 +66,22 @@ def SetOrbitalForestID(snap,numsnaps,numhalos,halodata,HaloID,orbitforestid,orbi
 
 			for field in orbitalfields:
 
-				#Set the interpolation data
-				f = interp1d([haloSnap,headSnap],[halodata[haloSnap][field][haloIndex],halodata[headSnap][field][headIndex]])
+				#If the field is positional lets see if a periodicity correction needs to be done
+				if((field=="Xc") | (field=="Yc") |(field=="Zc")):
+
+					halopos=halodata[haloSnap][field][haloIndex]
+					headpos=halodata[headSnap][field][headIndex]
+
+					if(headpos-halopos>0.5*cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]): halopos+=cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]
+					elif(headpos-halopos<-0.5*cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]): halopos-=cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]
+
+					f = interp1d([haloSnap,headSnap],[halopos,headpos])
+
+
+				else:
+
+					#Set the interpolation data
+					f = interp1d([haloSnap,headSnap],[halodata[haloSnap][field][haloIndex],halodata[headSnap][field][headIndex]])
 
 				#Do the interpolation
 				orbitdata[snap][field].append(f(snap))
@@ -255,7 +269,7 @@ def SetOrbitalForestID(snap,numsnaps,numhalos,halodata,HaloID,orbitforestid,orbi
 			orbitdata[snap][field].extend(halodata[snap][field][extractIndexes[snap]].tolist())
 
 
-def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata):
+def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata,buildparams):
 
 	#Set the filename for the catalog
 	filename = basefilename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
@@ -293,6 +307,12 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,or
 		cosmogrp.attrs["Omega_k"] = cosmodata["Omega_k"]
 	else:
 		cosmogrp.attrs["Omega_k"] = 0.0
+
+	#Add the catalogue build params
+	buildgrp = hdrgrp.create_group("Build_Params")
+	for field in buildparams.keys():
+		buildgrp.attrs[field] = buildparams[field]
+
 
 	# Put the data per snapshot
 	for snap in range(numsnaps):

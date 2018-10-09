@@ -13,6 +13,7 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *inter
 
 	// Create a temporary dataset to store the known data points
 	double tmpdata[nhalo];
+	double boundry=0,nextpos;
 
 	/*  Setup the interpolation routine  */
 
@@ -20,12 +21,16 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *inter
 	gsl_interp_accel *acc = gsl_interp_accel_alloc();
 	gsl_spline *spline = gsl_spline_alloc (gsl_interp_cspline, nhalo);
 
-	/*  x-pos  */
 
 	//Lets extract the data for the interpolation routine
-	for(int i = 0;i<nhalo;i++)
-			tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x;
-
+	for(int i = 0;i<nhalo;i++){
+		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x+boundry;
+		if(i<nhalo-1){
+			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].x+boundry;
+			if(nextpos-tmpdata[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(nextpos-tmpdata[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
 	//Intialize the data for the spline
 	gsl_spline_init (spline, halouniages, tmpdata, nhalo);
 
@@ -34,10 +39,17 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *inter
 		interphalos[i].x = gsl_spline_eval(spline,interpuniages[i],acc);
 
 	/*  y-pos  */
+	boundry=0;
 
 	//Lets extract the data for the interpolation routine
-	for(int i = 0;i<nhalo;i++)
-		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].y;
+	for(int i = 0;i<nhalo;i++){
+		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].y+boundry;
+		if(i<nhalo-1){
+			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].y+boundry;
+			if(nextpos-tmpdata[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(nextpos-tmpdata[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
 
 	//Intialize the data for the spline
 	gsl_spline_init (spline, halouniages, tmpdata, nhalo);
@@ -47,10 +59,18 @@ void InterpHaloPosVel(int nhalo, int ninterp, double *halouniages, double *inter
 		interphalos[i].y = gsl_spline_eval(spline,interpuniages[i],acc);
 
 	/*  z-pos  */
+	boundry=0;
 
 	//Lets extract the data for the interpolation routine
-	for(int i = 0;i<nhalo;i++)
-		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].z;
+	for(int i = 0;i<nhalo;i++){
+		tmpdata[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].z+boundry;
+		if(i<nhalo-1){
+			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].z+boundry;
+			if(nextpos-tmpdata[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(nextpos-tmpdata[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
+
 
 	//Intialize the data for the spline
 	gsl_spline_init (spline, halouniages, tmpdata, nhalo);
@@ -200,7 +220,7 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			orbitinghaloindex = (Int_t)(interphalos[j].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 			if(currentsnap!=orbitinghalosnap)
-				cout<<"Warning: this halo is set to orbit a host halo thats at a different snapshot, have the host halos be interpolated?"<<endl;
+				cout<<"Warning: this halo is set to orbit a host halo thats at a different snapshot, have the host halos been interpolated?"<<endl;
 
 			//Iterate the snapshot
 			currentsnap++;
@@ -239,7 +259,8 @@ void InterpPassageHaloProps(double interpuniage, double currentuniage, double pr
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 }
 
-void InterpPassagePoints(vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata, OrbitProps &orbitprops){
+
+void InterpPassageandCrossingPoints(vector<Int_t> halosnaps, vector<Int_t> haloindexes,vector<Int_t> hostindexes, vector<SnapData> &snapdata, vector<OrbitData> &branchorbitdata, OrbitProps &orbitprops){
 
 	int nhalo = halosnaps.size();
 	int ninterp = branchorbitdata.size();
@@ -291,10 +312,10 @@ void InterpPassagePoints(vector<Int_t> halosnaps, vector<Int_t> haloindexes,vect
 
 		//Lets see if after the interpolation of the halo, it has merged with its host 
 		r = sqrt(branchorbitdata[i].xrel*branchorbitdata[i].xrel + branchorbitdata[i].yrel*branchorbitdata[i].yrel + branchorbitdata[i].zrel*branchorbitdata[i].zrel);
-		if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99)) cout<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<endl;
-		if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99) & (abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))>5.0)){
-			cout<<branchorbitdata[i].haloID<<" "<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<" "<<abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))<<" "<<r<<" "<<branchorbitdata[i].npart<<" "<<branchorbitdata[i].nparthost<<endl;
-		}
+		// if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99)) cout<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<endl;
+		// if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99) & (abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))>5.0)){
+		// 	cout<<branchorbitdata[i].haloID<<" "<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<" "<<abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))<<" "<<r<<" "<<branchorbitdata[i].npart<<" "<<branchorbitdata[i].nparthost<<endl;
+		// }
 
 		if((r<0.1 * interphosthalos[i].rvir) & (interpuniages[i]<orbitprops.mergertime)){
 			orbitprops.mergertime=interpuniages[i];
