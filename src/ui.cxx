@@ -64,11 +64,11 @@ void GetArgs(int argc, char *argv[], Options &opt){
 	int option;
 	int NumArgs = 0;
 	int configflag=0;
-	while ((option = getopt(argc, argv, "f:C:")) != EOF)
+	while ((option = getopt(argc, argv, "i:C:")) != EOF)
 	{
 
 		switch(option){
-			case 'f':
+			case 'i':
 				opt.fname = optarg;
 				NumArgs+=2;
 				break;
@@ -101,7 +101,7 @@ void ConfigCheck(Options &opt){
 
 	if(opt.fname==NULL){
 
-		cerr<<"Must provide input file"<<endl;
+		cerr<<"Must provide input file, usage: \n	orbweaver -i <input catalogue> [-C <config file>]"<<endl;
 
 		EXIT_CODE = 1;
 		throw exception();

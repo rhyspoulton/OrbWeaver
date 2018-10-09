@@ -5,6 +5,7 @@
 
 void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops){
 
+
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
 	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
@@ -88,7 +89,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 	//Define varibles for the calculations
-	double omega, ltot, E;
+	double omega, ltot, E, f;
 
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
@@ -122,8 +123,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Store how many rvir this entry is
 		tmporbitdata.entrytype = numrvircrossing;
 
+		f = abs((log10(r/hosthalo.rvir)-log10(abs(numrvircrossing)))/(log10(r/hosthalo.rvir)-log10(prevr/prevhosthalo.rvir)));
+
 		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) - abs(((r/hosthalo.rvir)-abs(numrvircrossing))/((r/hosthalo.rvir)-(prevr/prevhosthalo.rvir))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+		tmporbitdata.scalefactor = exp(log(LinInterp(snapdata[currentsnap].scalefactor,snapdata[prevsnap].scalefactor,f)));
 
 		//From this scalefactor we can find the age of the universe
 		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
@@ -217,6 +220,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		E = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);
 		ltot = orbitprops.ltot / (double)(currentsnap - orbitprops.prevpassagesnap);
 		mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
+
+		tmporbitdata.orbitalenergy = E;
 
 		//The halos orbital eccentricity from the average properties
 		tmporbitdata.orbitecc = sqrt(1.0 + ((2.0 * E * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
@@ -561,8 +566,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	bool merged = false;
 
 
-	// ofstream file;
-	// file.open("../analysis/data/circ.dat");
+	ofstream file;
+	file.open("../analysis/data/circ.dat");
 
 	while(true){
 		//Extract the halo it is orbiting at this snapshot
@@ -573,10 +578,10 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 		if(prevsnap!=halosnap)
 			CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
 
-		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
-		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
-		// else
-		// 	file<<halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
+		if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
+			file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
+		else
+			file<<halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
 
 		//Mark this halo as being done:
 		snapdata[halosnap].Halo[haloindex].doneflag = true;
@@ -607,7 +612,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 
 	}
 
-	// file.close();
+	file.close();
+
 	//Now interoplate all the passage and crossing points
 	InterpPassagePoints(halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata,orbitprops);
 
@@ -651,17 +657,19 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
-	// Int_t snap = 55;
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
-	// Int_t i = 991;
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	Int_t snap = 55;
+	// Int_t snap = 118;
+	// for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	Int_t i = 991;
+	// Int_t i = 1572;
+		// for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			//Lets first check if this halo has been processed or is not orbiting a halo
-			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
+			// if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
-		}
+		// }
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
-	}
+	// }
 }

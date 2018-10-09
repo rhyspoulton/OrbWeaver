@@ -53,7 +53,7 @@ using namespace H5;
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDSIN 21
-#define NHDFFIELDSOUT 49
+#define NHDFFIELDSOUT 50
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -206,6 +206,9 @@ struct OrbitData{
 
 	//The orbital eccentricity from ratio of passage distances
 	float orbiteccratio;
+
+	//Average orbital Energy
+	float orbitalenergy;
 
 	//The peri-centric distance
 	float rperi;
@@ -523,6 +526,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitecc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbiteccratio");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbitalEnergy");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rperi");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

@@ -289,8 +289,13 @@ void InterpPassagePoints(vector<Int_t> halosnaps, vector<Int_t> haloindexes,vect
 		branchorbitdata[i].vyrel = interphosthalos[i].vy - interphalos[i].vy;
 		branchorbitdata[i].vzrel = interphosthalos[i].vz - interphalos[i].vz;
 
-		//Lets see if after the interoplation of the halo, it has merged with its host 
+		//Lets see if after the interpolation of the halo, it has merged with its host 
 		r = sqrt(branchorbitdata[i].xrel*branchorbitdata[i].xrel + branchorbitdata[i].yrel*branchorbitdata[i].yrel + branchorbitdata[i].zrel*branchorbitdata[i].zrel);
+		if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99)) cout<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<endl;
+		if((branchorbitdata[i].entrytype!=0.0) & (branchorbitdata[i].entrytype!=-99) & (abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))>5.0)){
+			cout<<branchorbitdata[i].haloID<<" "<<branchorbitdata[i].entrytype<<" "<<r/branchorbitdata[i].rvirhost<<" "<<abs((r/branchorbitdata[i].rvirhost) - abs(branchorbitdata[i].entrytype))<<" "<<r<<" "<<branchorbitdata[i].npart<<" "<<branchorbitdata[i].nparthost<<endl;
+		}
+
 		if((r<0.1 * interphosthalos[i].rvir) & (interpuniages[i]<orbitprops.mergertime)){
 			orbitprops.mergertime=interpuniages[i];
 			merged=true;
