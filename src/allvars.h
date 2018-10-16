@@ -159,6 +159,66 @@ struct HaloData{
 	
 };
 
+//Struct to contain the interpolation routine data
+struct SplineFuncs{
+
+	//x
+	gsl_spline *x;
+	gsl_interp_accel *xacc;
+
+	//y
+	gsl_spline *y;
+	gsl_interp_accel *yacc;
+
+	//z
+	gsl_spline *z;
+	gsl_interp_accel *zacc;
+
+	//vx
+	gsl_spline *vx;
+	gsl_interp_accel *vxacc;
+
+	//vy
+	gsl_spline *vy;
+	gsl_interp_accel *vyacc;
+
+	//vz
+	gsl_spline *vz;
+	gsl_interp_accel *vzacc;
+
+	SplineFuncs(int nhalo){
+		//Lets allocate the memory for the splines
+		xacc = gsl_interp_accel_alloc();
+		yacc = gsl_interp_accel_alloc();
+		zacc = gsl_interp_accel_alloc();
+		vxacc = gsl_interp_accel_alloc();
+		vyacc = gsl_interp_accel_alloc();
+		vzacc = gsl_interp_accel_alloc();
+
+		x=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+		y=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+		z=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+		vx=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+		vy=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+		vz=gsl_spline_alloc (gsl_interp_cspline, nhalo);
+	}
+
+	~SplineFuncs(){
+		gsl_interp_accel_free (xacc);
+		gsl_interp_accel_free (yacc);
+		gsl_interp_accel_free (zacc);
+		gsl_interp_accel_free (vxacc);
+		gsl_interp_accel_free (vyacc);
+		gsl_interp_accel_free (vzacc);
+		gsl_spline_free (x);
+		gsl_spline_free (y);
+		gsl_spline_free (z);
+		gsl_spline_free (vx);
+		gsl_spline_free (vy);
+		gsl_spline_free (vz);
+	}
+};
+
 
 
 // Struct to store all the data for the halos

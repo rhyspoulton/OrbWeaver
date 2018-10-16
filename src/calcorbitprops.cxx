@@ -3,7 +3,7 @@
 #include "orbweaver.h"
 
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
@@ -116,18 +116,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//Store what orbitID number this is
 		tmporbitdata.orbitID = orbitID;
 
+		// cout<<"Before "<<numrvircrossing<<" "<<r/hosthalo.rvir<<endl;
+
 		//Store how many rvir this entry is
 		tmporbitdata.entrytype = numrvircrossing;
-		f = abs((r/hosthalo.rvir-abs(numrvircrossing))/(r/hosthalo.rvir-prevr/prevhosthalo.rvir));
-		// else f = abs((prevr/prevhosthalo.rvir-abs(numrvircrossing))/(prevr/prevhosthalo.rvir-r/hosthalo.rvir));
 
-		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = LinInterp(snapdata[currentsnap].scalefactor,snapdata[prevsnap].scalefactor,f);
-
-		//From this scalefactor we can find the age of the universe
-		tmporbitdata.uniage = LogInterp(snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,f);//GetUniverseAge(tmporbitdata.scalefactor);
-
-		InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
+		InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
@@ -206,7 +200,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//From this scalefactor we can find the age of the universe
 		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
 
-		InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
+		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
 
 		/* Calculate various properties to be outputted */
 
@@ -302,7 +296,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 		//From this scalefactor we can find the age of the universe
 		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
 
-		InterpPassageHaloProps(tmporbitdata.uniage,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata);
+		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
 
 		/* Calculate various properties to be outputted */
 
@@ -546,8 +540,22 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	//If a halo exist less than 10 snapshots then lets remove it from the catalogue
 	if((halosnaps.size()+interpsnaps.size())<10) return;
 
+	//Lets setup the interpolation functions for the Position and Velocity of the orbiting halo
+	SplineFuncs splinefuncs(halosnaps.size());
+	SetupPosVelInterpFunctions(halosnaps,haloindexes,snapdata,splinefuncs);
+
+
 	//If the interp snapshots contains snapshots then interpolation needs to be done
-	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata);
+	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata,splinefuncs);
+
+	for(int i=0;i<halosnaps.size();i++){
+		hostindexes.push_back((Int_t)(snapdata[halosnaps[i]].Halo[haloindexes[i]].orbitinghaloid%opt.TEMPORALHALOIDVAL-1));
+	}
+
+	//Now the orbiting halo has been interpolated the interpolation functions can be setup for the host halo
+	SplineFuncs hostsplinefuncs(halosnaps.size());
+	SetupPosVelInterpFunctions(halosnaps,hostindexes,snapdata,hostsplinefuncs);
+
 
 	//Reset the tree info to back at the base of the tree
 	haloID = snapdata[snap].Halo[i].id;
@@ -569,11 +577,10 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	while(true){
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
-		hostindexes.push_back(orbitinghaloindex);
 
 		//Lets set this halos orbit data
 		if(prevsnap!=halosnap)
-			CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops);
+			CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -613,10 +620,6 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	if(branchorbitdata.size()==0) return;
 
 	// file.close();
-
-	//Now interoplate all the passage and crossing points
-	InterpPassageandCrossingPoints(halosnaps,haloindexes,hostindexes,snapdata,branchorbitdata,orbitprops);
-
 	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
 	//be set if the branch has merged with its host 
 	if((orbitprops.mergertime>0.0) & (orbitprops.crossrvirtime>0.0)){
@@ -657,14 +660,11 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 68;
+	// Int_t snap = 28;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 991;
 	// Int_t i = 6354;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
-
-			// if(orbitID==11718)
-			// 	cout<<snap<<" "<<i<<endl;
 
 			//Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
