@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import h5py
 
-def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,
+def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,
 	TEMPORALHALOIDVAL = 1000000000000,numRvirSearch=4):
 	"""
 	Sets the orbital forestID by finding any halos which come with numRvirSearch x Rvir of
@@ -22,10 +22,10 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 	index = int(HaloID%TEMPORALHALOIDVAL-1)
 
 	# Set the snapshot for which this branch first comes into existence
-	mainRootTailSnap = int(halodata[snap]["RootTail"][index]/TEMPORALHALOIDVAL)
-	mainRootHeadSnap = int(halodata[snap]["RootHead"][index]/TEMPORALHALOIDVAL)
+	mainRootTailSnap = int(tree[snap]["RootTail"][index]/TEMPORALHALOIDVAL)
+	mainRootHeadSnap = int(tree[snap]["RootHead"][index]/TEMPORALHALOIDVAL)
 	# Lets walk up this branch while it exists
-	ID = halodata[snap]["RootTail"][index]
+	ID = tree[snap]["RootTail"][index]
 	haloIndex = int(ID%TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
 
@@ -72,11 +72,11 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 					halopos=halodata[haloSnap][field][haloIndex]
 					headpos=halodata[headSnap][field][headIndex]
 
-					if(headpos-halopos>0.5*cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]): halopos+=cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]
-					elif(headpos-halopos<-0.5*cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]): halopos-=cosmodata["BoxSize"]*atime[snap]/cosmodata["Hubble_param"]
+					if(headpos-halopos>0.5*halodata[snap]["SimulationInfo"]["Period"]): halopos+=halodata[snap]["SimulationInfo"]["Period"]
+					elif(headpos-halopos<-0.5*halodata[snap]["SimulationInfo"]["Period"]): halopos-=halodata[snap]["SimulationInfo"]["Period"]
 
 					f = interp1d([haloSnap,headSnap],[halopos,headpos])
-
+					print(f(snap),halopos,headpos)
 
 				else:
 
@@ -107,7 +107,7 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 
 		if(ID!=0):
 			#Extract its head
-			head = halodata[snap]["Head"][haloIndex]
+			head = tree[snap]["Head"][haloIndex]
 			headSnap = int(head/TEMPORALHALOIDVAL)
 			headIndex = int(head%TEMPORALHALOIDVAL-1)
 
@@ -118,7 +118,7 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 			processedFlag[snap][haloIndex]=True
 
 			#Extract the head tail to check if this branch 
-			headTail=halodata[headSnap]["Tail"][headIndex]
+			headTail=tree[headSnap]["Tail"][headIndex]
 
 			#Lets check if this halo merges in the next snapshot, if so then set its head to the current halo
 			if(headTail!=ID):
@@ -158,22 +158,22 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver
 
-			# Go straight to the branches roottail 
-			ID = halodata[snap]["RootTail"][iindex]
+			# Go straight to the branches  tail 
+			ID = tree[snap]["Tail"][iindex]
 			haloSnap = int(ID/TEMPORALHALOIDVAL)
 			haloIndex = int(ID%TEMPORALHALOIDVAL-1)
 
 			#Start to walk up the branch
-			head = halodata[haloSnap]["Head"][haloIndex]
+			head = tree[haloSnap]["Head"][haloIndex]
 			headSnap = int(head/TEMPORALHALOIDVAL)
 			headIndex = int(head%TEMPORALHALOIDVAL-1)
 
 			#Lets also store its TailSanp
-			tail = halodata[haloSnap]["Tail"][haloIndex]
+			tail = tree[haloSnap]["Tail"][haloIndex]
 			tailSnap = int(tail/TEMPORALHALOIDVAL)
 
 			#Check we are still on the main branch
-			headTail = halodata[headSnap]["Tail"][headIndex]
+			headTail = tree[headSnap]["Tail"][headIndex]
 
 			# #Set the re-mapped RootTails and RootHead for this branch
 
@@ -200,11 +200,11 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 					extractIndexes[haloSnap].append(haloIndex)
 
 					#Lets also store its TailSanp
-					tail = halodata[haloSnap]["Tail"][haloIndex]
+					tail = tree[haloSnap]["Tail"][haloIndex]
 					tailSnap = int(tail/TEMPORALHALOIDVAL)
 
 					#Check we are still on the main branch
-					headTail = halodata[headSnap]["Tail"][headIndex]
+					headTail = tree[headSnap]["Tail"][headIndex]
 
 					# Set this halos orbital forest ID and the halo it is orbiting
 					# orbitdata[haloSnap]["OrbitForestID"].append(orbitforestid)
@@ -260,7 +260,7 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,HaloID,orbitforestid,orbitdata
 				haloIndex = headIndex
 
 				#Extract its descendant
-				head = halodata[haloSnap]["Head"][haloIndex]
+				head = tree[haloSnap]["Head"][haloIndex]
 				headSnap = int(head/TEMPORALHALOIDVAL)
 				headIndex = int(head%TEMPORALHALOIDVAL-1)
 	#Lets set all its orbital properties
@@ -290,8 +290,8 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,or
 
 	cosmogrp=hdrgrp.create_group("Cosmology")
 
-	cosmogrp.attrs["BoxSize"] = cosmodata["BoxSize"]
-	cosmogrp.attrs["Hubble_param"] = cosmodata["Hubble_param"]
+	cosmogrp.attrs["BoxSize"] = np.round(cosmodata["Period"]*cosmodata["h_val"]/cosmodata["ScaleFactor"],1)
+	cosmogrp.attrs["Hubble_param"] = cosmodata["h_val"]
 	cosmogrp.attrs["Gravity"] = cosmodata["Gravity"]
 	cosmogrp.attrs["Omega_Lambda"] = cosmodata["Omega_Lambda"]
 	cosmogrp.attrs["Omega_m"] = cosmodata["Omega_m"]
