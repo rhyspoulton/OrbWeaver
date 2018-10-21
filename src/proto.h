@@ -16,13 +16,14 @@ double GetUniverseAge(double scalefactor);
 double LogInterp(double prevdata, double nextdata, double f);
 double LinInterp(double prevdata, double nextdata, double f);
 void SetupPosVelInterpFunctions(vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, SplineFuncs& splinefuncs);
+void SetupPosVelInterpFunctionsHost(vector<Int_t> &halosnaps, vector<Int_t> &hostindexes, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs);
 void InterpSingleHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, vector<SnapData> &snapdata, SplineFuncs &splinefuncs);
 void InterpCrossingHaloProps(float numrvircrossing, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, OrbitData &orbitdata);
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, int descendantsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 
 void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);
 #endif //ifndef ORBPROTO_H

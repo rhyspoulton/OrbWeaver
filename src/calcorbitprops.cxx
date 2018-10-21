@@ -86,7 +86,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, HaloData &orbi
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 	//Define varibles for the calculations
-	double omega, ltot, E, f;
+	double omega, ltot, E, f, vtan;
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
 	float numrvircrossing=0;
@@ -429,23 +429,23 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 					//If the previous entry type was a apocentric, then delete this one and
 					//wait until the halo goes past pericenter
-					if(preventrytype==-99){
+					if((preventrytype==-99) | (abs(r-prevr)<0.1)){
 						deleteindx.push_back(i);
 						continue;
 					}
 					branchorbitdata[i].entrytype = -99;
-					branchorbitdata[i].orbiteccratio = (r-prevr)/(r+prevr);
+					branchorbitdata[i].orbiteccratio = prevr/r;
 
 				}
 				else{
 
 					//If the previous entry type was a pericentric, then delete this one and
 					//wait until the halo goes past apocenter
-					if(preventrytype==0){
+					if((preventrytype==0) | (abs(r-prevr)<0.1)){
 						deleteindx.push_back(i);
 						continue;
 					}
-					branchorbitdata[i].orbiteccratio = (prevr-r)/(prevr+r);
+					branchorbitdata[i].orbiteccratio = r/prevr;
 
 					//If the 2nd passage was a pericentric passage then set the initial passage as
 					//a apocentric passage
@@ -472,12 +472,12 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 		branchorbitdata.erase(branchorbitdata.begin()+deleteindx[i]);
 }
 
-void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
-	unsigned long long haloID = snapdata[snap].Halo[i].id;
+	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	Int_t halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	Int_t haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
-	unsigned long long descendantID = snapdata[snap].Halo[i].descendant;
+	unsigned long long descendantID = snapdata[snap].Halo[index].descendant;
 	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
 	Int_t descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	unsigned long long descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
@@ -554,14 +554,14 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 
 	//Now the orbiting halo has been interpolated the interpolation functions can be setup for the host halo
 	SplineFuncs hostsplinefuncs(halosnaps.size());
-	SetupPosVelInterpFunctions(halosnaps,hostindexes,snapdata,hostsplinefuncs);
+	SetupPosVelInterpFunctionsHost(halosnaps,hostindexes,haloindexes,snapdata,hostsplinefuncs);
 
 
 	//Reset the tree info to back at the base of the tree
-	haloID = snapdata[snap].Halo[i].id;
+	haloID = snapdata[snap].Halo[index].id;
 	halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
 	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
-	descendantID = snapdata[snap].Halo[i].descendant;
+	descendantID = snapdata[snap].Halo[index].descendant;
 	descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
 	descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
@@ -574,13 +574,16 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	// ofstream file;
 	// file.open("../analysis/data/circ.dat");
 
+	// ofstream file2;
+	// file2.open("../analysis/data/data2.dat");
+
 	while(true){
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
-		if(prevsnap!=halosnap)
-			CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
+		if(halosnap!=prevsnap)
+		CalcOrbitProps(orbitID,halosnap,prevsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -618,7 +621,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 
 	//If there are no data to be outputted the can continue onto the next halo
 	if(branchorbitdata.size()==0) return;
-
+	// file2.close();
 	// file.close();
 	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
 	//be set if the branch has merged with its host 
@@ -639,6 +642,20 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t i, Options &opt, vector<SnapDat
 	//eccentricities can be calculated
 	SetPassageType(branchorbitdata);
 
+	int num = 0;
+	double tot = 0;
+	double ave;
+
+	for(int i = 0; i<branchorbitdata.size();i++) if((branchorbitdata[i].entrytype==0.0) | (branchorbitdata[i].entrytype==-99)){ 
+		tot+=branchorbitdata[i].orbiteccratio;
+		num++;
+	}
+	ave = tot/(double)num;
+
+
+	// if((branchorbitdata[branchorbitdata.size()].numorbits>1.5) & (ave>0.6))
+	// 	cout<<branchorbitdata[branchorbitdata.size()].orbitID<<" "<<branchorbitdata[branchorbitdata.size()].numorbits<<" "<<snap<<" "<<index<<" "<<ave<<endl;
+
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
 	//moved rather than copied
@@ -656,21 +673,28 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 
 	Int_t orbitID = 0;
 
+
+	bool done = false;
+
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 28;
+	// Int_t snap = 40;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
-	// Int_t i = 991;
-	// Int_t i = 6354;
+	// Int_t i = 990;
+	// Int_t i = 99;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
-			//Lets first check if this halo has been processed or is not orbiting a halo
+			// if(orbitID==11061)
+			// 	cout<<snap<<" "<<i<<endl;
+
+			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
+
 		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
 	}

@@ -101,6 +101,121 @@ void SetupPosVelInterpFunctions(vector<Int_t> &halosnaps, vector<Int_t> &haloind
 }
 
 
+void SetupPosVelInterpFunctionsHost(vector<Int_t> &halosnaps, vector<Int_t> &hostindexes, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
+
+
+	//Need to interpolate the host's position and do periodicity corrections based on the oribiting halo
+	Int_t nhalo = halosnaps.size();
+	double boundry=0, nextpos;
+	double halouniages[nhalo], x[nhalo], y[nhalo], z[nhalo], vx[nhalo], vy[nhalo], vz[nhalo];
+	double tmppos, orbitinghalopos, orbitinghalonextpos;
+
+
+	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
+	for(int i = 0;i<nhalo;i++)
+		halouniages[i] =  snapdata[halosnaps[i]].uniage;
+
+	/* xpos */
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++){
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].x;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].x+boundry;
+
+		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
+		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
+
+		x[i] = tmppos;
+		if(i<nhalo-1){
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].x+boundry;
+			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.x, halouniages, x, nhalo);
+
+
+	/*  y-pos  */
+
+	//Reset the boundary
+	boundry=0;
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++){
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].y;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].y+boundry;
+
+		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
+		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
+
+		y[i] = tmppos;
+		if(i<nhalo-1){
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].y+boundry;
+			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
+
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.y, halouniages, y, nhalo);
+
+
+	/*  z-pos  */
+
+	//Reset the boundary
+	boundry=0;
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++){
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].z;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].z+boundry;
+
+		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
+		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
+
+		z[i] = tmppos;
+		if(i<nhalo-1){
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].z+boundry;
+			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
+			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
+		}
+	}
+
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.z, halouniages, z, nhalo);
+
+	/*  x-vel  */
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++)
+		vx[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].vx;
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.vx, halouniages, vx, nhalo);
+
+	/*  y-vel  */
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++)
+		vy[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].vy;
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.vy, halouniages, vy, nhalo);
+
+	/*  z-vel  */
+
+	//Lets extract the data for the interpolation routine
+	for(int i = 0;i<nhalo;i++)
+		vz[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].vz;
+
+	//Intialize the data for the spline
+	gsl_spline_init (splinefuncs.vz, halouniages, vz, nhalo);
+}
+
 void InterpSingleHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	double xhost, yhost, zhost, r;
@@ -132,6 +247,9 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	tmporbitdata.xrel = xhost - tmporbitdata.x;
 	tmporbitdata.yrel = yhost - tmporbitdata.y;
 	tmporbitdata.zrel = zhost - tmporbitdata.z;
+
+	if(tmporbitdata.xrel>0.5*Cosmo.boxsize)
+		cout<<"Have a halo greater than the boxsize apart "<<tmporbitdata.orbitID<<endl;
 
 	// r = sqrt((tmporbitdata.x-xhost)*(tmporbitdata.x-xhost) + (tmporbitdata.y-yhost)*(tmporbitdata.y-yhost) + (tmporbitdata.z-zhost)*(tmporbitdata.z-zhost));
 
