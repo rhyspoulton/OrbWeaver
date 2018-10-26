@@ -416,17 +416,17 @@ void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
 	attr.read(PredType::NATIVE_HBOOL,&boolbuff);
 	Units.distFlag=boolbuff;
 
-	// Length in kpc
+	// Length in Mpc
 	attr = unitgroup.openAttribute(hdfnames.unitattrnames[1]);
 	attrdataspace = attr.getSpace();
 	floattype = attr.getFloatType();
 	if (floattype.getSize()==sizeof(float)) {
 		attr.read(PredType::NATIVE_FLOAT,&floatbuff);
-		Units.length=floatbuff;
+		Units.length=floatbuff/1000.0;
 	}
 	if (floattype.getSize()==sizeof(double)) {
 		attr.read(PredType::NATIVE_DOUBLE,&doublebuff);
-		Units.length=doublebuff;
+		Units.length=doublebuff/1000.0;
 	}
 	// Mass in Msol
 	attr = unitgroup.openAttribute(hdfnames.unitattrnames[2]);

@@ -8,6 +8,7 @@
 | orbitalperiod  | Gyr | Current period of its orbit |
 | orbitecc  | N/A | The calculated eccentricity of its orbit |
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
+| orbitalEnergy | solarmasses km^2 / s^2 | The average energy of the orbit since infall or last passage |
 | Rperi | Mpc | The calculated peri-centric distance |
 | Rapo | Mpc | The calculated apo-centric distance |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |

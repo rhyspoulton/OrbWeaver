@@ -258,7 +258,7 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 }
 
 
-void InterpCrossingHaloProps(float numrvircrossing, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
+double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 
 	//Set the number of points to sample the interpolation functions
@@ -308,6 +308,8 @@ void InterpCrossingHaloProps(float numrvircrossing, double currentuniage, double
 
 	//Now the corresponding time can be used to interpolate the rest of the halo's properties
 	InterpSingleHaloProps(interpuniages[index], currentuniage, prevuniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
+
+	return interpuniages[index];
 }
 
 HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){

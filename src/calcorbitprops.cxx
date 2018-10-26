@@ -3,7 +3,7 @@
 #include "orbweaver.h"
 
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, int descendantsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
@@ -88,8 +88,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, int descendant
 	//Define varibles for the calculations
 	double omega, ltot, E, f, vtan;
 
-	//If at the end of the halo's history
-	if(descendantsnap==currentsnap){
+	//If when the halo has merged
+	if(orbitinghalo.id!=descendantProgenID){
 
 		//Store what orbitID number this is
 		tmporbitdata.orbitID = orbitID;
@@ -105,6 +105,15 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, int descendant
 
 		//The host halo
 		tmporbitdata.hosthaloID = hosthalo.origid;
+
+		//The age of the universe at this point
+		tmporbitdata.uniage = snapdata[currentsnap].uniage;
+
+		//The scalefactor of the universe
+		tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+		if(orbitprops.crossrvirtime>0)
+			tmporbitdata.mergertimescale = snapdata[currentsnap].uniage - orbitprops.crossrvirtime;
 
 		/* Calculate various properties to be outputted */
 
@@ -195,7 +204,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, int descendant
 		//Store how many rvir this entry is
 		tmporbitdata.entrytype = numrvircrossing;
 
-		InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
+		tmporbitdata.uniage = InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
@@ -503,28 +512,27 @@ void SetPassageType(vector<OrbitData> &branchorbitdata){
 
 					//If the previous entry type was a apocentric, then delete this one and
 					//wait until the halo goes past pericenter
-					if((preventrytype==-99) | (abs(r-prevr)<0.1)){
+					if(preventrytype==-99){
 						deleteindx.push_back(i);
 						continue;
 					}
-					branchorbitdata[i].entrytype = -branchorbitdata[i].entrytype;
-					branchorbitdata[i].orbiteccratio = prevr/r;
+					branchorbitdata[i].entrytype = -99;
+					branchorbitdata[i].orbiteccratio = (r-prevr)/(r+prevr);
 
 				}
 				else{
 
 					//If the previous entry type was a pericentric, then delete this one and
 					//wait until the halo goes past apocenter
-					if((preventrytype==0) | (abs(r-prevr)<0.1)){
+					if(preventrytype==99){
 						deleteindx.push_back(i);
 						continue;
 					}
-					branchorbitdata[i].orbiteccratio = r/prevr;
+					branchorbitdata[i].orbiteccratio = (prevr-r)/(prevr+r);
 
 					//If the 2nd passage was a pericentric passage then set the initial passage as
 					//a apocentric passage
 					if(branchorbitdata[i].numorbits==1.0){
-						cout<<firstpassageindex<<endl;
 						branchorbitdata[firstpassageindex].entrytype = -99;
 					}
 				}
@@ -652,12 +660,16 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 	// file2.open("../analysis/data/data2.dat");
 
 	while(true){
+
+		//Reset all the data to zero
+		tmporbitdata={0};
+
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
-			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantsnap,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
+			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -671,7 +683,6 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 		if(descendantID==haloID)
 			break;
 		else if(descendantProgenID!=haloID){
-			merged = true;
 			break;
 		}
 
@@ -697,38 +708,10 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 	if(branchorbitdata.size()==0) return;
 	// file2.close();
 	// file.close();
-	//Set the merger timescale as the time since crossing rvir this will be set at the first time it crossed rvir, this will only
-	//be set if the branch has merged with its host 
-	if((orbitprops.mergertime>0.0) & (orbitprops.crossrvirtime>0.0)){
-		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==0.0){
-				branchorbitdata[i].mergertimescale = orbitprops.mergertime - orbitprops.crossrvirtime;
-				break;
-		}
-	}
-	else if((merged) & (orbitprops.crossrvirtime>0.0)){
-		for(int i = 0; i<branchorbitdata.size();i++) if(branchorbitdata[i].entrytype==0.0){
-				branchorbitdata[i].mergertimescale = snapdata[halosnap].uniage - orbitprops.crossrvirtime;
-				break;
-		}
-	}
 
 	//Now have set the distances for the passages then the entry types and ratio
 	//eccentricities can be calculated
 	SetPassageType(branchorbitdata);
-
-	int num = 0;
-	double tot = 0;
-	double ave;
-
-	for(int i = 0; i<branchorbitdata.size();i++) if((branchorbitdata[i].entrytype==0.0) | (branchorbitdata[i].entrytype==-99)){ 
-		tot+=branchorbitdata[i].orbiteccratio;
-		num++;
-	}
-	ave = tot/(double)num;
-
-
-	// if((branchorbitdata[branchorbitdata.size()].numorbits>1.5) & (ave>0.6))
-	// 	cout<<branchorbitdata[branchorbitdata.size()].orbitID<<" "<<branchorbitdata[branchorbitdata.size()].numorbits<<" "<<snap<<" "<<index<<" "<<ave<<endl;
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
