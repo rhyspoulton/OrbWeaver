@@ -66,6 +66,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
 		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
 
+	//Store what orbitID number this is
+	tmporbitdata.orbitID = orbitID;
+
+	//Store the haloID this halo is in the orbit catalog
+	tmporbitdata.orbithaloID = orbitinghalo.id;
+
 	//Lets find if this halo has the closest approach so far or if we are at the base of this
 	//branch i.e. the progenitor ID is the same as the halo's
 	if(r<tmporbitdata.closestapproach)
@@ -90,9 +96,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	//If when the halo has merged
 	if(orbitinghalo.id!=descendantProgenID){
-
-		//Store what orbitID number this is
-		tmporbitdata.orbitID = orbitID;
 
 		//Set this as a merger entry
 		tmporbitdata.entrytype = 0.0;
@@ -196,9 +199,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		/* Store some properties of the orbit halo and its host at this point */
 
-		//Store what orbitID number this is
-		tmporbitdata.orbitID = orbitID;
-
 		// cout<<"Before "<<numrvircrossing<<" "<<r/hosthalo.rvir<<endl;
 
 		//Store how many rvir this entry is
@@ -248,6 +248,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	}
 
+	cout<<snapdata[currentsnap].uniage<<" "<<vr<<" "<<prevvr<<" "<<r/hosthalo.rvir<<" "<<sqrt((Cosmo.G*(orbitinghalo.mass+hosthalo.mass))/r)<<" "<<Cosmo.G<<" "<<orbitinghalo.mass<<endl;
 
 	/* Check if the halo has gone past pericenter or apocenter */
 
@@ -255,15 +256,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
-	if((orbitprops.orbitingflag) & (vr*prevvr<0)){
+	if((orbitprops.orbitingflag) & (vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
 
 		//Add 0.5 an orbit
 		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
 
 		/* Store some properties of the orbit halo and its host at this point */
-
-		//Store what orbitID number this is
-		tmporbitdata.orbitID = orbitID;
 
 		//Set this as a passage point
 		tmporbitdata.entrytype = 99;
@@ -351,7 +349,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		return;
 
 	}
-	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<3*hosthalo.rvir)){
+	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
 
 		//Now lets mark this halo as on an orbit
 		orbitprops.orbitingflag = true;
@@ -679,6 +677,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 		//Mark this halo as being done:
 		snapdata[halosnap].Halo[haloindex].doneflag = true;
 
+		// cout<<haloID<<" "<<descendantID<<" "<<descendantProgenID<<" "<<snapdata[halosnap].Halo[orbitinghaloindex].id<<" "<<snapdata[halosnap].Halo[orbitinghaloindex].descendant<<endl;
 		//See if have reached the end of this branch or has merged with its host
 		if(descendantID==haloID)
 			break;
@@ -737,19 +736,19 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 40;
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	Int_t snap = 116;
+	// for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	// Int_t i = 99;
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	Int_t i = 2867;
+		// for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
-			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
+			// if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
 
-		}
+		// }
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
-	}
+	// }
 }

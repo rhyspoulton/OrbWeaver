@@ -244,6 +244,9 @@ struct OrbitData{
 	//The orbit number
 	int orbitID;
 
+	//The haloID in the orbit catalog
+	unsigned long long orbithaloID;
+
 	//The ID of the halo
 	unsigned long long haloID;
 
@@ -572,6 +575,8 @@ struct HDFOutputNames{
 
 		datasetnames.push_back("orbitID");
 		datasettypes.push_back(PredType::STD_I32LE);
+		datasetnames.push_back("orbithaloID");
+		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("haloID");
 		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("hosthaloID");
