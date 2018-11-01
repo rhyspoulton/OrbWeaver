@@ -408,6 +408,9 @@ struct OrbitProps{
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
 
+	//Store the index of the previous passage
+	int prevpassageindex;
+
 	//Use to calculate the average mass loss rate
 	double masslossrate;
 
@@ -416,6 +419,12 @@ struct OrbitProps{
 
 	//The time merged if before the halo is lost
 	double mergertime;
+
+	//Store the reference angles
+	double *refangles;
+
+	//Store the radial vector for the previous position
+	double prevpassagepos[3];
 
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
 	// and its host, total orbital angular momentum and orbital energy so the 
@@ -434,8 +443,12 @@ struct OrbitProps{
 		orbitingflag = false;
 		prevpassagesnap = 0;
 		prevpassagetime = 0.0;
+		prevpassageindex=0;
 		crossrvirtime=0.0;
 		mergertime=0.0;
+		prevpassagepos[0]=0;
+		prevpassagepos[1]=0;
+		prevpassagepos[2]=0;
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;

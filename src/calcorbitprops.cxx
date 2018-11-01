@@ -3,6 +3,54 @@
 #include "orbweaver.h"
 
 
+double *computeAngles(double prevpos[3], OrbitData orbitdata){
+
+	double x[3],y[3],z[3], mag;
+	double* angles = new double[3];
+
+	//Get the x-axis which is along the semi-major axis
+	x[0] = orbitdata.xrel - prevpos[0];
+	x[1] = orbitdata.yrel - prevpos[1];
+	x[2] = orbitdata.zrel - prevpos[2];
+
+	//The z-axis which is the angular momentum
+	z[0] = orbitdata.lxrel;
+	z[1] = orbitdata.lyrel;
+	z[2] = orbitdata.lzrel;
+
+	//Find the cross product of these to to find the y-axis
+	y[0] = (x[1] * z[2]) - (x[2] * z[1]);
+	y[1] = -((x[0] * z[2]) - (x[2] * z[0]));
+	y[2] = (x[0] * z[1]) - (x[1] * z[0]);
+
+
+	//Now we can find the x vector that is perpendicular to the y and z vectors
+	x[0] = (y[1] * z[2]) - (y[2] * z[1]);
+	x[1] = -((y[0] * z[2]) - (y[2] * z[0]));
+	x[2] = (y[0] * z[1]) - (y[1] * z[0]);
+
+	//Normalize the vectors
+	mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
+	x[0] /= mag;
+	x[1] /= mag;
+	x[2] /= mag;
+	mag = sqrt(y[0]*y[0] + y[1]*y[1] + y[2]*y[2]);
+	y[0] /= mag;
+	y[1] /= mag;
+	y[2] /= mag;
+	mag = sqrt(z[0]*z[0] + z[1]*z[1] + z[2]*z[2]);
+	z[0] /= mag;
+	z[1] /= mag;
+	z[2] /= mag;
+
+	//Compute the Euler angles
+	angles[0] = acos(-z[1]/sqrt(1-z[2]*z[2]));
+	angles[1] = acos(z[2]);
+	angles[2] = acos(y[2]/sqrt(1-z[2]*z[2]));
+
+	return angles;
+}
+
 void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
@@ -92,7 +140,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 	//Define varibles for the calculations
-	double omega, ltot, E, f, vtan;
+	double omega, ltot, E, f, vtan, *currangles, prevpassager;
 
 	//If when the halo has merged
 	if(orbitinghalo.id!=descendantProgenID){
@@ -248,7 +296,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	}
 
-	cout<<snapdata[currentsnap].uniage<<" "<<vr<<" "<<prevvr<<" "<<r/hosthalo.rvir<<" "<<sqrt((Cosmo.G*(orbitinghalo.mass+hosthalo.mass))/r)<<" "<<Cosmo.G<<" "<<orbitinghalo.mass<<endl;
+	// cout<<snapdata[currentsnap].uniage<<" "<<vr<<" "<<prevvr<<" "<<r/hosthalo.rvir<<" "<<sqrt((Cosmo.G*(orbitinghalo.mass+hosthalo.mass))/r)<<" "<<Cosmo.G<<" "<<orbitinghalo.mass<<endl;
 
 	/* Check if the halo has gone past pericenter or apocenter */
 
@@ -256,15 +304,24 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
-	if((orbitprops.orbitingflag) & (vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
+	if((vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
 
 		//Add 0.5 an orbit
 		tmporbitdata.numorbits = tmporbitdata.numorbits + 0.5;
 
 		/* Store some properties of the orbit halo and its host at this point */
 
-		//Set this as a passage point
-		tmporbitdata.entrytype = 99;
+		//Set this as a passage point dependant if it is outgoing or infalling
+		if(vr>0){
+			//Peri-centric
+			tmporbitdata.entrytype = 99;
+			tmporbitdata.orbiteccratio = (prevr-r)/(prevr+r);
+		}
+		else{
+			//Apocentric
+			tmporbitdata.entrytype = -99;
+			tmporbitdata.orbiteccratio = (r-prevr)/(r+prevr);
+		}
 
 		//The orbting halo
 		tmporbitdata.haloID = orbitinghalo.origid;
@@ -283,58 +340,73 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
 
-		/* Calculate various properties to be outputted */
+		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
-		//Calculate the orbit period as 2x the previous passage
-		tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
+		if(orbitprops.orbitingflag){
+			//Calculate the orbit period as 2x the previous passage
+			tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
 
-		//Find the average energy, total angular momentum and reduced mass
-		E = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);
-		ltot = orbitprops.ltot / (double)(currentsnap - orbitprops.prevpassagesnap);
-		mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
+			//Find the average energy, total angular momentum and reduced mass
+			E = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);
+			ltot = orbitprops.ltot / (double)(currentsnap - orbitprops.prevpassagesnap);
+			mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
 
-		tmporbitdata.orbitalenergy = E;
+			tmporbitdata.orbitalenergy = E;
 
-		//The halos orbital eccentricity from the average properties
-		tmporbitdata.orbitecc = sqrt(1.0 + ((2.0 * E * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+			//The halos orbital eccentricity from the average properties
+			tmporbitdata.orbitecc = sqrt(1.0 + ((2.0 * E * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
 
-		//Find the orbits apo and pericentric distances
-		tmporbitdata.rperi = (ltot*ltot)/((1+tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+			//Find the orbits apo and pericentric distances
+			tmporbitdata.rperi = (ltot*ltot)/((1+tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
-		//Find the orbits apo and pericentric distances
-		tmporbitdata.rapo = (ltot*ltot)/((1-tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
+			//Find the orbits apo and pericentric distances
+			tmporbitdata.rapo = (ltot*ltot)/((1-tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
 
-		//Find the angular distance
-		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
+			//Find the angular distance
+			omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
 
-		//The tangential velocity of the orbiting halo with respect to its host
-		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
+			//The tangential velocity of the orbiting halo with respect to its host
+			tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
 
-		//Lets output the average angular momentum since the last passage
-		tmporbitdata.lxrel = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
-		tmporbitdata.lyrel = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
-		tmporbitdata.lzrel = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
+			//Lets output the average angular momentum since the last passage
+			tmporbitdata.lxrel = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lyrel = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lzrel = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
 
-		//Find the average angular momentum of the host halo
-		orbitprops.hostlx /= (double)(currentsnap - orbitprops.prevpassagesnap);
-		orbitprops.hostly /= (double)(currentsnap - orbitprops.prevpassagesnap);
-		orbitprops.hostlz /= (double)(currentsnap - orbitprops.prevpassagesnap);
+			//Find the average angular momentum of the host halo
+			orbitprops.hostlx /= (double)(currentsnap - orbitprops.prevpassagesnap);
+			orbitprops.hostly /= (double)(currentsnap - orbitprops.prevpassagesnap);
+			orbitprops.hostlz /= (double)(currentsnap - orbitprops.prevpassagesnap);
 
-		//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
-		tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel) + (orbitprops.hostly*tmporbitdata.lyrel)	+ (orbitprops.hostlz*tmporbitdata.lzrel))/(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel*tmporbitdata.lxrel + tmporbitdata.lyrel*tmporbitdata.lyrel + tmporbitdata.lzrel*tmporbitdata.lzrel)));
+			//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
+			tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel) + (orbitprops.hostly*tmporbitdata.lyrel)	+ (orbitprops.hostlz*tmporbitdata.lzrel))/(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel*tmporbitdata.lxrel + tmporbitdata.lyrel*tmporbitdata.lyrel + tmporbitdata.lzrel*tmporbitdata.lzrel)));
 
-		//Reset the total angular momentum in the orbit props to zero
-		orbitprops.lx = 0.0;
-		orbitprops.ly = 0.0;
-		orbitprops.lz = 0.0;
-		orbitprops.E = 0.0;
-		orbitprops.ltot = 0.0;
-		orbitprops.mu = 0.0;
-		orbitprops.hostlx = 0.0;
-		orbitprops.hostly = 0.0;
-		orbitprops.hostlz = 0.0;
-		orbitprops.masslossrate = 0.0;
 
+			/* Compute all the angles */
+
+			//If the reference angles hasn't been set then lets set it
+			if((orbitprops.refangles[0]+orbitprops.refangles[1]+orbitprops.refangles[2])==0.0)
+				orbitprops.refangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
+			else
+				//Compute the current angles
+				currangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
+
+				tmporbitdata.longascnode = currangles[0] - orbitprops.refangles[0];
+				tmporbitdata.inc = currangles[1] - orbitprops.refangles[1];
+				tmporbitdata.argpariap = currangles[2] - orbitprops.refangles[2];
+
+			//Reset the total angular momentum in the orbit props to zero
+			orbitprops.lx = 0.0;
+			orbitprops.ly = 0.0;
+			orbitprops.lz = 0.0;
+			orbitprops.E = 0.0;
+			orbitprops.ltot = 0.0;
+			orbitprops.mu = 0.0;
+			orbitprops.hostlx = 0.0;
+			orbitprops.hostly = 0.0;
+			orbitprops.hostlz = 0.0;
+			orbitprops.masslossrate = 0.0;
+		}
 		//Any additional properties to be calculated here
 
 		//Now append it into the orbitdata dataset
@@ -346,70 +418,18 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		//Mark the snapshot that this passage happens
 		orbitprops.prevpassagesnap = currentsnap;
 
-		return;
+		//Store the radial vector for this passage
+		orbitprops.prevpassagepos[0] = rx;
+		orbitprops.prevpassagepos[1] = rz;
+		orbitprops.prevpassagepos[2] = rz;
 
-	}
-	else if((orbitprops.orbitingflag==false) & (vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
 
-		//Now lets mark this halo as on an orbit
-		orbitprops.orbitingflag = true;
+		//Store the index of the previous passage
+		orbitprops.prevpassageindex = branchorbitdata.size();
 
-		/* Store some properties of the orbit halo and its host at this point */
-
-		//Store what orbitID number this is
-		tmporbitdata.orbitID = orbitID;
-
-		//Set this as a passage point
-		tmporbitdata.entrytype = 99;
-
-		//Set this halo as done 1/2 orbit
-		tmporbitdata.numorbits = 0.5;
-
-		//The orbting halo
-		tmporbitdata.haloID = orbitinghalo.origid;
-
-		//The host halo
-		tmporbitdata.hosthaloID = hosthalo.origid;
-
-		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
-
-		//From this scalefactor we can find the age of the universe
-		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
-
-		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
-
-		/* Calculate various properties to be outputted */
-
-		//Set the orbit period, angular momentum and eccentricty as -1.0 as these cannot be calculated yet
-		tmporbitdata.orbitperiod = -1.0;
-		tmporbitdata.orbitecc = -1.0;
-		tmporbitdata.lxrel = -1.0;
-		tmporbitdata.lyrel = -1.0;
-		tmporbitdata.lzrel = -1.0;
-
-		//The difference in time since the previous snapshot
-		deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
-
-		// Find the change mass in units of Msun/Gyr
-		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
-
-		//Find the angular distance
-		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
-
-		//The tangential velocity of the orbiting halo with respect to its host
-		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
-
-		//Any additional properties to be calculated here
-
-		//Now append it into the orbitdata dataset
-		branchorbitdata.push_back(tmporbitdata);
-
-		//Mark the time this passage happens
-		orbitprops.prevpassagetime = tmporbitdata.uniage;
-
-		//Mark the snapshot that this passage happens
-		orbitprops.prevpassagesnap = currentsnap;
+		//If not set to be orbiting then update the flag to say this object is orbiting
+		if(orbitprops.orbitingflag==false)
+			orbitprops.orbitingflag==true;
 
 		return;
 	}
@@ -421,135 +441,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	// }
 
 
-}
-
-double *computeAngles(double prevpos[3], OrbitData orbitdata){
-
-	double x[3],y[3],z[3], mag;
-	double* angles = new double[3];
-
-	//Get the x-axis which is along the semi-major axis
-	x[0] = orbitdata.xrel - prevpos[0];
-	x[1] = orbitdata.yrel - prevpos[1];
-	x[2] = orbitdata.zrel - prevpos[2];
-
-	//The z-axis which is the angular momentum
-	z[0] = orbitdata.lxrel;
-	z[1] = orbitdata.lyrel;
-	z[2] = orbitdata.lzrel;
-
-	//Find the cross product of these to to find the y-axis
-	y[0] = (x[1] * z[2]) - (x[2] * z[1]);
-	y[1] = -((x[0] * z[2]) - (x[2] * z[0]));
-	y[2] = (x[0] * z[1]) - (x[1] * z[0]);
-
-
-	//Now we can find the x vector that is perpendicular to the y and z vectors
-	x[0] = (y[1] * z[2]) - (y[2] * z[1]);
-	x[1] = -((y[0] * z[2]) - (y[2] * z[0]));
-	x[2] = (y[0] * z[1]) - (y[1] * z[0]);
-
-	//Normalize the vectors
-	mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-	x[0] /= mag;
-	x[1] /= mag;
-	x[2] /= mag;
-	mag = sqrt(y[0]*y[0] + y[1]*y[1] + y[2]*y[2]);
-	y[0] /= mag;
-	y[1] /= mag;
-	y[2] /= mag;
-	mag = sqrt(z[0]*z[0] + z[1]*z[1] + z[2]*z[2]);
-	z[0] /= mag;
-	z[1] /= mag;
-	z[2] /= mag;
-
-	//Compute the Euler angles
-	angles[0] = acos(-z[1]/sqrt(1-z[2]*z[2]));
-	angles[1] = acos(z[2]);
-	angles[2] = acos(y[2]/sqrt(1-z[2]*z[2]));
-
-	return angles;
-}
-
-void SetPassageType(vector<OrbitData> &branchorbitdata){
-
-	double r,prevr=0,prevpos[3], *currangles, *refangles;
-	int firstpassageindex,preventrytype=-2;
-	vector<int> deleteindx;
-	bool apofirst = false;
-
-	//Now that the positions of the passages are set can now set the entry
-	//type for these points and the orbit eccentricities at these points
-	for(int i = 0; i<branchorbitdata.size();i++){
-
-		//Only interested in passage points
-		if(branchorbitdata[i].entrytype==99){
-
-			//Find the radial distance to its host
-			r = sqrt((branchorbitdata[i].xrel * branchorbitdata[i].xrel) + (branchorbitdata[i].yrel * branchorbitdata[i].yrel) + (branchorbitdata[i].zrel * branchorbitdata[i].zrel));
-
-			//Can only do this if the previous radial distance has been set
-			if(prevr>0){
-
-				//Now we have the the semi-major axis vector
-				if((refangles[0] + refangles[1] + refangles[2])==0.0)
-					refangles = computeAngles(prevpos,branchorbitdata[i]);
-
-				//Compute the current angles of the orbital plane
-				currangles = computeAngles(prevpos,branchorbitdata[i]);
-
-				//Compute the difference in the angles
-				branchorbitdata[i].longascnode = currangles[0] - refangles[0];
-				branchorbitdata[i].inc = currangles[1] - refangles[1];
-				branchorbitdata[i].argpariap = currangles[2] - refangles[2];
-
-
-				// If the current distance is greater that the previous radial distance then
-				//this is a apo-centric passage, otherwise it is a pericentric passage
-				if(r>prevr){
-
-					//If the previous entry type was a apocentric, then delete this one and
-					//wait until the halo goes past pericenter
-					if(preventrytype==-99){
-						deleteindx.push_back(i);
-						continue;
-					}
-					branchorbitdata[i].entrytype = -99;
-					branchorbitdata[i].orbiteccratio = (r-prevr)/(r+prevr);
-
-				}
-				else{
-
-					//If the previous entry type was a pericentric, then delete this one and
-					//wait until the halo goes past apocenter
-					if(preventrytype==99){
-						deleteindx.push_back(i);
-						continue;
-					}
-					branchorbitdata[i].orbiteccratio = (prevr-r)/(prevr+r);
-
-					//If the 2nd passage was a pericentric passage then set the initial passage as
-					//a apocentric passage
-					if(branchorbitdata[i].numorbits==1.0){
-						branchorbitdata[firstpassageindex].entrytype = -99;
-					}
-				}
-			}
-			prevr = r;
-			preventrytype = branchorbitdata[i].entrytype;
-			prevpos[0] = branchorbitdata[i].xrel;
-			prevpos[1] = branchorbitdata[i].yrel;
-			prevpos[2] = branchorbitdata[i].zrel;
-
-			//Store the index of the first passage and the relative position vector
-			if(branchorbitdata[i].numorbits==0.5)
-				firstpassageindex = i;
-
-		}
-	}
-
-	for(int i =deleteindx.size()-1 ;i>=0; i--)
-		branchorbitdata.erase(branchorbitdata.begin()+deleteindx[i]);
 }
 
 void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
@@ -708,10 +599,6 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 	// file2.close();
 	// file.close();
 
-	//Now have set the distances for the passages then the entry types and ratio
-	//eccentricities can be calculated
-	SetPassageType(branchorbitdata);
-
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
 	//moved rather than copied
@@ -736,19 +623,19 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	Int_t snap = 116;
-	// for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	// Int_t snap = 116;
+	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	Int_t i = 2867;
-		// for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	// Int_t i = 2867;
+		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
-			// if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
+			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
 
-		// }
+		}
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
-	// }
+	}
 }
