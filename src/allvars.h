@@ -402,14 +402,27 @@ struct OrbitProps{
 	//Flag to keep track if the halo is on a bound orbit
 	bool orbitingflag;
 
+	//Store the number of orbits
+	float numorbits;
+
+	//Store the previous entry type
+	float prevpassageentrytype;
+	float prevprevpassageentrytype;
+
 	//Value to keep track of the time the halo started to orbit
 	int prevpassagesnap;
+	int prevprevpassagesnap;
 
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
+	double prevprevpassagetime;
 
 	//Store the index of the previous passage
 	int prevpassageindex;
+	int prevprevpassageindex;
+
+	//Store the median orbital period, used to remove small oscilations
+	double medianperiod;
 
 	//Use to calculate the average mass loss rate
 	double masslossrate;
@@ -425,10 +438,11 @@ struct OrbitProps{
 
 	//Store the radial vector for the previous position
 	double prevpassagepos[3];
+	double prevprevpassagepos[3];
 
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
-	// and its host, total orbital angular momentum and orbital energy so the 
-	// average can be calculated
+	// and its host, total orbital angular momentum, orbital energy and 
+	// gravitational velocity so the average can be calculated
 	double mu;
 	double lx;
 	double ly;
@@ -441,21 +455,30 @@ struct OrbitProps{
 
 	OrbitProps(){
 		orbitingflag = false;
+		numorbits=0.0;
+		prevpassageentrytype=0.0;
 		prevpassagesnap = 0;
+		prevprevpassagesnap = 0;
 		prevpassagetime = 0.0;
+		prevprevpassagetime = 0.0;
 		prevpassageindex=0;
+		prevprevpassageindex=0;
 		crossrvirtime=0.0;
+		prevpassageindex=0;
 		mergertime=0.0;
+		masslossrate=0.0;
 		prevpassagepos[0]=0;
 		prevpassagepos[1]=0;
 		prevpassagepos[2]=0;
+		prevprevpassagepos[0]=0;
+		prevprevpassagepos[1]=0;
+		prevprevpassagepos[2]=0;
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;
 		lz=0.0;
 		ltot=0.0;
 		E=0.0;
-
 	};
 };
 
