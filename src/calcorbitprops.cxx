@@ -296,6 +296,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	}
 
+
 	/* Check if the halo has gone past pericenter or apocenter */
 
 	//Check if has undergone its first peri-centric passage (orbitingflag==true) and has undergone
@@ -333,6 +334,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
 
+
+
 		//Update all the quantities for calculations
 		rx = tmporbitdata.xrel;
 		ry = tmporbitdata.yrel;
@@ -359,19 +362,17 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 			else
 				tmporbitdata.orbiteccratio = (r-prevpassager)/(r+prevpassager);
 
-			omega = acos((rx * orbitprops.prevpassagepos[0] + ry * orbitprops.prevpassagepos[1] + rz * orbitprops.prevpassagepos[2])/(r * sqrt(orbitprops.prevpassagepos[0]*orbitprops.prevpassagepos[0] + orbitprops.prevpassagepos[1]*orbitprops.prevpassagepos[1] + orbitprops.prevpassagepos[2]*orbitprops.prevpassagepos[2])));
+			// omega = acos((rx * orbitprops.prevpassagepos[0] + ry * orbitprops.prevpassagepos[1] + rz * orbitprops.prevpassagepos[2])/(r * sqrt(orbitprops.prevpassagepos[0]*orbitprops.prevpassagepos[0] + orbitprops.prevpassagepos[1]*orbitprops.prevpassagepos[1] + orbitprops.prevpassagepos[2]*orbitprops.prevpassagepos[2])));
 
 			// //Calculate the orbit period as 2x the previous passage
 			tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
 
-			semiMajor = (prevpassager+r)/2.0; //sqrt((rx-orbitprops.prevpassagepos[0])*(rx-orbitprops.prevpassagepos[0]) + (ry-orbitprops.prevpassagepos[1])*(ry-orbitprops.prevpassagepos[1]) + (rz-orbitprops.prevpassagepos[2])*(rz-orbitprops.prevpassagepos[2]));
+			// semiMajor = (prevpassager+r)/2.0; //sqrt((rx-orbitprops.prevpassagepos[0])*(rx-orbitprops.prevpassagepos[0]) + (ry-orbitprops.prevpassagepos[1])*(ry-orbitprops.prevpassagepos[1]) + (rz-orbitprops.prevpassagepos[2])*(rz-orbitprops.prevpassagepos[2]));
 
-			keplarPeriod = 2*3.142 * sqrt((semiMajor*semiMajor*semiMajor)/(Cosmo.G * (hosthalo.mass + orbitinghalo.mass))) *(3.086e+19/3.15e+16);
-
-			// cout<<tmporbitdata.uniage<<" "<<tmporbitdata.orbitperiod<<" "<<keplarPeriod<<" "<<tmporbitdata.numorbits<<" "<<currentsnap - orbitprops.prevpassagesnap<<" "<<omega<<endl;
+			// keplarPeriod = 2*3.142 * sqrt((semiMajor*semiMajor*semiMajor)/(Cosmo.G * (hosthalo.mass + orbitinghalo.mass))) *(3.086e+19/3.15e+16);
 
 			//Remove any passages 
-			if(((currentsnap - orbitprops.prevpassagesnap) < 3) | (((keplarPeriod>2.0*tmporbitdata.orbitperiod) | (keplarPeriod<0.5*tmporbitdata.orbitperiod)) & (omega<3.142/2.0)) | (keplarPeriod>4.0*tmporbitdata.orbitperiod) | (keplarPeriod<0.25*tmporbitdata.orbitperiod)){
+			if((currentsnap - orbitprops.prevpassagesnap) < 3){
 
 				//Add the previous passage to the remove indexes
 				branchorbitdata.erase(branchorbitdata.begin()+orbitprops.prevpassageindex);
@@ -439,16 +440,19 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 			/* Compute all the angles */
 
+
 			//If the reference angles hasn't been set then lets set it
-			if((orbitprops.refangles[0]+orbitprops.refangles[1]+orbitprops.refangles[2])==0.0)
+			if(orbitprops.refangles==false){
 				orbitprops.refangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
-			else
+			}
+			else{
 				//Compute the current angles
 				currangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
 
 				tmporbitdata.longascnode = currangles[0] - orbitprops.refangles[0];
 				tmporbitdata.inc = currangles[1] - orbitprops.refangles[1];
 				tmporbitdata.argpariap = currangles[2] - orbitprops.refangles[2];
+			}
 
 			//Reset the total angular momentum in the orbit props to zero
 			orbitprops.lx = 0.0;
@@ -619,6 +623,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
+
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
 			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
@@ -686,10 +691,10 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 116;
+	// Int_t snap = 102;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	// Int_t i = 2867;
+	// Int_t i = 351;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
