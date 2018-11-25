@@ -141,6 +141,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	//Define varibles for the calculations
 	double omega, ltot, E, f, vtan, prevpassager, semiMajor, keplarPeriod, *currangles;
+	int prevpassageindex;
 
 	//If when the halo has merged
 	if(orbitinghalo.id!=descendantProgenID){
@@ -317,6 +318,33 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		else    //Apocentric
 			tmporbitdata.entrytype = -99;
 
+		//If the previous passage is the same entry type then remove it this can happen if the halo went outside of 3 Rvir host and underwent a passgae
+		if((orbitprops.prevpassageentrytype==tmporbitdata.entrytype) & (orbitprops.orbitingflag)){
+			branchorbitdata.erase(branchorbitdata.begin()+orbitprops.prevpassageindex);
+			orbitprops.numorbits= orbitprops.numorbits - 0.5;
+			tmporbitdata.numorbits=orbitprops.numorbits;
+
+			if(orbitprops.numorbits<=0.5){
+				orbitprops.orbitingflag=false;
+			}
+			else{
+
+				for(int j=branchorbitdata.size()-1;j>=0;j--){
+					if(abs(branchorbitdata[j].entrytype)==99){
+						prevpassageindex  = j;
+						break;
+					}
+				}
+				orbitprops.prevpassageindex = prevpassageindex;
+				orbitprops.prevpassagetime = branchorbitdata[prevpassageindex].uniage;
+				orbitprops.prevpassagesnap = (int)(branchorbitdata[prevpassageindex].haloID/1e12);
+				orbitprops.prevpassagepos[0] = branchorbitdata[prevpassageindex].xrel;
+				orbitprops.prevpassagepos[1] = branchorbitdata[prevpassageindex].yrel;
+				orbitprops.prevpassagepos[2] = branchorbitdata[prevpassageindex].zrel;
+				orbitprops.prevpassageentrytype = branchorbitdata[prevpassageindex].entrytype;
+			}
+		}
+
 		//The orbting halo
 		tmporbitdata.haloID = orbitinghalo.origid;
 
@@ -383,13 +411,20 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 				if(tmporbitdata.numorbits==1.0)
 					orbitprops.orbitingflag=false;
 				else{
-					orbitprops.prevpassageindex = orbitprops.prevprevpassageindex;
-					orbitprops.prevpassagetime = orbitprops.prevprevpassagetime;
-					orbitprops.prevpassagesnap = orbitprops.prevprevpassagesnap;
-					orbitprops.prevpassagepos[0] = orbitprops.prevprevpassagepos[0];
-					orbitprops.prevpassagepos[1] = orbitprops.prevprevpassagepos[1];
-					orbitprops.prevpassagepos[2] = orbitprops.prevprevpassagepos[2];
-					orbitprops.prevpassageentrytype = orbitprops.prevprevpassageentrytype;
+
+					for(int j=branchorbitdata.size()-1;j>=0;j--){
+						if(abs(branchorbitdata[j].entrytype)==99){
+							prevpassageindex  = j;
+							break;
+						}
+					}
+					orbitprops.prevpassageindex = prevpassageindex;
+					orbitprops.prevpassagetime = branchorbitdata[prevpassageindex].uniage;
+					orbitprops.prevpassagesnap = (int)(branchorbitdata[prevpassageindex].haloID/1e12);
+					orbitprops.prevpassagepos[0] = branchorbitdata[prevpassageindex].xrel;
+					orbitprops.prevpassagepos[1] = branchorbitdata[prevpassageindex].yrel;
+					orbitprops.prevpassagepos[2] = branchorbitdata[prevpassageindex].zrel;
+					orbitprops.prevpassageentrytype = branchorbitdata[prevpassageindex].entrytype;
 				}
 				//Remove 1 from the total number of orbits so far
 				orbitprops.numorbits-=1.0;
@@ -467,17 +502,6 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 			orbitprops.masslossrate = 0.0;
 		}
 		//Any additional properties to be calculated here
-
-		//Store the prev-previous qantities in case this passage is removed
-		if(orbitprops.prevpassagetime>0){
-			orbitprops.prevprevpassageindex = orbitprops.prevpassageindex;
-			orbitprops.prevprevpassagetime = orbitprops.prevpassagetime;
-			orbitprops.prevprevpassagesnap = orbitprops.prevpassagesnap;
-			orbitprops.prevprevpassagepos[0] = orbitprops.prevpassagepos[0];
-			orbitprops.prevprevpassagepos[1] = orbitprops.prevpassagepos[1];
-			orbitprops.prevprevpassagepos[2] = orbitprops.prevpassagepos[2];
-			orbitprops.prevprevpassageentrytype = orbitprops.prevpassageentrytype;
-		}
 
 		//Store the index of the previous passage
 		orbitprops.prevpassageindex = branchorbitdata.size();
