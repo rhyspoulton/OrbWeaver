@@ -244,7 +244,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	tmporbitdata.hostFlag = orbitinghalo.hostFlag;
 	tmporbitdata.hostFlaghost = hosthalo.hostFlag;
 
-	if(numrvircrossing!=0){
+	//Check if a crossing point has happened and it is not the same as the previous crossing point
+	if((numrvircrossing!=0) & (numrvircrossing!=orbitprops.prevcrossingentrytype)){
 
 		/* Store some properties of the orbit halo and its host at this point */
 
@@ -287,6 +288,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		tmporbitdata.lyrel = -1.0;
 		tmporbitdata.lzrel = -1.0;
 		tmporbitdata.hostalignment = 0.0;
+
+		//Store the previous crossing point entry type
+		orbitprops.prevcrossingentrytype=numrvircrossing;
 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
