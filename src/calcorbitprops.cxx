@@ -695,6 +695,9 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 	// file2.close();
 	// file.close();
 
+
+	CleanOrbits(branchorbitdata);
+
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
 	//moved rather than copied
@@ -719,10 +722,10 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 102;
+	// Int_t snap = 115;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	// Int_t i = 351;
+	// Int_t i = 3151;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo

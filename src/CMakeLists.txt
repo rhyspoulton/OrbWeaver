@@ -4,6 +4,7 @@
 set(_orbweaver_sources
 	allvars.cxx
 	calcorbitprops.cxx
+	cleanorbits.cxx
 	cosmofuncs.cxx
 	interpfuncs.cxx
 	io.cxx

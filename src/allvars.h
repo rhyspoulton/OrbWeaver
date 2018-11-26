@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <math.h>
 #include <getopt.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
@@ -48,6 +49,7 @@ using namespace H5;
 #include "adios.h"
 #endif
 
+#define _USE_MATH_DEFINES
 
 //Define the output chunksize for the datasets
 #define HDFOUTCHUNKSIZE 8192
