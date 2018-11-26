@@ -696,7 +696,9 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 	// file.close();
 
 
-	CleanOrbits(branchorbitdata);
+	double simtime = snapdata.back().uniage - snapdata.front().uniage;
+
+	CleanOrbits(branchorbitdata,simtime);
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be

@@ -3,7 +3,7 @@
 #include "orbweaver.h"
 
 
-void CleanOrbits(vector<OrbitData> &branchorbitdata){
+void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime){
 
 	//Store data and the number of passages
 	int prevpassageindex, nextpassageindex;
@@ -39,7 +39,6 @@ void CleanOrbits(vector<OrbitData> &branchorbitdata){
 
 					//Lets delete this passage
 					idel.push_back(i);
-					numpassages--;
 
 					//Now we need to check which of the surrounding passages to remove
 					//based on how much the halo has moved around its host
@@ -70,10 +69,9 @@ void CleanOrbits(vector<OrbitData> &branchorbitdata){
 
 						//In this case lets remove the next passage as it has moved through a smaller angel
 						idel.push_back(nextpassageindex);
-						numpassages--;
 
 						//We can now skip the next passage as it will be deleted
-						while((i<numentries) & (i<nextpassageindex+1)) i++;
+						while((i<numentries) & (i<nextpassageindex)) i++;
 					}
 					else{
 						//Other wise remove the previous passage
@@ -85,15 +83,79 @@ void CleanOrbits(vector<OrbitData> &branchorbitdata){
 						// angles needs to be updated
 						if(numpassages>0){
 
-							//Find the index of the previous passage
+							//Find the index of the previous passage and check it is not in the delete vector
 							prevpassageindex--;
-							while(abs(branchorbitdata[prevpassageindex].entrytype)!=99) prevpassageindex--;
+							while((abs(branchorbitdata[prevpassageindex].entrytype)!=99) | (find(idel.begin(),idel.end(),prevpassageindex)!=idel.end())){
+							 prevpassageindex--;
+							}
 						}
 					}
 					continue;
 				}
 			}
 
+			//Store the index of the previous passage
+			prevpassageindex = i;
+
+			//Add one to the number of passages
+			numpassages++;
+		}
+	}
+
+	//Now lets sort the delete vector so in sorted order
+	sort(idel.begin(),idel.end());
+
+	//Check if there is any indexes to delete
+	if(idel.size()>0){
+		for(int i=idel.size()-1;i>=0;i--)
+			branchorbitdata.erase(branchorbitdata.begin()+idel[i]);
+	}
+
+	//Remove all the values from the delete vector
+	idel.clear();
+
+	numpassages=0;
+
+	float semiMajor, keplarPeriod, orbitalperiod;
+
+	//Lets clean the passage points by check
+	for(int i=0;i<branchorbitdata.size();i++){
+		if(abs(branchorbitdata[i].entrytype)==99){
+			//Skip the first passage by checking if the orbital period is 0
+			if(numpassages>0){
+
+				//Calculate the angle between this passage and the previous
+				rx = branchorbitdata[i].xrel;
+				ry = branchorbitdata[i].yrel;
+				rz = branchorbitdata[i].zrel;
+				r = sqrt(rx*rx + ry*ry + rz*rz);
+
+				tmprx = branchorbitdata[prevpassageindex].xrel;
+				tmpry = branchorbitdata[prevpassageindex].yrel;
+				tmprz = branchorbitdata[prevpassageindex].zrel;
+				tmpr = sqrt(tmprx*tmprx + tmpry*tmpry + tmprz*tmprz);
+
+				//Now calculate the size of the angle
+				prevphi = acos((rx*tmprx + ry*tmpry + rz*tmprz)/(r*tmpr));
+
+				orbitalperiod = 2.0 * (branchorbitdata[i].uniage - branchorbitdata[prevpassageindex].uniage);
+
+				if(orbitalperiod>simtime/2.0){
+					idel.push_back(i);
+					idel.push_back(prevpassageindex);
+					numpassages--;
+
+					if(numpassages>0){
+						//Find the index of the previous passage and check it is not in the delete vector
+						prevpassageindex--;
+						while((abs(branchorbitdata[prevpassageindex].entrytype)!=99) | (find(idel.begin(),idel.end(),prevpassageindex)!=idel.end())){
+						 prevpassageindex--;
+						}
+					}
+					continue;
+				}
+
+			}
 			//Store the index of the previous passage
 			prevpassageindex = i;
 
