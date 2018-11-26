@@ -78,6 +78,9 @@ struct Options
 	//The name of the orbweaver configuration
 	char *configname;
 
+	//Base name for the output
+	char *outputbasename;
+
 	//The starting snapshot
 	int isnap;
 
@@ -98,6 +101,7 @@ struct Options
 	{
 		fname=NULL;
 		configname=NULL;
+		outputbasename=NULL;
 		numsnaps=fsnap-isnap+1;
 		iverbose=0;
 	}

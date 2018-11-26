@@ -64,7 +64,7 @@ void GetArgs(int argc, char *argv[], Options &opt){
 	int option;
 	int NumArgs = 0;
 	int configflag=0;
-	while ((option = getopt(argc, argv, "i:C:")) != EOF)
+	while ((option = getopt(argc, argv, "i:c:o:")) != EOF)
 	{
 
 		switch(option){
@@ -73,10 +73,14 @@ void GetArgs(int argc, char *argv[], Options &opt){
 				NumArgs+=2;
 				break;
 
-			case 'C':
+			case 'c':
 				opt.configname = optarg;
 				NumArgs+=2;
 				configflag = 1;
+				break;
+			case 'o':
+				opt.outputbasename = optarg;
+				NumArgs+=2;
 				break;
 
 		}
@@ -101,7 +105,16 @@ void ConfigCheck(Options &opt){
 
 	if(opt.fname==NULL){
 
-		cerr<<"Must provide input file, usage: \n	orbweaver -i <input catalogue> [-C <config file>]"<<endl;
+		cerr<<"Must provide input file, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-C <config file>]"<<endl;
+
+		EXIT_CODE = 1;
+		throw exception();
+
+	}
+
+	if(opt.outputbasename==NULL){
+
+		cerr<<"Must provide output base filename, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-C <config file>]"<<endl;
 
 		EXIT_CODE = 1;
 		throw exception();

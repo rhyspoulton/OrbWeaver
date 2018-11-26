@@ -653,6 +653,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	int itemp=0;
 	Int_t numentries = orbitdata.size();
 	HDFOutputNames hdfdatasetnames;
+	char outfilename[1000];
 
 	//Create the buffers to load the data into
 	unsigned long long ullongbuf[numentries];
@@ -673,7 +674,9 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		Exception::dontPrint();
 
 		//Open up the file
-		file = H5File("Outfile.h5",H5F_ACC_TRUNC);
+		strcpy(outfilename,opt.outputbasename);
+		strcat(outfilename,".orb.h5");
+		file = H5File(outfilename,H5F_ACC_TRUNC);
 
 		/* orbitID */
 

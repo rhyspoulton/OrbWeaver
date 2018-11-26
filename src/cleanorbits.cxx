@@ -90,12 +90,8 @@ void CleanOrbits(vector<OrbitData> &branchorbitdata){
 							while(abs(branchorbitdata[prevpassageindex].entrytype)!=99) prevpassageindex--;
 						}
 					}
-
 					continue;
-
 				}
-
-
 			}
 
 			//Store the index of the previous passage
