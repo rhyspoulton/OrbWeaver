@@ -298,6 +298,9 @@ struct OrbitData{
 	//The argument of pariapsis with respect to the intial orbital plane
 	float argpariap;
 
+	//The angle moved through since last orbit
+	float phi;
+
 	//How aligned the average orbital angular momentum is with the average host's angular momentum
 	float hostalignment;
 
@@ -456,6 +459,7 @@ struct OrbitProps{
 	double hostlz;
 	double ltot;
 	double E;
+	double phi;
 
 	OrbitProps(){
 		orbitingflag = false;
@@ -477,6 +481,7 @@ struct OrbitProps{
 		lz=0.0;
 		ltot=0.0;
 		E=0.0;
+		phi=0;
 	};
 };
 
@@ -640,6 +645,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("Inclination");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("ArgPariap");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Phi");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("HostAlignment");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

@@ -17,6 +17,7 @@
 | Inclination | Radian | The inclination of the halos orbit with respect to the intial orbital plane |
 | ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |
 | HostAlignment | Radian | The alignment of the orbital angular momentum vector with the host halo's angular momentum vector |
+| Phi | Radian | The angle moved through since last passage |
 | MergerTimeScale | Gyr | How long the halo takes to merge once crossing 1.0 Rvir of its host halo, this is set the first time the orbiting halo crosses 1.0 Rvir |
 | scalefactor  | N/A | Scalefactor of this entry |
 | uniage | Gyr | Age of the universe of this entry |

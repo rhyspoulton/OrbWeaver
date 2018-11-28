@@ -51,7 +51,7 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 	return angles;
 }
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
+void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, OrbitProps &prevorbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
@@ -74,6 +74,36 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	r = sqrt(rx * rx + ry * ry + rz * rz);
 	vr = (rx * vrx + ry * vry + rz * vrz) / r;
 	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
+
+	//Store the peak vmax in the orbiting halos history
+	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
+		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
+
+	//Store what orbitID number this is
+	tmporbitdata.orbitID = orbitID;
+
+	//Store the haloID this halo is in the orbit catalog
+	tmporbitdata.orbithaloID = orbitinghalo.id;
+
+	//Lets find if this halo has the closest approach so far or if we are at the base of this
+	//branch i.e. the progenitor ID is the same as the halo's
+	if(r<tmporbitdata.closestapproach)
+		tmporbitdata.closestapproach = r;
+	else if(orbitinghalo.progenitor==orbitinghalo.id)
+		tmporbitdata.closestapproach = r;
+
+	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvr;
+
+	//Lets find the same for the previous halo
+	prevrx = prevhosthalo.x - prevorbitinghalo.x;
+	prevry = prevhosthalo.y - prevorbitinghalo.y;
+	prevrz = prevhosthalo.z - prevorbitinghalo.z;
+	prevvrx = prevhosthalo.vx - prevorbitinghalo.vx;
+	prevvry = prevhosthalo.vy - prevorbitinghalo.vy;
+	prevvrz = prevhosthalo.vz - prevorbitinghalo.vz;
+	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
+	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
+
 
 	double mu, lx, ly, lz, e, count, deltat;
 	//The difference in time since the previous snapshot
@@ -108,36 +138,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		// Find the change mass in units of Msun/Gyr
 		orbitprops.masslossrate += (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
+
+		//Find the total angle that the orbit has moved through since last orbit
+		orbitprops.phi+=acos((rx*prevrx + ry*prevry + rz*prevrz)/(r*prevr));
 	}
-
-	//Store the peak vmax in the orbiting halos history
-	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
-		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
-
-	//Store what orbitID number this is
-	tmporbitdata.orbitID = orbitID;
-
-	//Store the haloID this halo is in the orbit catalog
-	tmporbitdata.orbithaloID = orbitinghalo.id;
-
-	//Lets find if this halo has the closest approach so far or if we are at the base of this
-	//branch i.e. the progenitor ID is the same as the halo's
-	if(r<tmporbitdata.closestapproach)
-		tmporbitdata.closestapproach = r;
-	else if(orbitinghalo.progenitor==orbitinghalo.id)
-		tmporbitdata.closestapproach = r;
-
-	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvr;
-
-	//Lets find the same for the previous halo
-	prevrx = prevhosthalo.x - prevorbitinghalo.x;
-	prevry = prevhosthalo.y - prevorbitinghalo.y;
-	prevrz = prevhosthalo.z - prevorbitinghalo.z;
-	prevvrx = prevhosthalo.vx - prevorbitinghalo.vx;
-	prevvry = prevhosthalo.vy - prevorbitinghalo.vy;
-	prevvrz = prevhosthalo.vz - prevorbitinghalo.vz;
-	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
-	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 	//Define varibles for the calculations
 	double omega, ltot, E, f, vtan, prevpassager, semiMajor, keplarPeriod, *currangles;
@@ -333,19 +337,19 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 			}
 			else{
 
-				for(int j=branchorbitdata.size()-1;j>=0;j--){
-					if(abs(branchorbitdata[j].entrytype)==99){
-						prevpassageindex  = j;
-						break;
-					}
-				}
-				orbitprops.prevpassageindex = prevpassageindex;
-				orbitprops.prevpassagetime = branchorbitdata[prevpassageindex].uniage;
-				orbitprops.prevpassagesnap = (int)(branchorbitdata[prevpassageindex].haloID/1e12);
-				orbitprops.prevpassagepos[0] = branchorbitdata[prevpassageindex].xrel;
-				orbitprops.prevpassagepos[1] = branchorbitdata[prevpassageindex].yrel;
-				orbitprops.prevpassagepos[2] = branchorbitdata[prevpassageindex].zrel;
-				orbitprops.prevpassageentrytype = branchorbitdata[prevpassageindex].entrytype;
+				prevorbitprops.lx += orbitprops.lx;
+				prevorbitprops.ly += orbitprops.ly;
+				prevorbitprops.lz += orbitprops.lz;
+				prevorbitprops.E += orbitprops.E;
+				prevorbitprops.ltot += orbitprops.ltot;
+				prevorbitprops.mu += orbitprops.mu;
+				prevorbitprops.hostlx += orbitprops.hostlx;
+				prevorbitprops.hostly += orbitprops.hostlx;
+				prevorbitprops.hostlz += orbitprops.hostlx;
+				prevorbitprops.masslossrate += orbitprops.masslossrate;
+				prevorbitprops.phi += orbitprops.phi;
+
+				 orbitprops = prevorbitprops;
 			}
 		}
 
@@ -412,38 +416,40 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 				// If the object has only undergone one orbit then lets remove the passages and reset so the halo is 
 				// no longer set to be orbiting, otherwise update the previous passage quantities
-				if(tmporbitdata.numorbits==1.0)
+				if(tmporbitdata.numorbits==1.0){
 					orbitprops.orbitingflag=false;
+
+					//Reset the total angular momentum in the orbit props to zero
+					orbitprops.lx = 0.0;
+					orbitprops.ly = 0.0;
+					orbitprops.lz = 0.0;
+					orbitprops.E = 0.0;
+					orbitprops.ltot = 0.0;
+					orbitprops.mu = 0.0;
+					orbitprops.hostlx = 0.0;
+					orbitprops.hostly = 0.0;
+					orbitprops.hostlz = 0.0;
+					orbitprops.masslossrate = 0.0;
+					orbitprops.phi=0.0;
+				}
 				else{
 
-					for(int j=branchorbitdata.size()-1;j>=0;j--){
-						if(abs(branchorbitdata[j].entrytype)==99){
-							prevpassageindex  = j;
-							break;
-						}
-					}
-					orbitprops.prevpassageindex = prevpassageindex;
-					orbitprops.prevpassagetime = branchorbitdata[prevpassageindex].uniage;
-					orbitprops.prevpassagesnap = (int)(branchorbitdata[prevpassageindex].haloID/1e12);
-					orbitprops.prevpassagepos[0] = branchorbitdata[prevpassageindex].xrel;
-					orbitprops.prevpassagepos[1] = branchorbitdata[prevpassageindex].yrel;
-					orbitprops.prevpassagepos[2] = branchorbitdata[prevpassageindex].zrel;
-					orbitprops.prevpassageentrytype = branchorbitdata[prevpassageindex].entrytype;
+					prevorbitprops.lx += orbitprops.lx;
+					prevorbitprops.ly += orbitprops.ly;
+					prevorbitprops.lz += orbitprops.lz;
+					prevorbitprops.E += orbitprops.E;
+					prevorbitprops.ltot += orbitprops.ltot;
+					prevorbitprops.mu += orbitprops.mu;
+					prevorbitprops.hostlx += orbitprops.hostlx;
+					prevorbitprops.hostly += orbitprops.hostlx;
+					prevorbitprops.hostlz += orbitprops.hostlx;
+					prevorbitprops.masslossrate += orbitprops.masslossrate;
+					prevorbitprops.phi += orbitprops.phi;
+
+					orbitprops = prevorbitprops;
 				}
 				//Remove 1 from the total number of orbits so far
 				orbitprops.numorbits-=1.0;
-
-				//Reset the total angular momentum in the orbit props to zero
-				orbitprops.lx = 0.0;
-				orbitprops.ly = 0.0;
-				orbitprops.lz = 0.0;
-				orbitprops.E = 0.0;
-				orbitprops.ltot = 0.0;
-				orbitprops.mu = 0.0;
-				orbitprops.hostlx = 0.0;
-				orbitprops.hostly = 0.0;
-				orbitprops.hostlz = 0.0;
-				orbitprops.masslossrate = 0.0;
 
 				return;
 			}
@@ -493,6 +499,11 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 				tmporbitdata.argpariap = currangles[2] - orbitprops.refangles[2];
 			}
 
+			//The total angle moved through since last orbit
+			tmporbitdata.phi = orbitprops.phi;
+
+			prevorbitprops = orbitprops;
+
 			//Reset the total angular momentum in the orbit props to zero
 			orbitprops.lx = 0.0;
 			orbitprops.ly = 0.0;
@@ -504,6 +515,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 			orbitprops.hostly = 0.0;
 			orbitprops.hostlz = 0.0;
 			orbitprops.masslossrate = 0.0;
+			orbitprops.phi = 0.0;
 		}
 		//Any additional properties to be calculated here
 
@@ -567,6 +579,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 
 	//Keep track of the properties of this orbit
 	OrbitProps orbitprops;
+	OrbitProps prevorbitprops;
 
 	//Keep track of the snapshot
 	Int_t currentsnap = snap;
@@ -654,7 +667,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
-			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,splinefuncs,hostsplinefuncs);
+			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -698,7 +711,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 
 	double simtime = snapdata.back().uniage - snapdata.front().uniage;
 
-	CleanOrbits(branchorbitdata,simtime);
+	// CleanOrbits(branchorbitdata,simtime);
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
@@ -724,10 +737,10 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 115;
+	// Int_t snap = 122;
 	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	// Int_t i = 3151;
+	// Int_t i = 1063;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
