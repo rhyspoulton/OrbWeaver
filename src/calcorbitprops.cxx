@@ -435,6 +435,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 					orbitprops.hostlz = 0.0;
 					orbitprops.masslossrate = 0.0;
 					orbitprops.phi=0.0;
+					orbitprops.numorbits=0.0;
 				}
 				else{
 
@@ -451,9 +452,10 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 					prevorbitprops.phi += orbitprops.phi;
 
 					orbitprops = prevorbitprops;
+
+					//Remove 0.5 from the total number of orbits so far
+					orbitprops.numorbits-=0.5;
 				}
-				//Remove 1 from the total number of orbits so far
-				orbitprops.numorbits-=1.0;
 
 				return;
 			}
