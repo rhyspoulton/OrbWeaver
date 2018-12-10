@@ -447,6 +447,9 @@ struct OrbitProps{
 	//Store the radial vector for the previous position
 	double prevpassagepos[3];
 
+	//The closest approach; that the halo had to its host
+	double closestapproach;
+
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
 	// and its host, total orbital angular momentum, orbital energy and 
 	// gravitational velocity so the average can be calculated
@@ -475,6 +478,7 @@ struct OrbitProps{
 		prevpassagepos[0]=0;
 		prevpassagepos[1]=0;
 		prevpassagepos[2]=0;
+		closestapproach=numeric_limits<double>::max();
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;

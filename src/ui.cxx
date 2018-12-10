@@ -105,7 +105,7 @@ void ConfigCheck(Options &opt){
 
 	if(opt.fname==NULL){
 
-		cerr<<"Must provide input file, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-C <config file>]"<<endl;
+		cerr<<"Must provide input file, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-c <config file>]"<<endl;
 
 		EXIT_CODE = 1;
 		throw exception();
@@ -114,7 +114,7 @@ void ConfigCheck(Options &opt){
 
 	if(opt.outputbasename==NULL){
 
-		cerr<<"Must provide output base filename, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-C <config file>]"<<endl;
+		cerr<<"Must provide output base filename, usage: \n	orbweaver -i <input catalogue> -o <base output name> [-c <config file>]"<<endl;
 
 		EXIT_CODE = 1;
 		throw exception();

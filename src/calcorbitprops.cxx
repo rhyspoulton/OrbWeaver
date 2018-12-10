@@ -79,18 +79,16 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
 		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
 
+	//Now done the interpolation can check if this is the closest approach so far
+	if(r<orbitprops.closestapproach)
+		orbitprops.closestapproach=r;
+	tmporbitdata.closestapproach=orbitprops.closestapproach;
+
 	//Store what orbitID number this is
 	tmporbitdata.orbitID = orbitID;
 
 	//Store the haloID this halo is in the orbit catalog
 	tmporbitdata.orbithaloID = orbitinghalo.id;
-
-	//Lets find if this halo has the closest approach so far or if we are at the base of this
-	//branch i.e. the progenitor ID is the same as the halo's
-	if(r<tmporbitdata.closestapproach)
-		tmporbitdata.closestapproach = r;
-	else if(orbitinghalo.progenitor==orbitinghalo.id)
-		tmporbitdata.closestapproach = r;
 
 	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvr;
 
@@ -295,6 +293,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		//Store the previous crossing point entry type
 		orbitprops.prevcrossingentrytype=numrvircrossing;
+
+		//Now done the interpolation can check if this is the closest approach so far
+		r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
+		if(r<orbitprops.closestapproach)
+			orbitprops.closestapproach=r;
+		tmporbitdata.closestapproach=orbitprops.closestapproach;
 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
@@ -536,6 +540,12 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		orbitprops.prevpassagepos[1] = ry;
 		orbitprops.prevpassagepos[2] = rz;
 
+		//Now done the interpolation can check if this is the closest approach so far
+		r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
+		if(r<orbitprops.closestapproach)
+			orbitprops.closestapproach=r;
+		tmporbitdata.closestapproach=orbitprops.closestapproach;
+
 		//If not set to be orbiting then update the flag to say this object is orbiting
 		if(orbitprops.orbitingflag==false)
 			orbitprops.orbitingflag=true;
@@ -543,9 +553,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
 
-
-		return;
 	}
+
 
 
 }
