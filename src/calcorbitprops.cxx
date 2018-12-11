@@ -246,8 +246,8 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 	tmporbitdata.hostFlag = orbitinghalo.hostFlag;
 	tmporbitdata.hostFlaghost = hosthalo.hostFlag;
 
-	//Check if a crossing point has happened and it is not the same as the previous crossing point
-	if((numrvircrossing!=0) & (numrvircrossing!=orbitprops.prevcrossingentrytype)){
+	//Check if a crossing point has happened and it is not the same as the previous crossing point. In addition check if the same crossing point happend 
+	if((numrvircrossing!=0) & (numrvircrossing!=orbitprops.prevcrossingentrytype) & ((abs(numrvircrossing)!=abs(orbitprops.prevcrossingentrytype)) | (currentsnap>orbitprops.prevcrossingsnap+1))){
 
 		/* Store some properties of the orbit halo and its host at this point */
 
@@ -293,6 +293,9 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 		//Store the previous crossing point entry type
 		orbitprops.prevcrossingentrytype=numrvircrossing;
+
+		//Store the snapshot which this crossing point happened
+		orbitprops.prevcrossingsnap = currentsnap;
 
 		//Now done the interpolation can check if this is the closest approach so far
 		r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
@@ -748,19 +751,19 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
 	// Int_t snap = 55;
-	// Int_t snap = 122;
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	Int_t snap = 116;
+	// for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
 	// Int_t i = 990;
-	// Int_t i = 1063;
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	Int_t i = 1177;
+		// for(Int_t i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
-			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
+			// if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
 			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
 			orbitID++;
 
-		}
+		// }
 		if(opt.iverbose) cout<<"Done processing snap "<<snap<<endl;
-	}
+	// }
 }

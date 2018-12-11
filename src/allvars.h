@@ -420,7 +420,10 @@ struct OrbitProps{
 	//Store the previous passage entry type
 	float prevpassageentrytype;
 
-	//Value to keep track of the time the halo started to orbit
+	//Store the snapshot which the previous crossing point happened
+	int prevcrossingsnap;
+
+	//Store the snapshot which the previous passage happened
 	int prevpassagesnap;
 
 	//Value to keep track of the time of the previous apo/peri-centric pasage
