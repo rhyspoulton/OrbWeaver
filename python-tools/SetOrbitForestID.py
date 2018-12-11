@@ -2,38 +2,37 @@ import numpy as np
 from scipy.interpolate import interp1d
 import h5py
 
-def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,
-	TEMPORALHALOIDVAL = 1000000000000,numRvirSearch=4):
+def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata):
 	"""
-	Sets the orbital forestID by finding any halos which come with numRvirSearch x Rvir of
+	Sets the orbital forestID by finding any halos which come with opt.numRvirSearch x Rvir of
 	the branch of interest over all the snapshots that it exists in
 
 	"""
 
 	#Set a dataset to mark a halo as done within this orbitID
-	processedFlag = [[] for i in range(numsnaps)]
-	for i in range(numsnaps):
+	processedFlag = [[] for i in range(opt.numsnaps)]
+	for i in range(opt.numsnaps):
 		processedFlag[i] = np.zeros(numhalos[i],dtype=bool)
 
 	#Lets first walk down extracting the haloIDs for this branch of interest
-	mainHaloIDs = -1 * np.ones(numsnaps,dtype=np.int64)
-	mainOrbitHaloIDs = -1 * np.ones(numsnaps,dtype=np.int64)
-	snap = int(HaloID/TEMPORALHALOIDVAL)
-	index = int(HaloID%TEMPORALHALOIDVAL-1)
+	mainHaloIDs = -1 * np.ones(opt.numsnaps,dtype=np.int64)
+	mainOrbitHaloIDs = -1 * np.ones(opt.numsnaps,dtype=np.int64)
+	snap = int(HaloID/opt.TEMPORALHALOIDVAL)
+	index = int(HaloID%opt.TEMPORALHALOIDVAL-1)
 
 	# Set the snapshot for which this branch first comes into existence
-	mainRootTailSnap = int(tree[snap]["RootTail"][index]/TEMPORALHALOIDVAL)
-	mainRootHeadSnap = int(tree[snap]["RootHead"][index]/TEMPORALHALOIDVAL)
+	mainRootTailSnap = int(tree[snap]["RootTail"][index]/opt.TEMPORALHALOIDVAL)
+	mainRootHeadSnap = int(tree[snap]["RootHead"][index]/opt.TEMPORALHALOIDVAL)
 	# Lets walk up this branch while it exists
 	ID = tree[snap]["RootTail"][index]
-	haloIndex = int(ID%TEMPORALHALOIDVAL-1)
+	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
 
 	#Lets extract the full history of this halo
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
 
 		#Set the re-mapped tree information for this branch
-		mainOrbitHaloID = np.uint64(snap * TEMPORALHALOIDVAL + len(orbitdata[snap]["ID"]) + 1)
+		mainOrbitHaloID = np.uint64(snap * opt.TEMPORALHALOIDVAL + len(orbitdata[snap]["ID"]) + 1)
 		orbitdata[snap]["ID"].append(mainOrbitHaloID)
 
 
@@ -76,7 +75,6 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 					elif(headpos-halopos<-0.5*halodata[snap]["SimulationInfo"]["Period"]): halopos-=halodata[snap]["SimulationInfo"]["Period"]
 
 					f = interp1d([haloSnap,headSnap],[halopos,headpos])
-					print(f(snap),halopos,headpos)
 
 				else:
 
@@ -92,24 +90,24 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 			orbitdata[snap]["Head"].append(mainOrbitHaloID)
 		elif(snap==mainRootTailSnap):
 			orbitdata[snap]["Tail"].append(mainOrbitHaloID)
-			orbitdata[snap]["Head"].append(np.uint64((snap+1) * TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
+			orbitdata[snap]["Head"].append(np.uint64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
 		elif(snap==mainRootHeadSnap):
-			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
+			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
 			orbitdata[snap]["Head"].append(mainOrbitHaloID)
 		else:
-			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
-			orbitdata[snap]["Head"].append(np.uint64((snap+1) * TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
+			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
+			orbitdata[snap]["Head"].append(np.uint64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
 
 
 
-		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * TEMPORALHALOIDVAL +1))
-		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * TEMPORALHALOIDVAL +1))
+		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
+		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
 
 		if(ID!=0):
 			#Extract its head
 			head = tree[snap]["Head"][haloIndex]
-			headSnap = int(head/TEMPORALHALOIDVAL)
-			headIndex = int(head%TEMPORALHALOIDVAL-1)
+			headSnap = int(head/opt.TEMPORALHALOIDVAL)
+			headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
 
 			#Mark this halo as done in the global
 			halodata[snap]["doneFlag"][haloIndex]=True
@@ -139,18 +137,18 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 
 	#List to keep track of which indexes are needed to be extracted per snapshot
-	extractIndexes = [[] for i in range(numsnaps)]
+	extractIndexes = [[] for i in range(opt.numsnaps)]
 	# Now for the full history of the main branch lets find which halos come within Rvir of this halo
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
 		#Extract the ID of the halo at this snapshot and its index
 		mainOrbitHaloID = mainOrbitHaloIDs[snap]
-		index = int(mainOrbitHaloID%TEMPORALHALOIDVAL-1)
+		index = int(mainOrbitHaloID%opt.TEMPORALHALOIDVAL-1)
 		mainOrbitHaloNpart = orbitdata[snap]["npart"][index]
 
-		#Lets find any halos that are within numRvirSearch of this halo
-		indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["Xc"][index],orbitdata[snap]["Yc"][index],orbitdata[snap]["Zc"][index]],r = numRvirSearch * orbitdata[snap]["R_200crit"][index])
+		#Lets find any halos that are within opt.numRvirSearch of this halo
+		indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["Xc"][index],orbitdata[snap]["Yc"][index],orbitdata[snap]["Zc"][index]],r = opt.numRvirSearch * orbitdata[snap]["R_200crit"][index])
 
-		# Walk along the branches of the halos within numRvirSearch
+		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:
 			#Skip this halo if its orbital halo ID has already been set to this one or the halo is greater than the number of particles in the halo currently being orbited
 			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
@@ -160,17 +158,17 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 			# Go straight to the branches  tail 
 			ID = tree[snap]["Tail"][iindex]
-			haloSnap = int(ID/TEMPORALHALOIDVAL)
-			haloIndex = int(ID%TEMPORALHALOIDVAL-1)
+			haloSnap = int(ID/opt.TEMPORALHALOIDVAL)
+			haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 
 			#Start to walk up the branch
 			head = tree[haloSnap]["Head"][haloIndex]
-			headSnap = int(head/TEMPORALHALOIDVAL)
-			headIndex = int(head%TEMPORALHALOIDVAL-1)
+			headSnap = int(head/opt.TEMPORALHALOIDVAL)
+			headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
 
 			#Lets also store its TailSanp
 			tail = tree[haloSnap]["Tail"][haloIndex]
-			tailSnap = int(tail/TEMPORALHALOIDVAL)
+			tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
 
 			#Check we are still on the main branch
 			headTail = tree[headSnap]["Tail"][headIndex]
@@ -179,16 +177,16 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 			# #If this branch RootTailSnap is before the mainRootTailSnap then set this branch to only exits after mainRootTailSnap
 			# if(haloSnap<mainRootTailSnap):
-			# 	reMappedRootTail = np.uint64(mainRootTailSnap * TEMPORALHALOIDVAL + len(orbitdata[mainRootTailSnap]["ID"]) + 1)
+			# 	reMappedRootTail = np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[mainRootTailSnap]["ID"]) + 1)
 			# else: #Otherwise it starts at its RootTailSnap
-			# 	reMappedRootTail = np.uint64(haloSnap * TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
+			# 	reMappedRootTail = np.uint64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
 
-			# RootHeadSnap = int(halodata[haloSnap]["RootHead"][iindex]/TEMPORALHALOIDVAL)
+			# RootHeadSnap = int(halodata[haloSnap]["RootHead"][iindex]/opt.TEMPORALHALOIDVAL)
 			# #Do the same for the RootHeadSnap if it exist after mainRootHeadSnap
 			# if(RootHeadSnap>mainRootHeadSnap):
-			# 	reMappedRootHead = np.uint64(mainRootHeadSnap * TEMPORALHALOIDVAL + len(orbitdata[mainRootHeadSnap]["ID"]) + 1)
+			# 	reMappedRootHead = np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[mainRootHeadSnap]["ID"]) + 1)
 			# else: #Otherwise it starts at its RootTailSnap
-			# 	reMappedRootHead = np.uint64(RootHeadSnap * TEMPORALHALOIDVAL + len(orbitdata[RootHeadSnap]["ID"]) + 1)
+			# 	reMappedRootHead = np.uint64(RootHeadSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[RootHeadSnap]["ID"]) + 1)
 
 			# Now go from the base of the branch up
 			while(True):
@@ -201,7 +199,7 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 					#Lets also store its TailSanp
 					tail = tree[haloSnap]["Tail"][haloIndex]
-					tailSnap = int(tail/TEMPORALHALOIDVAL)
+					tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
 
 					#Check we are still on the main branch
 					headTail = tree[headSnap]["Tail"][headIndex]
@@ -215,7 +213,7 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 					# Re-map its tree properties
 					orbitdata[haloSnap]["origID"].append(np.uint64(ID))
-					orbitingHaloID = np.uint64(haloSnap * TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
+					orbitingHaloID = np.uint64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
 					orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
 					#Mark this halo as done so it is not walked again in this orbital forest ID
@@ -224,12 +222,12 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 					# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
 					if((head==ID) | (haloSnap==mainRootHeadSnap) | (headSnap>mainRootHeadSnap)):
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
 						orbitdata[haloSnap]["Head"].append(orbitingHaloID)
 						break
 					elif(headTail!=ID): # If its heads tail is not pointing back to itself then it has merged with something
 
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
 
 						#See if this halo merges with the halo its is orbiting if so then set it to merge with it or have it point back to itself
 						sel = np.where(mainOrbitHaloIDs==head)[0]
@@ -242,11 +240,11 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 					elif((haloSnap==tailSnap) | (tailSnap<=mainRootTailSnap)): # If at the base of the branch or when the main orbiting halo formed
 						orbitdata[haloSnap]["Tail"].append(orbitingHaloID)
-						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
+						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
 
 					else: #Otherwise set its head/ tail as normal
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
-						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
+						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
 
 
 				#Stop walking if this branch if it merges, or at the end of the simulation or the main orbit branch no longer exits
@@ -261,18 +259,18 @@ def SetOrbitalForestID(numsnaps,numhalos,halodata,tree,HaloID,orbitforestid,orbi
 
 				#Extract its descendant
 				head = tree[haloSnap]["Head"][haloIndex]
-				headSnap = int(head/TEMPORALHALOIDVAL)
-				headIndex = int(head%TEMPORALHALOIDVAL-1)
+				headSnap = int(head/opt.TEMPORALHALOIDVAL)
+				headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
 	#Lets set all its orbital properties
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
 		for field in orbitalfields:
 			orbitdata[snap][field].extend(halodata[snap][field][extractIndexes[snap]].tolist())
 
 
-def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata,buildparams):
+def OutputOrbitalForestIDFile(opt,orbitdata,datatypes,atime,orbitForestIDStart,orbitForestIDEnd,cosmodata,unitdata):
 
 	#Set the filename for the catalog
-	filename = basefilename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
+	filename = opt.outfilebasename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
 
 	print("Outputting data to file",filename)
 
@@ -280,6 +278,8 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,or
 	hdffile = h5py.File(filename,"w")
 
 	hdrgrp=hdffile.create_group("Header")
+
+	hdrgrp.attrs["NSnaps"]=opt.numsnaps
 
 	unitgrp=hdrgrp.create_group("Units")
 
@@ -310,16 +310,18 @@ def OutputOrbitalForestIDFile(numsnaps,basefilename,orbitdata,datatypes,atime,or
 
 	#Add the catalogue build params
 	buildgrp = hdrgrp.create_group("Build_Params")
+	buildparams = vars(opt)
 	for field in buildparams.keys():
 		buildgrp.attrs[field] = buildparams[field]
 
 
 	# Put the data per snapshot
-	for snap in range(numsnaps):
+	for snap in range(opt.numsnaps):
 
 		#Open up the snapgroup
 		snapgrp=hdffile.create_group("Snap_%03d"%(snap))
 
+		snapgrp.attrs["Snapnum"] = snap
 		snapgrp.attrs["scalefactor"] = atime[snap]
 		snapgrp.attrs["NHalos"] = np.int64(len(orbitdata[snap]["ID"]))
 
