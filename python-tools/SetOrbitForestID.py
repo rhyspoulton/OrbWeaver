@@ -99,10 +99,6 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 			orbitdata[snap]["Head"].append(np.uint64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
 
 
-
-		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
-		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
-
 		if(ID!=0):
 			#Extract its head
 			head = tree[snap]["Head"][haloIndex]
@@ -135,6 +131,9 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 		else: #Otherwise lets set its ID==0 showing that its properties needs to be interpolated
 			ID = 0
 
+        # likely unecessary
+		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
+		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
 
 	#List to keep track of which indexes are needed to be extracted per snapshot
 	extractIndexes = [[] for i in range(opt.numsnaps)]

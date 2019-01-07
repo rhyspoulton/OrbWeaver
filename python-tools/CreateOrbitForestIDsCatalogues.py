@@ -1,15 +1,31 @@
-import VELOCIraptor_Python_Tools.velociraptor_python_tools as VPT 
-import SetOrbitForestID as SOF 
-from ui import Options
+import sys, os, glob
 import numpy as np
 import scipy.spatial as spatial
 import time
 from scipy.interpolate import interp1d
 import argparse
 
+#load local python routines
+scriptpath=os.path.abspath(__file__)
+basecodedir=scriptpath.split('CreateOrbitForestIDsCatalogues.py')[0]
+sys.path.append(basecodedir)
+sys.path.append(basecodedir+'/VELOCIraptor_Python_Tools/')
+
+#load the cythonized code if compiled
+if (len(glob.glob(basecodedir+'velociraptor_python_tools_cython.*.so'))==1):
+    print('using cython VR+TF toolkit')
+    import velociraptor_python_tools_cython as VPT
+else:
+    print('using python VR+TF toolkit')
+    import velociraptor_python_tools as VPT
+
+#should add also some cythonize checks
+import SetOrbitForestID as SOF 
+from ui import Options
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-c",action="store",dest="configfile",help="Configuration file (wherewolf.cfg)",required=True)
+parser.add_argument("-c",action="store",dest="configfile",help="Configuration file (orbweaver.cfg)",required=True)
 parser.add_argument("-t",action="store",dest="inputtree",help="The VELOCIraptor walkabletree file",required=True)
 parser.add_argument("-i",action="store",dest="inputhalobbasename",help="The base name for the VELOCIraptor catalog (/path/to/halo/catalog/snapshot_)",required=True)
 parser.add_argument("-o",action="store",dest="outfilebasename",help="The base name for the output catalogs",required=True)
@@ -73,6 +89,7 @@ for snap in range(opt.numsnaps-1,-1,-1):
 		pos=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
 		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
 if (opt.iverbose): print("done building in",time.clock()-start)
+sys.stdout.flush()
 
 
 #Now walk backwards in time along the halos history finding any unique
@@ -95,8 +112,15 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 		start3 = time.clock()
 		#Set the OrbitalForestID
-		print("On oribital forest",orbitforestidval)
+		if (opt.iverbose > 1):
+			print("On oribital forest",vorbitforestidval)
+			sys.stdout.flush()
+
 		SOF.SetOrbitalForestID(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
+		if (opt.iverbose > 1):
+			print("Done orbital forest", orbitalforestidval, time.clock()-start3)
+			sys.stdout.flush()
+        
 
 		#Keep track of the current number of forest
 		inumForest+=1
@@ -114,11 +138,15 @@ for j in range(opt.numsnaps-1,-1,-1):
 		orbitforestidval+=1
 
 
-	if (opt.iverbose): print("Done snap",j,time.clock()-start2)
+	if (opt.iverbose): 
+		print("Done snap",j,time.clock()-start2)
+		sys.stdout.flush()
+
 
 if(orbitforestidval!=prevorbitforestidval -1):
 	SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
 print("Done generating forest",time.clock()-start)
+sys.stdout.flush()
 
 
 # #get the size of each forest
