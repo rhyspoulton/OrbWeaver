@@ -469,6 +469,7 @@ struct OrbitProps{
 
 	OrbitProps(){
 		orbitingflag = false;
+        refangles = NULL;
 		numorbits=0.0;
 		prevcrossingentrytype=0.0;
 		prevpassagesnap = 0;

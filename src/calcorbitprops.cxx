@@ -496,7 +496,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 
 			//If the reference angles hasn't been set then lets set it
-			if(orbitprops.refangles==false){
+			if(orbitprops.refangles == NULL){
 				orbitprops.refangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
 			}
 			else{
