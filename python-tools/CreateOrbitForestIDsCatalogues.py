@@ -12,7 +12,7 @@ sys.path.append(basecodedir)
 sys.path.append(basecodedir+'/VELOCIraptor_Python_Tools/')
 
 #load the cythonized code if compiled
-if (len(glob.glob(basecodedir+'velociraptor_python_tools_cython.*.so'))==1):
+if (len(glob.glob(basecodedir+'/VELOCIraptor_Python_Tools/velociraptor_python_tools_cython.*.so'))==1):
     print('using cython VR+TF toolkit')
     import velociraptor_python_tools_cython as VPT
 else:
@@ -33,26 +33,55 @@ tmpOpt = parser.parse_args()
 
 # np.set_printoptions(threshold=10)
 desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
-# # atime,tree,numhalos,halodata,cosmodata,unitdata = VPT.ReadUnifiedTreeandHaloCatalog("/mnt/su3ctm/rpoulton/waves/analysis/waves_40_512/VELOCIraptor.tree.t4.unifiedhalotree",desiredfields=desiredfields)
 
+start=time.clock()
 print("Reading the walkable tree")
+sys.stdout.flush()
 tree,numsnaps = VPT.ReadWalkableHDFTree(tmpOpt.inputtree,False)
-print("Done reading the walkable tree")
+print("Done reading the walkable tree",time.clock()-start)
+sys.stdout.flush()
 
+#store number of snaps
+opt = Options(tmpOpt,numsnaps)
+
+start=time.clock()
 print("Reading in the halo catalog")
+sys.stdout.flush()
 numhalos=np.zeros(numsnaps,dtype=np.uint64)
 halodata=[dict() for i in range(numsnaps)]
 atime=np.zeros(numsnaps)
 for i in range(numsnaps):
+    start1 = time.clock()
     halodata[i],numhalos[i]=VPT.ReadPropertyFile(tmpOpt.inputhalobbasename+'%03d.VELOCIraptor'%i, 2, 0, 0, desiredfields)
     atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
     for key in halodata[i].keys():
         if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
         if (halodata[i][key].dtype==np.float64):
             halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
-print('Finished reading halo properties')
+        if (key == 'hostHaloID'):
+            halodata[i][key] = (halodata[i][key] == -1)
 
-opt = Options(tmpOpt,numsnaps)
+    print('Snapshot', i, time.clock()-start1)
+    sys.stdout.flush()
+print('Finished reading halo properties', time.clock()-start)
+sys.stdout.flush()
+
+VPT.AdjustforPeriod(numsnaps, numhalos, halodata)
+
+# built KD tree to quickly search for near neighbours. only build if not passed.
+start=time.clock()
+pos_tree=[[] for j in range(opt.numsnaps)]
+start=time.clock()
+if (opt.iverbose): print("KD tree build")
+for snap in range(opt.numsnaps-1,-1,-1):
+	if (numhalos[snap]>0):
+		start1 = time.clock()
+		print('Snapshot', snap, 'producing spatial tree')
+		pos=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
+		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
+		print('Done',snap,time.clock()-start1)
+if (opt.iverbose): print("done building in",time.clock()-start)
+sys.stdout.flush()
 
 unitdata = halodata[0]["UnitInfo"]
 cosmodata = halodata[0]["SimulationInfo"]
@@ -61,11 +90,15 @@ cosmodata = halodata[0]["SimulationInfo"]
 datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
-
 # Build a new data stucture to contain the information for this file
 treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostFlag"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
+
+orbithalocount = np.zeros(opt.numOrbitalForestPerFile, dtype=np.int64)
+orbitforestfields = ['Number_of_halos', 'Main_branch_length',]
+orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
+
 
 #Add in the extra datatypes for the extra orbit fields
 datatypes["origID"] =np.dtype("int64")
@@ -76,21 +109,6 @@ datatypes["OrbitingHaloID"] = np.dtype("int64")
 for snap in range(opt.numsnaps):
 	#Set a done flag for the halos who's orbits around have already be analysed
 	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
-
-VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata, icomove=0)
-
-# built KD tree to quickly search for near neighbours. only build if not passed.
-start=time.clock()
-pos_tree=[[]for j in range(opt.numsnaps)]
-start=time.clock()
-if (opt.iverbose): print("KD tree build")
-for snap in range(opt.numsnaps-1,-1,-1):
-	if (numhalos[snap]>0):
-		pos=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
-		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
-if (opt.iverbose): print("done building in",time.clock()-start)
-sys.stdout.flush()
-
 
 #Now walk backwards in time along the halos history finding any unique
 #branch that comes within numRvirSearch * R_200crit and set it to 
@@ -104,6 +122,9 @@ for j in range(opt.numsnaps-1,-1,-1):
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
 	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist))[0]
+    print('Snapshot containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
+    sys.stdout.flush()
+
 	#Loop over all the interesting halos
 	for indx in haloIndexes:
 
@@ -113,26 +134,35 @@ for j in range(opt.numsnaps-1,-1,-1):
 		start3 = time.clock()
 		#Set the OrbitalForestID
 		if (opt.iverbose > 1):
-			print("On oribital forest",vorbitforestidval)
+			print("On oribital forest", orbitforestidval)
 			sys.stdout.flush()
 
-		SOF.SetOrbitalForestID(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
+		orbithalocount[inumForest] = SOF.SetOrbitalForestID(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
 		if (opt.iverbose > 1):
-			print("Done orbital forest", orbitalforestidval, time.clock()-start3)
+			print("Done orbital forest", orbitforestidval, time.clock()-start3)
 			sys.stdout.flush()
         
 
 		#Keep track of the current number of forest
 		inumForest+=1
 
-		if(inumForest==opt.numOrbitalForestPerFile):
-			SOF.OutputOrbitalForestIDFile(opt,outfilebasename,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+		if(inumForest == opt.numOrbitalForestPerFile):
+            #get orbit forest statistic
+            orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest+1], dtype=np.int64)
+            
+			SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,
+                prevorbitforestidval,orbitforestidval,
+                atime,cosmodata,unitdata,
+                orbitforestdata)
 
 			inumForest = 0
 			prevorbitforestidval = orbitforestidval +1
 
 			#Reset the orbitdat
 			orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
+
+			#Reset the orbit forsest info 
+            orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
 
 		#Iterate the orbitforestidval
 		orbitforestidval+=1
@@ -144,7 +174,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 
 if(orbitforestidval!=prevorbitforestidval -1):
-	SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,atime,prevorbitforestidval,orbitforestidval,cosmodata,unitdata)
+	SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,atime,cosmodata,unitdata,orbitforestdata)
 print("Done generating forest",time.clock()-start)
 sys.stdout.flush()
 
