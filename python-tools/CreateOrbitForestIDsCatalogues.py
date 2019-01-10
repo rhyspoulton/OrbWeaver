@@ -13,11 +13,11 @@ sys.path.append(basecodedir+'/VELOCIraptor_Python_Tools/')
 
 #load the cythonized code if compiled
 if (len(glob.glob(basecodedir+'/VELOCIraptor_Python_Tools/velociraptor_python_tools_cython.*.so'))==1):
-    print('using cython VR+TF toolkit')
-    import velociraptor_python_tools_cython as VPT
+	print('using cython VR+TF toolkit')
+	import velociraptor_python_tools_cython as VPT
 else:
-    print('using python VR+TF toolkit')
-    import velociraptor_python_tools as VPT
+	print('using python VR+TF toolkit')
+	import velociraptor_python_tools as VPT
 
 #should add also some cythonize checks
 import SetOrbitForestID as SOF 
@@ -51,18 +51,18 @@ numhalos=np.zeros(numsnaps,dtype=np.uint64)
 halodata=[dict() for i in range(numsnaps)]
 atime=np.zeros(numsnaps)
 for i in range(numsnaps):
-    start1 = time.clock()
-    halodata[i],numhalos[i]=VPT.ReadPropertyFile(tmpOpt.inputhalobbasename+'%03d.VELOCIraptor'%i, 2, 0, 0, desiredfields)
-    atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
-    for key in halodata[i].keys():
-        if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
-        if (halodata[i][key].dtype==np.float64):
-            halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
-        if (key == 'hostHaloID'):
-            halodata[i][key] = (halodata[i][key] == -1)
+	start1 = time.clock()
+	halodata[i],numhalos[i]=VPT.ReadPropertyFile(tmpOpt.inputhalobbasename+'%03d.VELOCIraptor'%i, 2, 0, 0, desiredfields)
+	atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
+	for key in halodata[i].keys():
+		if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
+		if (halodata[i][key].dtype==np.float64):
+			halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
+		if (key == 'hostHaloID'):
+			halodata[i][key] = (halodata[i][key] == -1)
 
-    print('Snapshot', i, time.clock()-start1)
-    sys.stdout.flush()
+	print('Snapshot', i, time.clock()-start1)
+	sys.stdout.flush()
 print('Finished reading halo properties', time.clock()-start)
 sys.stdout.flush()
 
@@ -95,7 +95,7 @@ treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostFlag"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
-orbithalocount = np.zeros(opt.numOrbitalForestPerFile, dtype=np.int64)
+orbithalocount = np.zeros(opt.numOrbitForestPerFile, dtype=np.int64)
 orbitforestfields = ['Number_of_halos', 'Main_branch_length',]
 orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
 
@@ -122,8 +122,8 @@ for j in range(opt.numsnaps-1,-1,-1):
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
 	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist))[0]
-    print('Snapshot containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
-    sys.stdout.flush()
+	print('Snapshot containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
+	sys.stdout.flush()
 
 	#Loop over all the interesting halos
 	for indx in haloIndexes:
@@ -141,19 +141,18 @@ for j in range(opt.numsnaps-1,-1,-1):
 		if (opt.iverbose > 1):
 			print("Done orbital forest", orbitforestidval, time.clock()-start3)
 			sys.stdout.flush()
-        
 
 		#Keep track of the current number of forest
 		inumForest+=1
 
-		if(inumForest == opt.numOrbitalForestPerFile):
-            #get orbit forest statistic
-            orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest+1], dtype=np.int64)
-            
+		if(inumForest == opt.numOrbitForestPerFile):
+			#get orbit forest statistic
+			orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest+1], dtype=np.int64)
+
 			SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,
-                prevorbitforestidval,orbitforestidval,
-                atime,cosmodata,unitdata,
-                orbitforestdata)
+				prevorbitforestidval,orbitforestidval,
+				atime,cosmodata,unitdata,
+				orbitforestdata)
 
 			inumForest = 0
 			prevorbitforestidval = orbitforestidval +1
@@ -162,7 +161,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 			orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
 			#Reset the orbit forsest info 
-            orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
+			orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
 
 		#Iterate the orbitforestidval
 		orbitforestidval+=1

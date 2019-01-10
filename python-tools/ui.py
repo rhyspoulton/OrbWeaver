@@ -17,7 +17,7 @@ class Options(object):
 		self.NpartLimHost = 10000
 		self.MinSnapExist = 20
 		self.TEMPORALHALOIDVAL = 1000000000000
-		self.numOrbitalForestPerFile = 2000
+		self.numOrbitForestPerFile = 2000
 		self.iverbose = 1
 
 		with open(tmpOpt.configfile,"r") as f:
@@ -46,8 +46,8 @@ class Options(object):
 				elif(line[0]=="TEMPORALHALOIDVAL"):
 					self.TEMPORALHALOIDVAL=np.uint64(line[1])
 
-				elif(line[0]=="numOrbitalForestPerFile"):
-					self.numOrbitalForestPerFile=np.int64(line[1])
+				elif(line[0]=="numOrbitForestPerFile"):
+					self.numOrbitForestPerFile=np.int64(line[1])
 
 				elif(line[0]=="iverbose"):
 					self.iverbose=int(line[1])

@@ -28,8 +28,8 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
 
-    #store number of halos in orbital forest. Start with number of halos in main branch
-    localhalocount = mainRootHeadSnap + 1 - mainRootTailSnap
+	#store number of halos in orbital forest. Start with number of halos in main branch
+	localhalocount = mainRootHeadSnap + 1 - mainRootTailSnap
 
 	#Lets extract the full history of this halo
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
@@ -136,7 +136,7 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 		else: #Otherwise lets set its ID==0 showing that its properties needs to be interpolated
 			ID = 0
 
-        # likely unecessary
+		# likely unecessary
 		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
 		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
 
@@ -225,8 +225,8 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 					# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
 					processedFlag[haloSnap][haloIndex] = True
 
-                    # increment local halo counter
-                    localhalocount += 1
+					# increment local halo counter
+					localhalocount += 1
 
 					# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
 					if((head==ID) | (haloSnap==mainRootHeadSnap) | (headSnap>mainRootHeadSnap)):
@@ -274,14 +274,14 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 		for field in orbitalfields:
 			orbitdata[snap][field].extend(halodata[snap][field][extractIndexes[snap]].tolist())
 
-    return localhalocount
+	return localhalocount
 
 
 def OutputOrbitalForestIDFile(opt,
-    orbitdata,datatypes,
-    orbitForestIDStart,orbitForestIDEnd,
-    atime,cosmodata,unitdata,
-    orbitforestdata):
+	orbitdata,datatypes,
+	orbitForestIDStart,orbitForestIDEnd,
+	atime,cosmodata,unitdata,
+	orbitforestdata):
 
 	#Set the filename for the catalog
 	filename = opt.outfilebasename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
@@ -294,9 +294,9 @@ def OutputOrbitalForestIDFile(opt,
 	hdrgrp=hdffile.create_group("Header")
 
 	hdrgrp.attrs["NSnaps"]=opt.numsnaps
-    tothalos = 0 
-    for i in range(opt.numsnaps):
-        tothalos += orbitdata[i]['ID'].size
+	tothalos = 0 
+	for i in range(opt.numsnaps):
+		tothalos += len(orbitdata[i]['ID'])
 	hdrgrp.attrs["Total_number_of_Halos"]=np.int64(tothalos)
 
 	unitgrp=hdrgrp.create_group("Units")
@@ -350,8 +350,8 @@ def OutputOrbitalForestIDFile(opt,
 
 
 	orbitgrp=hdrgrp.create_group("OrbitInfo")
-	orbitgrp.attrs["Number_of_Orbital_Forest_IDs"]=orbitalForestIDEnd - orbitalForestIDStart
-    orbitgrp.create_dataset('Number_of_Halos_In_Forest',data=orbitforestdata['Number_of_halos'], dtype = np.int64, compression='gzip', compression_opts=6)
-    orbitgrp.create_dataset('OrbitForestID', data = np.arange(orbitalForestIDStart, orbitalForestIDEnd, dtype=np.int64), compression='gzip', compression_opts=6)
+	orbitgrp.attrs["Number_of_Orbital_Forest_IDs"]=orbitForestIDEnd - orbitForestIDStart
+	orbitgrp.create_dataset('Number_of_Halos_In_Forest',data=orbitforestdata['Number_of_halos'], dtype = np.int64, compression='gzip', compression_opts=6)
+	orbitgrp.create_dataset('OrbitForestID', data = np.arange(orbitForestIDStart, orbitForestIDEnd, dtype=np.int64), compression='gzip', compression_opts=6)
 
 	hdffile.close()
