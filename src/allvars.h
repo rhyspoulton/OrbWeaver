@@ -75,23 +75,18 @@ struct Options
 	// Filenames
 	char *fname;
 
-	//The name of the orbweaver configuration
-	char *configname;
 
 	//Base name for the output
 	char *outputbasename;
 
-	//The starting snapshot
-	int isnap;
-
-	//The ending snapshot
-	int fsnap;
-
 	//Number of snapshots
 	int numsnaps;
 
-	// The value which the halo ID snapvalue is offset by
-	long long TEMPORALHALOIDVAL;
+	//The fraction of rvir host that a datapoint is created
+	float fracrvircross;
+
+	//The value which the halo ID snapvalue is offset by
+	unsigned long long TEMPORALHALOIDVAL;
 
 	//How verbose the code is
 	int iverbose;
@@ -100,9 +95,10 @@ struct Options
 	Options()
 	{
 		fname=NULL;
-		configname=NULL;
 		outputbasename=NULL;
-		numsnaps=fsnap-isnap+1;
+		numsnaps=0;
+		fracrvircross=0;
+		TEMPORALHALOIDVAL=0;
 		iverbose=0;
 	}
 };
@@ -516,6 +512,9 @@ extern CosmoData Cosmo;
 
 struct HDFCatalogNames{
 
+	//Set the name for the header group
+	string hdrname;
+
 	//Set the name for the cosmology group
 	string cosmohdrname;
 
@@ -524,6 +523,9 @@ struct HDFCatalogNames{
 
 	//Set the base name for the snapshot
 	string grpbasename;
+
+	// Store the names of the attributes in the header
+	vector<H5std_string> hdrattrnames;
 
 	// Store the names of the attributes in the cosmology header
 	vector<H5std_string> cosmoattrnames;
@@ -544,8 +546,12 @@ struct HDFCatalogNames{
 	HDFCatalogNames(){
 
 		grpbasename = "Snap_%03d";
+		hdrname = "/Header";
 		cosmohdrname = "/Header/Cosmology";
 		unithdrname = "/Header/Units";
+
+		hdrattrnames.push_back("NSnaps");
+		hdrattrnames.push_back("TEMPORALHALOIDVAL");
 
 		cosmoattrnames.push_back("BoxSize");
 		cosmoattrnames.push_back("Hubble_param");

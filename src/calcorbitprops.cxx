@@ -51,7 +51,15 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 	return angles;
 }
 
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, OrbitProps &prevorbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
+void CalcOrbitProps(Options &opt,
+	Int_t orbitID,
+	int currentsnap, int prevsnap,
+	unsigned long long descendantProgenID,
+	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
+	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
+	vector<SnapData> &snapdata,
+	OrbitProps &orbitprops, OrbitProps &prevorbitprops,
+	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
 	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
@@ -227,7 +235,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
 	float numrvircrossing=0;
-	for(float i = 3.0;i>0.0;i-=0.5){
+	for(float i = 3.0;i>0.0;i-=opt.fracrvircross){
 
 		// Less check to see if the previous halo was beyond the host Rvir and
 		//if the current halo is within the host Rvir so it has infallen or if it
@@ -564,7 +572,7 @@ void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long 
 
 }
 
-void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	Int_t halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
@@ -681,7 +689,7 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
-			CalcOrbitProps(orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
+			CalcOrbitProps(opt,orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -735,10 +743,8 @@ void ProcessHalo(Int_t orbitID,Int_t snap, Int_t index, Options &opt, vector<Sna
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
-	int numsnaps =  opt.fsnap - opt.isnap+1;
-
 	// Initilize the flag which marks the halo as being processed to false
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++)
+	for(Int_t snap=0;snap<opt.numsnaps;snap++)
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++)
 			snapdata[snap].Halo[i].doneflag = false;
 
@@ -752,7 +758,7 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// to be orbiting
 	// Int_t snap = 55;
 	// Int_t snap = 116;
-	for(Int_t snap=opt.isnap;snap<=opt.fsnap;snap++){
+	for(Int_t snap=0;snap<opt.numsnaps;snap++){
 	// Int_t i = 990;
 	// Int_t i = 1177;
 		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
@@ -760,7 +766,7 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
 
-			ProcessHalo(orbitID,snap,i,opt,snapdata,orbitdata);
+			ProcessHalo(opt,orbitID,snap,i,snapdata,orbitdata);
 			orbitID++;
 
 		}

@@ -7,7 +7,7 @@
 bool FileExists(const char *fname);
 void GetArgs(int argc, char *argv[], Options &opt);
 void ConfigCheck(Options &opt);
-void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames);
+void ReadHeader(Options &opt, H5File *Fhdf,HDFCatalogNames hdfnames);
 void ReadData(Options &opt, vector<SnapData> &snapdata);
 vector<HaloData> ReadSnapshotData(int snap, int i,Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames);
 
@@ -24,8 +24,8 @@ double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, doub
 void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime);
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
-void ProcessHalo(Int_t snap, Int_t i, Options &opt, vector<SnapData> &snapdata, OrbitData &orbitdata);
-void CalcOrbitProps(Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
+void ProcessHalo(Options &opt, Int_t snap, Int_t i, vector<SnapData> &snapdata, OrbitData &orbitdata);
+void CalcOrbitProps(Options &opt, Int_t orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 
 void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);
 #endif //ifndef ORBPROTO_H

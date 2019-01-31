@@ -279,12 +279,12 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 
 def OutputOrbitalForestIDFile(opt,
 	orbitdata,datatypes,
-	orbitForestIDStart,orbitForestIDEnd,
+	orbitForestIDStart,orbitForestIDEnd,fileno,
 	atime,cosmodata,unitdata,
 	orbitforestdata):
 
 	#Set the filename for the catalog
-	filename = opt.outfilebasename + ".orbweaver.orbitForestIDs.%09d-%09d.hdf" %(orbitForestIDStart,orbitForestIDEnd) 
+	filename = opt.outfilebasename + ".orbweaver.preprocessed.%i.hdf" %(fileno)
 
 	print("Outputting data to file",filename)
 
@@ -293,11 +293,14 @@ def OutputOrbitalForestIDFile(opt,
 
 	hdrgrp=hdffile.create_group("Header")
 
-	hdrgrp.attrs["NSnaps"]=opt.numsnaps
+	hdrgrp.attrs["NSnaps"]=np.int32(numsnaps)
 	tothalos = 0 
 	for i in range(opt.numsnaps):
 		tothalos += len(orbitdata[i]['ID'])
-	hdrgrp.attrs["Total_number_of_Halos"]=np.int64(tothalos)
+	hdrgrp.attrs["Total_number_of_halos"] = np.uint64(tothalos)
+	hdrgrp.attrs["Start_orbit_forest_ID"] = np.uint64(orbitForestIDStart)
+	hdrgrp.attrs["End_orbit_forest_ID"] = np.uint64(orbitForestIDEnd)
+	hdrgrp.attrs["TEMPORALHALOIDVAL"] = np.uint64(opt.TEMPORALHALOIDVAL)
 
 	unitgrp=hdrgrp.create_group("Units")
 

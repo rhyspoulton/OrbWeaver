@@ -396,16 +396,34 @@ vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, vec
 }
 
 
-void ReadHeader(H5File *Fhdf,HDFCatalogNames hdfnames){
+void ReadHeader(Options &opt, H5File *Fhdf,HDFCatalogNames hdfnames){
 
 	float floatbuff;
 	double doublebuff;
 	bool boolbuff;
+	unsigned long long ullongbuf;
+	int intbuff;
+	Group hdrgroup;
 	Group cosmogroup;
 	Group unitgroup;
 	Attribute attr;
 	DataSpace attrdataspace;
 	FloatType floattype;
+
+	//Open up the header group and extract the information
+	hdrgroup = Fhdf->openGroup(hdfnames.hdrname);
+
+	//The number of snapshots in the simulation
+	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[0]);
+	attrdataspace = attr.getSpace();
+	attr.read(PredType::NATIVE_INT,&intbuff);
+	opt.numsnaps=intbuff;
+
+	//The temporal haloID value to make halo IDs temporally unique
+	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[1]);
+	attrdataspace = attr.getSpace();
+	attr.read(PredType::STD_U64LE,&ullongbuf);
+	opt.TEMPORALHALOIDVAL=ullongbuf;
 
 	//Open up the Units header group and extract the information
 	unitgroup = Fhdf->openGroup(hdfnames.unithdrname);
@@ -583,12 +601,15 @@ void ReadData(Options &opt, vector<SnapData> &snapdata){
 		Fhdf->openFile(opt.fname,H5F_ACC_RDONLY);
 
 		//Read the hdf header info
-		ReadHeader(Fhdf,hdfnames);
+		ReadHeader(opt,Fhdf,hdfnames);
+
+		//Now the header information has been read, the number of snapshots is now known so snapdata can be resized
+		snapdata.resize(opt.numsnaps);
 
 		//Get the base name of the groups.
 		grpbasename = hdfnames.grpbasename.c_str();
 
-		for(int snap=opt.isnap;snap<=opt.fsnap;snap++){
+		for(int snap=0;snap<opt.numsnaps;snap++){
 
 			// Open up the snapgroup
 			sprintf(buff,grpbasename,snap);

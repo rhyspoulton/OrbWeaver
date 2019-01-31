@@ -5,14 +5,14 @@ import numpy as np
 class Options(object):
 
 
-	def __init__(self,tmpOpt,numsnaps):
+	def __init__(self,tmpOpt):
 
 		self.VERSION = 0.10
 		self.configfile = tmpOpt.configfile
 		self.inputtree = tmpOpt.inputtree
 		self.inputhalobbasename = tmpOpt.inputhalobbasename
 		self.outfilebasename = tmpOpt.outfilebasename
-		self.numsnaps=numsnaps
+		self.numsnaps=100
 		self.numRvirSearch = 4
 		self.NpartLimHost = 10000
 		self.MinSnapExist = 20
@@ -54,3 +54,6 @@ class Options(object):
 
 				else:
 					print("Invalid config option %s, please only use the options in the sample config file" %line[0])
+
+	def update_numsnaps(self,numsnaps):
+		self.numsnaps = numsnaps
