@@ -6,14 +6,14 @@
 | entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
-| orbitecc  | N/A | The calculated eccentricity of its orbit |
+| orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
 | orbitalEnergy | solarmasses km^2 / s^2 | The average energy of the orbit since infall or last passage |
-| Rperi | Mpc | The calculated peri-centric distance |
-| Rapo | Mpc | The calculated apo-centric distance |
+| Rperi_Wetzel2011 | Mpc | The calculated peri-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
+| Rapo_Wetzel2011 | Mpc | The calculated apo-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
 | masslossrate  | solar masses/Gyr | The average rate at which the halo is losing mass |
-| LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined here: https://en.wikipedia.org/wiki/Orbital_elements |
+| LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined [here](https://en.wikipedia.org/wiki/Orbital_elements). |
 | Inclination | Radian | The inclination of the halos orbit with respect to the intial orbital plane |
 | ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |
 | HostAlignment | Radian | The alignment of the orbital angular momentum vector with the host halo's angular momentum vector |

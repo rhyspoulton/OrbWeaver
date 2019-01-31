@@ -636,15 +636,15 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("closestapproach");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("orbitecc");
+		datasetnames.push_back("orbitecc__Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbiteccratio");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitalEnergy");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Rperi");
+		datasetnames.push_back("Rperi_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Rapo");
+		datasetnames.push_back("Rapo_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
