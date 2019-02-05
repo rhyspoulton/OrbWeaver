@@ -351,6 +351,9 @@ struct OrbitData{
 	//Boolean flag if this halo is a host halo (top of it spatial herachy)
 	bool hostFlag;
 
+	//The radial velocity of the halo with respect to its host
+	float vrad;
+
 	//The tangential velocity of the halo with respect to its host
 	float vtan;
 
@@ -698,6 +701,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("hostFlag");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
+		datasetnames.push_back("Vrad");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vtan");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Xrel");

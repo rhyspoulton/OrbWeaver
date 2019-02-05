@@ -70,7 +70,7 @@ void CalcOrbitProps(Options &opt,
 	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r,vr,vrel;
+	double rx,ry,rz,vrx,vry,vrz,r,vrad,vrel;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
 	rx = hosthalo.x - orbitinghalo.x;
@@ -80,7 +80,7 @@ void CalcOrbitProps(Options &opt,
 	vry = hosthalo.vy - orbitinghalo.vy;
 	vrz = hosthalo.vz - orbitinghalo.vz;
 	r = sqrt(rx * rx + ry * ry + rz * rz);
-	vr = (rx * vrx + ry * vry + rz * vrz) / r;
+	vrad = (rx * vrx + ry * vry + rz * vrz) / r;
 	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 	//Store the peak vmax in the orbiting halos history
@@ -98,7 +98,7 @@ void CalcOrbitProps(Options &opt,
 	//Store the haloID this halo is in the orbit catalog
 	tmporbitdata.orbithaloID = orbitinghalo.id;
 
-	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvr;
+	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvrad;
 
 	//Lets find the same for the previous halo
 	prevrx = prevhosthalo.x - prevorbitinghalo.x;
@@ -108,7 +108,7 @@ void CalcOrbitProps(Options &opt,
 	prevvry = prevhosthalo.vy - prevorbitinghalo.vy;
 	prevvrz = prevhosthalo.vz - prevorbitinghalo.vz;
 	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
-	prevvr = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
+	prevvrad = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 
 	double mu, lx, ly, lz, e, count, deltat;
@@ -150,7 +150,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double omega, ltot, E, f, vtan, prevpassager, semiMajor, keplarPeriod, *currangles;
+	double ltot, E, f, vtan, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarPeriod, *currangles;
 	int prevpassageindex;
 
 
@@ -187,6 +187,15 @@ void CalcOrbitProps(Options &opt,
 
 		tmporbitdata.uniage = InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
 
+		//Update all the quantities for calculations
+		rx = tmporbitdata.xrel;
+		ry = tmporbitdata.yrel;
+		rz = tmporbitdata.zrel;
+		r = sqrt(rx*rx + ry*ry + rz*rz);
+		vrx = tmporbitdata.vxrel;
+		vry = tmporbitdata.vyrel;
+		vrz = tmporbitdata.vzrel;
+
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
 
@@ -204,11 +213,18 @@ void CalcOrbitProps(Options &opt,
 		// Find the change mass in units of Msun/Gyr
 		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 
-		//Find the angular distance
-		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
+		//Find the components of the radial vector
+		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
+		vradx = vcomp * rx;
+		vrady = vcomp * ry;
+		vradz = vcomp * rz;
+		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
 
-		//The tangential velocity of the orbiting halo with respect to its host
-		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
+		//Then can use these components to find the components of the tangential velocity
+		vtanx = vrx - vradx;
+		vtany = vry - vrady;
+		vtanz = vrz - vradz;
+		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
 		//Any additional properties to be calculated here
 
@@ -248,7 +264,7 @@ void CalcOrbitProps(Options &opt,
 	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
-	if((vr*prevvr<0) & (r<3.0*hosthalo.rvir)){
+	if((vrad*prevvrad<0) & (r<3.0*hosthalo.rvir)){
 
 		//Add 0.5 an orbit
 		orbitprops.numorbits = orbitprops.numorbits + 0.5;
@@ -257,7 +273,7 @@ void CalcOrbitProps(Options &opt,
 		/* Store some properties of the orbit halo and its host at this point */
 
 		//Set this as a passage point dependant if it is outgoing or infalling
-		if(vr>0) //Peri-centric
+		if(vrad>0) //Peri-centric
 			tmporbitdata.entrytype = 99;
 		else    //Apocentric
 			tmporbitdata.entrytype = -99;
@@ -299,29 +315,37 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.masslossrate = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 		//Store the scalefactor this happens at
-		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vr/(vr - prevvr))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
+		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vrad/(vrad - prevvrad))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
 
 		//From this scalefactor we can find the age of the universe
 		tmporbitdata.uniage = GetUniverseAge(tmporbitdata.scalefactor);
 
 		InterpSingleHaloProps(tmporbitdata.uniage, snapdata[currentsnap].uniage,snapdata[prevsnap].uniage, orbitinghalo, hosthalo, prevorbitinghalo, prevhosthalo, tmporbitdata, snapdata, splinefuncs, hostsplinefuncs);
 
-
-
 		//Update all the quantities for calculations
 		rx = tmporbitdata.xrel;
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
 		r = sqrt(rx*rx + ry*ry + rz*rz);
+		vrx = tmporbitdata.vxrel;
+		vry = tmporbitdata.vyrel;
+		vrz = tmporbitdata.vzrel;
 
 		//The difference in time since the previous snapshot
 		deltat = tmporbitdata.uniage - snapdata[prevsnap].uniage;
 
-		//Find the angular distance
-		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
+		//Find the components of the radial vector
+		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
+		vradx = vcomp * rx;
+		vrady = vcomp * ry;
+		vradz = vcomp * rz;
+		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
 
-		//The tangential velocity of the orbiting halo with respect to its host
-		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
+		//Then can use these components to find the components of the tangential velocity
+		vtanx = vrx - vradx;
+		vtany = vry - vrady;
+		vtanz = vrz - vradz;
+		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
 		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
@@ -329,7 +353,7 @@ void CalcOrbitProps(Options &opt,
 
 			prevpassager = sqrt(orbitprops.prevpassagepos[0]*orbitprops.prevpassagepos[0] + orbitprops.prevpassagepos[1]*orbitprops.prevpassagepos[1] + orbitprops.prevpassagepos[2]*orbitprops.prevpassagepos[2]);
 
-			if(vr>0)
+			if(vrad>0)
 				tmporbitdata.orbiteccratio = (prevpassager-r)/(prevpassager+r);
 			else
 				tmporbitdata.orbiteccratio = (r-prevpassager)/(r+prevpassager);
@@ -521,11 +545,18 @@ void CalcOrbitProps(Options &opt,
 		// Find the change mass in units of Msun/Gyr
 		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 
-		//Find the angular distance
-		omega = acos((rx * prevrx + ry * prevry + rz * prevrz)/(r*prevr));
+		//Find the components of the radial vector
+		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
+		vradx = vcomp * rx;
+		vrady = vcomp * ry;
+		vradz = vcomp * rz;
+		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
 
-		//The tangential velocity of the orbiting halo with respect to its host
-		tmporbitdata.vtan = r*(omega/deltat)*3.086e+19/3.15e+16;
+		//Then can use these components to find the components of the tangential velocity
+		vtanx = vrx - vradx;
+		vtany = vry - vrady;
+		vtanz = vrz - vradz;
+		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
 		//Any additional properties to be calculated here
 

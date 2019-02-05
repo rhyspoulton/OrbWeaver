@@ -34,6 +34,7 @@
 | Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |
 | cNFW | N/A  | Concentration of the halo |
 | hostFlag | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
+| Vrad | km/s | The radial velocity of the orbiting halo with respect to its host |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | Mpc | X position of the halo relative to its host |
 | Yrel  | Mpc | Y position of the halo relative to its host |
