@@ -293,7 +293,7 @@ def OutputOrbitalForestIDFile(opt,
 
 	hdrgrp=hdffile.create_group("Header")
 
-	hdrgrp.attrs["NSnaps"]=np.int32(numsnaps)
+	hdrgrp.attrs["NSnaps"]=np.int32(opt.numsnaps)
 	tothalos = 0 
 	for i in range(opt.numsnaps):
 		tothalos += len(orbitdata[i]['ID'])
