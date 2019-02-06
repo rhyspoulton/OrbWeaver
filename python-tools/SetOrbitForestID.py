@@ -284,7 +284,7 @@ def OutputOrbitalForestIDFile(opt,
 	orbitforestdata):
 
 	#Set the filename for the catalog
-	filename = opt.outfilebasename + ".orbweaver.preprocessed.%i.hdf" %(fileno)
+	filename = opt.outfilebasename + ".%i.orbweaver.preprocessed.hdf" %(fileno)
 
 	print("Outputting data to file",filename)
 

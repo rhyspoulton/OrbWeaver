@@ -184,6 +184,21 @@ if(orbitforestidval!=prevorbitforestidval -1):
 print("Done generating orbit forest",time.clock()-start)
 sys.stdout.flush()
 
+
+#Create a filelist containing all the filenames
+ifile = open(opt.outfilebasename + ".orbweaver.filelist.txt","w")
+for i in range(ifileno+1):
+
+	#If on the final fileno then output a line without a newline
+	if(i==ifileno):
+		ifile.write(opt.outfilebasename + ".%i" %i)
+	else:
+		ifile.write(opt.outfilebasename + ".%i\n" %i)
+
+ifile.close()
+
+print("The file cotaining the list of the catalogues is here:\n\t",opt.outfilebasename + ".orbweaver.filelist.txt")
+
 # #get the size of each forest
 # OrbitForestSize=np.zeros(orbitforestidval,dtype=np.int64)
 # for j in range(opt.numsnaps):
