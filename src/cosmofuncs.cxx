@@ -25,3 +25,14 @@ double GetUniverseAge(double scalefactor){
 
 	return result;
 }
+
+double GetScaleFactor(double uniage){
+	/*
+	Function to find the scalefactor at a given uniage, the error for this is typically less than 0.1%:
+	https://physics.stackexchange.com/questions/417609/explicit-equation-for-scale-factor-how-long-valid
+	*/
+
+	double H0 = 100*Cosmo.h;
+	double HT = (3.08568025e+19/(H0 * 31556926))/1e+09;
+	return pow( Cosmo.omegaM/Cosmo.omegaL, 1.0/3.0) * pow(sinh(( (3.0*sqrt(Cosmo.omegaL)) / (2.0*HT) ) * uniage) , 2.0/3.0);
+}

@@ -187,6 +187,8 @@ void CalcOrbitProps(Options &opt,
 
 		tmporbitdata.uniage = InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
 
+		tmporbitdata.scalefactor = GetScaleFactor(tmporbitdata.uniage);
+
 		//Update all the quantities for calculations
 		rx = tmporbitdata.xrel;
 		ry = tmporbitdata.yrel;

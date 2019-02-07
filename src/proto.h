@@ -12,6 +12,7 @@ void ReadData(Options &opt, vector<SnapData> &snapdata);
 vector<HaloData> ReadSnapshotData(int snap, int i,Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames);
 
 double GetUniverseAge(double scalefactor);
+double GetScaleFactor(double uniage);
 
 double LogInterp(double prevdata, double nextdata, double f);
 double LinInterp(double prevdata, double nextdata, double f);
