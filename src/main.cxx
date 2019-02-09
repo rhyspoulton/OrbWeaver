@@ -1,8 +1,6 @@
 #include "orbweaver.h"
 
 using namespace std;
-using namespace Math;
-using namespace NBody;
 
 int main(int argc,char **argv)
 {
@@ -35,7 +33,7 @@ int main(int argc,char **argv)
         ReadData(opt,snapdata);
 
         //Find the ages of the universe from the scalefactors in the snapdata
-        for(Int_t snap=0;snap<opt.numsnaps;snap++)
+        for(int snap=0;snap<opt.numsnaps;snap++)
             snapdata[snap].uniage = GetUniverseAge(snapdata[snap].scalefactor);
 
         //Declare the orbitdata as a 2d vector so the interpolated halos can be added

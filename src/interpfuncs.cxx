@@ -8,9 +8,9 @@ double LinInterp(double prevdata, double nextdata, double f){
 	return prevdata + (nextdata - prevdata)*f;
 }
 
-void SetupPosVelInterpFunctions(vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
+void SetupPosVelInterpFunctions(vector<int> &halosnaps, vector<unsigned long long> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
 
-	Int_t nhalo = halosnaps.size();
+	int nhalo = halosnaps.size();
 	double boundry=0, nextpos;
 	double halouniages[nhalo], x[nhalo], y[nhalo], z[nhalo], vx[nhalo], vy[nhalo], vz[nhalo];
 
@@ -101,11 +101,11 @@ void SetupPosVelInterpFunctions(vector<Int_t> &halosnaps, vector<Int_t> &haloind
 }
 
 
-void SetupPosVelInterpFunctionsHost(vector<Int_t> &halosnaps, vector<Int_t> &hostindexes, vector<Int_t> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
+void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long long> &hostindexes, vector<unsigned long long> &haloindexes, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
 
 
 	//Need to interpolate the host's position and do periodicity corrections based on the oribiting halo
-	Int_t nhalo = halosnaps.size();
+	int nhalo = halosnaps.size();
 	double boundry=0, nextpos;
 	double halouniages[nhalo], x[nhalo], y[nhalo], z[nhalo], vx[nhalo], vy[nhalo], vz[nhalo];
 	double tmppos, orbitinghalopos, orbitinghalonextpos;
@@ -275,7 +275,7 @@ double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, doub
 
 
 	//Set the number of points to sample the interpolation functions
-	Int_t ninterp = 100;
+	int ninterp = 100;
 	double f, stepsize, x, y, z, xhost, yhost, zhost, rvirhost, interpuniages[ninterp], interpvals[ninterp];
 	int index = 0;
 
@@ -325,16 +325,17 @@ double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, doub
 	return interpuniages[index];
 }
 
-HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &haloindexes, vector<Int_t> &interpsnaps, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
+HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned long long> &haloindexes, vector<int> &interpsnaps, vector<SnapData> &snapdata, SplineFuncs &splinefuncs){
 
 	//Set the number of halos and the number that need to interpolated
-	Int_t nhalo = halosnaps.size(), ninterp = interpsnaps.size();
+	int nhalo = halosnaps.size(), ninterp = interpsnaps.size();
 
 	//The halouniages has to be an array for the interpolation routine
 	double halouniages[nhalo],f;
 	double interpuniages[ninterp];
 	int j=0;
-	Int_t currentsnap,progensnap, progenindex, descsnap, descindex, orbitinghalosnap, orbitinghaloindex;
+	int currentsnap, progensnap, descsnap, orbitinghalosnap;
+	unsigned long long progenindex, descindex, orbitinghaloindex;
 
 	//Lets extract the uniage for the interpolation routine for the snapshots that the halo is present and keep track
 	for(int i = 0;i<nhalo;i++)
@@ -362,8 +363,8 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 		currentsnap = progensnap+1;
 
 		//Keep track of the halo that the progen is orbiting
-		orbitinghalosnap = (Int_t)(snapdata[progensnap].Halo[progenindex].orbitinghaloid/opt.TEMPORALHALOIDVAL);
-		orbitinghaloindex = (Int_t)(snapdata[progensnap].Halo[progenindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+		orbitinghalosnap = (int)(snapdata[progensnap].Halo[progenindex].orbitinghaloid/opt.TEMPORALHALOIDVAL);
+		orbitinghaloindex = (unsigned long long)(snapdata[progensnap].Halo[progenindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 		// Iterate until currentsnap==descsnap and extract
 		while(currentsnap!=descsnap){
@@ -426,8 +427,8 @@ HaloData InterpHaloProps(Options &opt, vector<Int_t> &halosnaps, vector<Int_t> &
 			//Now need to set the halo it is orbiting to be the descendant of the host halo
 			//that the previous halo was orbiting and then move on to descendant halo
 			interphalos[j].orbitinghaloid = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].descendant;
-			orbitinghalosnap = (Int_t)(interphalos[j].orbitinghaloid/opt.TEMPORALHALOIDVAL);
-			orbitinghaloindex = (Int_t)(interphalos[j].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+			orbitinghalosnap = (int)(interphalos[j].orbitinghaloid/opt.TEMPORALHALOIDVAL);
+			orbitinghaloindex = (unsigned long long)(interphalos[j].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 			if(currentsnap!=orbitinghalosnap)
 				cout<<"Warning: this halo is set to orbit a host halo thats at a different snapshot, have the host halos been interpolated?"<<endl;

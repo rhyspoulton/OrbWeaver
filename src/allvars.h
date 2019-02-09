@@ -4,12 +4,13 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <cmath>
-#include <string>
+#include <string.h>
 #include <vector>
 #include <algorithm>
 #include <math.h>
@@ -23,30 +24,12 @@
 #include <gsl/gsl_multifit.h>
 
 
-///nbody code
-#include <NBody.h>
-///Math code
-#include <NBodyMath.h>
-///Binary KD-Tree code
-#include <KDTree.h>
-
-///if using OpenMP API
-#ifdef USEOPENMP
-#include <omp.h>
-#endif
-
-
 ///if using HDF API
 #ifdef USEHDF
 #include "H5Cpp.h"
 #ifndef H5_NO_NAMESPACE
 using namespace H5;
 #endif
-#endif
-
-///if using ADIOS API
-#ifdef USEADIOS
-#include "adios.h"
 #endif
 
 #define _USE_MATH_DEFINES
@@ -63,8 +46,6 @@ using namespace H5;
 #define PHYSICAL 1
 
 using namespace std;
-using namespace Math;
-using namespace NBody;
 
 //Global varible to store the return code when the code terminates
 extern int EXIT_CODE;
@@ -225,7 +206,7 @@ struct SplineFuncs{
 
 // Struct to store all the data for the halos
 struct SnapData{
-	Int_t numhalos;
+	unsigned long long numhalos;
 	double scalefactor;
 	double uniage; // Age of the universe at this snapshot
 	vector<HaloData> Halo;
@@ -244,7 +225,7 @@ struct SnapData{
 struct OrbitData{
 
 	//The orbit number
-	int orbitID;
+	unsigned long long orbitID;
 
 	//The haloID in the orbit catalog
 	unsigned long long orbithaloID;
@@ -630,7 +611,7 @@ struct HDFOutputNames{
 	HDFOutputNames(){
 
 		datasetnames.push_back("orbitID");
-		datasettypes.push_back(PredType::STD_I32LE);
+		datasettypes.push_back(PredType::STD_U64LE);
 		datasetnames.push_back("orbithaloID");
 		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("haloID");

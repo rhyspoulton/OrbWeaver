@@ -19,7 +19,7 @@ bool FileExists(const char *fname) {
 
 #ifdef USEHDF
 
-vector<HaloData> ReadSnapshotData(Int_t snap, Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames){
+vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames){
 	
 	int ichunk, chunksize=8192;
 	Attribute snapattr;
@@ -672,7 +672,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	int rank;
 	HDFCatalogNames hdfnames;
 	int itemp=0;
-	Int_t numentries = orbitdata.size();
+	unsigned int numentries = orbitdata.size();
 	HDFOutputNames hdfdatasetnames;
 	char outfilename[1000];
 
@@ -696,8 +696,30 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Open up the file
 		strcpy(outfilename,opt.outputbasename);
-		strcat(outfilename,".orb.h5");
+		strcat(outfilename,".orbweaver.orbitdata.hdf");
 		file = H5File(outfilename,H5F_ACC_TRUNC);
+
+		//Create the attributes for the file
+
+		//The number of entries in the file
+		attrspace=DataSpace(H5S_SCALAR);
+		attr=file.createAttribute("Number_of_entries", PredType::STD_U64LE, attrspace);
+		attr.write(PredType::STD_U64LE,&numentries);
+
+		//The inputfile which was processed to produce this catalog
+		attrspace=DataSpace(H5S_SCALAR);
+		// Create new string datatype for attribute
+		StrType strdatatype(PredType::C_S1, 1000);
+		// Set up write buffer for attribute
+		const H5std_string strwritebuf (opt.fname);
+		attr = file.createAttribute("Input_preprocessed_catalog", strdatatype, attrspace);
+		attr.write(strdatatype, strwritebuf);
+
+		//The max orbitID in this catalog
+		attrspace=DataSpace(H5S_SCALAR);
+		attr=file.createAttribute("Max_orbitID", PredType::STD_U64LE, attrspace);
+		attr.write(PredType::STD_U64LE,&orbitdata[numentries-1].orbitID);
+
 
 		/* orbitID */
 
@@ -720,8 +742,8 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) intbuff[j] = orbitdata[j].orbitID;
-		dataset.write(intbuff,hdfdatasetnames.datasettypes[idataset]);
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].orbitID;
+		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
 		/* orbithaloID */
@@ -745,7 +767,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].orbithaloID;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].orbithaloID;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -770,7 +792,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].haloID;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].haloID;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -795,7 +817,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].hosthaloID;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].hosthaloID;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -820,7 +842,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].entrytype;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].entrytype;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -845,7 +867,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].numorbits;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].numorbits;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -870,7 +892,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitperiod;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitperiod;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -895,7 +917,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].closestapproach;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].closestapproach;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -920,7 +942,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -945,7 +967,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbiteccratio;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbiteccratio;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -970,7 +992,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitalenergy;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitalenergy;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -995,7 +1017,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1020,7 +1042,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1045,7 +1067,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].masslossrate;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].masslossrate;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1070,7 +1092,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].longascnode;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].longascnode;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1095,7 +1117,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].inc;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].inc;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1120,7 +1142,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].argpariap;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].argpariap;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1145,7 +1167,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].phi;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].phi;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1170,7 +1192,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].hostalignment;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].hostalignment;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1195,7 +1217,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mergertimescale;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mergertimescale;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1220,7 +1242,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].scalefactor;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].scalefactor;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1245,7 +1267,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].uniage;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].uniage;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1270,7 +1292,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].mergedflag;
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].mergedflag;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1295,7 +1317,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].x;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].x;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1320,7 +1342,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].y;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].y;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1345,7 +1367,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].z;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].z;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1370,7 +1392,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vx;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vx;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1395,7 +1417,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vy;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vy;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1420,7 +1442,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vz;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vz;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1445,7 +1467,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].npart;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].npart;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1470,7 +1492,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mass;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].mass;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1495,7 +1517,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmax;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmax;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1520,7 +1542,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmaxpeak;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmaxpeak;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1545,7 +1567,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rmax;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rmax;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1570,7 +1592,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfw;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfw;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1595,7 +1617,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlag;
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlag;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1620,7 +1642,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vrad;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vrad;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1645,7 +1667,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vtan;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vtan;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1670,7 +1692,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].xrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].xrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1695,7 +1717,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].yrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].yrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1720,7 +1742,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].zrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].zrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1745,7 +1767,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vxrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vxrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1770,7 +1792,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vyrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vyrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1795,7 +1817,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vzrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vzrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1820,7 +1842,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lxrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lxrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1845,7 +1867,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lyrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lyrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1870,7 +1892,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lzrel;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].lzrel;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1895,7 +1917,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].nparthost;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].nparthost;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1921,7 +1943,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rvirhost;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rvirhost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1946,7 +1968,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].masshost;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].masshost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1971,7 +1993,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmaxhost;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].vmaxhost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1997,7 +2019,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rmaxhost;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rmaxhost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -2022,7 +2044,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfwhost;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].cnfwhost;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -2048,7 +2070,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(Int_t j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlaghost;
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlaghost;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 
 		file.close();

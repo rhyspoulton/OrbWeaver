@@ -39,8 +39,8 @@ option(ORB_HDF5 "Desc" "ON")
 
 macro(find_gsl)
 	find_package(GSL REQUIRED)
-	list(APPEND VR_INCLUDE_DIRS ${GSL_INCLUDE_DIRS})
-	list(APPEND VR_LIBS ${GSL_LIBRARIES})
+	list(APPEND ORB_INCLUDE_DIRS ${GSL_INCLUDE_DIRS})
+	list(APPEND ORB_LIBS ${GSL_LIBRARIES})
 endmacro()
 
 
@@ -56,6 +56,8 @@ macro(find_hdf5)
 		list(APPEND ORB_LIBS ${HDF5_LIBRARIES})
 		list(APPEND ORB_DEFINES USEHDF)
 		set(ORB_HAS_HDF5 Yes)
+	else()
+		message(FATAL_ERROR "OrbWeaver requires HDF5")
 	endif()
 endmacro()
 
@@ -64,26 +66,6 @@ endmacro()
 set(ORB_HAS_HDF5 No)
 if (ORB_HDF5)
 	find_hdf5()
-endif()
-
-
-# Include nbodylib, which is definitely needed
-add_subdirectory(NBodylib NBodylib)
-if (NBODYLIB_VERSION VERSION_LESS "1.10")
-	message(FATAL_ERROR "NBodyLib version ${NBODYLIB_VERSION} unsupported, OrbWeaver requires >= 1.10")
-endif()
-
-list(APPEND ORB_INCLUDE_DIRS ${NBODYLIB_INCLUDE_DIRS})
-list(APPEND ORB_DEFINES ${NBODYLIB_DEFINES})
-list(APPEND ORB_LIBS ${NBODYLIB_LIBS})
-list(APPEND ORB_CXX_FLAGS ${NBODYLIB_CXX_FLAGS})
-list(APPEND ORB_LINK_FLAGS ${NBODYLIB_LINK_FLAGS})
-
-
-set(ORB_HAS_OPENMP No)
-list(FIND ORB_DEFINES "USEOMP" pos)
-if(${pos} GREATER -1)
-	set(ORB_HAS_OPENMP Yes)
 endif()
 
 # cleanup duplicates and convert to single string
@@ -126,7 +108,7 @@ macro(orbweaver_report feature)
 endmacro()
 
 message("\nOrbWeaver successfully configured with the following settings:")
-orbweaver_report(Dependencies "OpenMP" OPENMP "HDF5" HDF5)
+orbweaver_report(Dependencies "HDF5" HDF5)
 
 
 message("")
@@ -141,19 +123,3 @@ message(" Link flags: ${ORB_LINK_FLAGS}")
 message("")
 
 add_subdirectory(src)
-
-# Export the include directories, if necessary
-# If building on our own, add the "doc" target
-if (_export)
-        set(ORB_VERSION "${ORB_VERSION_MAJOR}.${ORB_VERSION_MINOR}" PARENT_SCOPE)
-        set(ORB_VERSION_MAJOR "${ORB_VERSION_MAJOR}" PARENT_SCOPE)
-        set(ORB_VERSION_MINOR "${ORB_VERSION_MINOR}" PARENT_SCOPE)
-        set(ORB_INCLUDE_DIRS "${ORB_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(ORB_DEFINES "${ORB_DEFINES}" PARENT_SCOPE)
-        set(ORB_CXX_FLAGS "${ORB_CXX_FLAGS}" PARENT_SCOPE)
-        set(ORB_LINK_FLAGS "${ORB_LINK_FLAGS}" PARENT_SCOPE)
-        set(ORB_LIBS "${ORB_LIBS}" PARENT_SCOPE)
-        set(ORB_DOC_DIRS "${ORB_DOC_DIRS}" PARENT_SCOPE)
-else()
-        try_add_doc_target("${ORB_DOC_DIRS}")
-endif()

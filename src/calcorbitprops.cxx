@@ -52,7 +52,7 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 }
 
 void CalcOrbitProps(Options &opt,
-	Int_t orbitID,
+	unsigned long long orbitID,
 	int currentsnap, int prevsnap,
 	unsigned long long descendantProgenID,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
@@ -605,39 +605,39 @@ void CalcOrbitProps(Options &opt,
 
 }
 
-void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned long long index, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
-	Int_t halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
-	Int_t haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
+	int halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
+	unsigned long long haloindex = (unsigned long long)(haloID%opt.TEMPORALHALOIDVAL-1);
 	unsigned long long descendantID = snapdata[snap].Halo[index].descendant;
-	Int_t descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-	Int_t descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+	int descendantsnap = (int)(descendantID/opt.TEMPORALHALOIDVAL);
+	unsigned long long descendantindex = (unsigned long long)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	unsigned long long descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 
 	//Keep track of this halo's snap and index for interpolation
-	vector<Int_t> halosnaps;
-	vector<Int_t> haloindexes;
-	vector<Int_t> hostindexes;
-	vector<Int_t> interpsnaps;
+	vector<int> halosnaps;
+	vector<unsigned long long> haloindexes;
+	vector<unsigned long long> hostindexes;
+	vector<int> interpsnaps;
 
 	//Store the index of the halo it is orbiting
-	Int_t orbitinghaloindex;
+	unsigned long long orbitinghaloindex;
 
 	//Keep track of the previous halos halodata and orbitdata
 	HaloData prevorbitinghalo = {0};
 	HaloData prevhosthalo = {0};
 	vector<OrbitData> branchorbitdata;
 	OrbitData tmporbitdata={0};
-	Int_t prevsnap=halosnap;
+	int prevsnap=halosnap;
 
 	//Keep track of the properties of this orbit
 	OrbitProps orbitprops;
 	OrbitProps prevorbitprops;
 
 	//Keep track of the snapshot
-	Int_t currentsnap = snap;
+	int currentsnap = snap;
 
 	//Lets see if any interpolation needs to be done for this halo
 	while(true){
@@ -663,8 +663,8 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 
 		//Extract its descendant and its progenitor
 		descendantID = snapdata[halosnap].Halo[haloindex].descendant;
-		descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-		descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+		descendantsnap = (int)(descendantID/opt.TEMPORALHALOIDVAL);
+		descendantindex = (unsigned long long)(descendantID%opt.TEMPORALHALOIDVAL-1);
 		descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 		//Interate keeping track of the snapshots
@@ -683,7 +683,7 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata,splinefuncs);
 
 	for(int i=0;i<halosnaps.size();i++){
-		hostindexes.push_back((Int_t)(snapdata[halosnaps[i]].Halo[haloindexes[i]].orbitinghaloid%opt.TEMPORALHALOIDVAL-1));
+		hostindexes.push_back((unsigned long long)(snapdata[halosnaps[i]].Halo[haloindexes[i]].orbitinghaloid%opt.TEMPORALHALOIDVAL-1));
 	}
 
 	//Now the orbiting halo has been interpolated the interpolation functions can be setup for the host halo
@@ -693,11 +693,11 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 
 	//Reset the tree info to back at the base of the tree
 	haloID = snapdata[snap].Halo[index].id;
-	halosnap = (Int_t)(haloID/opt.TEMPORALHALOIDVAL);
-	haloindex = (Int_t)(haloID%opt.TEMPORALHALOIDVAL-1);
+	halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
+	haloindex = (unsigned long long)(haloID%opt.TEMPORALHALOIDVAL-1);
 	descendantID = snapdata[snap].Halo[index].descendant;
-	descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-	descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+	descendantsnap = (int)(descendantID/opt.TEMPORALHALOIDVAL);
+	descendantindex = (unsigned long long)(descendantID%opt.TEMPORALHALOIDVAL-1);
 	descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 
@@ -717,7 +717,7 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 		tmporbitdata={0};
 
 		//Extract the halo it is orbiting at this snapshot
-		orbitinghaloindex = (Int_t)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+		orbitinghaloindex = (unsigned long long)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
 
 
 		//Lets set this halos orbit data
@@ -752,8 +752,8 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 
 		//Extract its descendant and its progenitor
 		descendantID = snapdata[halosnap].Halo[haloindex].descendant;
-		descendantsnap = (Int_t)(descendantID/opt.TEMPORALHALOIDVAL);
-		descendantindex = (Int_t)(descendantID%opt.TEMPORALHALOIDVAL-1);
+		descendantsnap = (int)(descendantID/opt.TEMPORALHALOIDVAL);
+		descendantindex = (unsigned long long)(descendantID%opt.TEMPORALHALOIDVAL-1);
 		descendantProgenID = snapdata[descendantsnap].Halo[descendantindex].progenitor;
 
 	}
@@ -777,11 +777,11 @@ void ProcessHalo(Options &opt, Int_t orbitID,Int_t snap, Int_t index, vector<Sna
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	// Initilize the flag which marks the halo as being processed to false
-	for(Int_t snap=0;snap<opt.numsnaps;snap++)
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++)
+	for(int snap=0;snap<opt.numsnaps;snap++)
+		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++)
 			snapdata[snap].Halo[i].doneflag = false;
 
-	Int_t orbitID = 0;
+	unsigned long long orbitID = 0;
 
 
 	bool done = false;
@@ -789,12 +789,12 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
-	// Int_t snap = 55;
-	// Int_t snap = 116;
-	for(Int_t snap=0;snap<opt.numsnaps;snap++){
-	// Int_t i = 990;
-	// Int_t i = 1177;
-		for(Int_t i=0;i<snapdata[snap].numhalos;i++){
+	// int snap = 55;
+	// int snap = 116;
+	for(int snap=0;snap<opt.numsnaps;snap++){
+	// unsigned long long i = 990;
+	// unsigned long long i = 1177;
+		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;

@@ -13,7 +13,7 @@ set(_orbweaver_sources
 
 
 add_executable(orbweaver ${_orbweaver_sources})
-target_link_libraries(orbweaver nbodylib ${ORB_LIBS})
+target_link_libraries(orbweaver ${ORB_LIBS})
 target_compile_definitions(orbweaver PRIVATE ${ORB_DEFINES})
 if (ORB_CXX_FLAGS)
 	set_target_properties(orbweaver PROPERTIES COMPILE_FLAGS ${ORB_CXX_FLAGS})
