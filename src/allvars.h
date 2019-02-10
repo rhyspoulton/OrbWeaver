@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
@@ -25,12 +24,8 @@
 
 
 ///if using HDF API
-#ifdef USEHDF
 #include "H5Cpp.h"
-#ifndef H5_NO_NAMESPACE
-using namespace H5;
-#endif
-#endif
+
 
 #define _USE_MATH_DEFINES
 
@@ -46,6 +41,7 @@ using namespace H5;
 #define PHYSICAL 1
 
 using namespace std;
+using namespace H5;
 
 //Global varible to store the return code when the code terminates
 extern int EXIT_CODE;
@@ -83,8 +79,6 @@ struct Options
 		iverbose=0;
 	}
 };
-
-#ifdef USEHDF
 
 
 
@@ -720,9 +714,6 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 	};
 };
-
-
-#endif //USEHDF5
 
 #endif //ifndef ALLVARS_H
 

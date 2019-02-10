@@ -16,9 +16,6 @@ bool FileExists(const char *fname) {
   else return false;
 }
 
-
-#ifdef USEHDF
-
 vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vector<SnapData> &snapdata, HDFCatalogNames hdfnames){
 	
 	int ichunk, chunksize=8192;
@@ -672,7 +669,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	int rank;
 	HDFCatalogNames hdfnames;
 	int itemp=0;
-	unsigned int numentries = orbitdata.size();
+	unsigned long long numentries = orbitdata.size();
 	HDFOutputNames hdfdatasetnames;
 	char outfilename[1000];
 
@@ -685,7 +682,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	//Lets setup the info for the datasets
 	dims[0] = numentries;
 	rank=1;
-	chunk_dims[0] = min((unsigned long)HDFOUTCHUNKSIZE,(unsigned long)numentries);
+	chunk_dims[0] = min((unsigned long long)HDFOUTCHUNKSIZE,(unsigned long long)numentries);
 
 	int idataset = 0;
 
@@ -2106,7 +2103,3 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		throw exception();
 	}
 }
-
-
-
-#endif //USEHDF
