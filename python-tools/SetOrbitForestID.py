@@ -97,10 +97,10 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 			orbitdata[snap]["Tail"].append(mainOrbitHaloID)
 			orbitdata[snap]["Head"].append(np.uint64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
 		elif(snap==mainRootHeadSnap):
-			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
+			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"]) + 1))
 			orbitdata[snap]["Head"].append(mainOrbitHaloID)
 		else:
-			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"])))
+			orbitdata[snap]["Tail"].append(np.uint64((snap-1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap-1]["Tail"]) + 1))
 			orbitdata[snap]["Head"].append(np.uint64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["Head"]) + 1))
 
 
@@ -160,22 +160,19 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver
 
-			# Go straight to the branches  tail 
-			ID = tree[snap]["Tail"][iindex]
-			haloSnap = int(ID/opt.TEMPORALHALOIDVAL)
-			haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
+			# Extract the haloID
+			ID = tree[snap]["ID"][iindex]
+			haloSnap = snap
+			haloIndex = iindex
 
 			#Start to walk up the branch
 			head = tree[haloSnap]["Head"][haloIndex]
 			headSnap = int(head/opt.TEMPORALHALOIDVAL)
 			headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
 
-			#Lets also store its TailSanp
-			tail = tree[haloSnap]["Tail"][haloIndex]
-			tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
-
-			#Check we are still on the main branch
-			headTail = tree[headSnap]["Tail"][headIndex]
+			#Lets check if its the halo doesn't point to its own head and so exists in the next snapshot
+			if(ID==head):
+				continue
 
 			# #Set the re-mapped RootTails and RootHead for this branch
 
@@ -195,70 +192,63 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 			# Now go from the base of the branch up
 			while(True):
 
-				# Only set to be part of this OrbitForestID if the main branch exists
-				if(haloSnap>=mainRootTailSnap):
+				#Have a list of all the extracted indexes per
+				extractIndexes[haloSnap].append(haloIndex)
 
-					#Have a list of all the extracted indexes per
-					extractIndexes[haloSnap].append(haloIndex)
+				#Lets also store its TailSanp
+				tail = tree[haloSnap]["Tail"][haloIndex]
+				tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
 
-					#Lets also store its TailSanp
-					tail = tree[haloSnap]["Tail"][haloIndex]
-					tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
+				#Check we are still on the main branch
+				headTail = tree[headSnap]["Tail"][headIndex]
 
-					#Check we are still on the main branch
-					headTail = tree[headSnap]["Tail"][headIndex]
+				# Set this halos orbital forest ID and the halo it is orbiting
+				# orbitdata[haloSnap]["OrbitForestID"].append(orbitforestid)
+				orbitdata[haloSnap]["OrbitingHaloID"].append(mainOrbitHaloIDs[haloSnap])
 
-					# Set this halos orbital forest ID and the halo it is orbiting
-					# orbitdata[haloSnap]["OrbitForestID"].append(orbitforestid)
-					orbitdata[haloSnap]["OrbitingHaloID"].append(mainOrbitHaloIDs[haloSnap])
+				#Set a boolean if this halo is a host halo or not
+				#orbitdata[haloSnap]["hostFlag"].append(True if halodata[haloSnap]["hostHaloID"][haloIndex]==-1 else False)
+				orbitdata[haloSnap]["hostFlag"].append(halodata[haloSnap]["hostHaloID"][haloIndex])
 
-					#Set a boolean if this halo is a host halo or not
-					#orbitdata[haloSnap]["hostFlag"].append(True if halodata[haloSnap]["hostHaloID"][haloIndex]==-1 else False)
-					orbitdata[haloSnap]["hostFlag"].append(halodata[haloSnap]["hostHaloID"][haloIndex])
+				# Re-map its tree properties
+				orbitdata[haloSnap]["origID"].append(np.uint64(ID))
+				orbitingHaloID = np.uint64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
+				orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
-					# Re-map its tree properties
-					orbitdata[haloSnap]["origID"].append(np.uint64(ID))
-					orbitingHaloID = np.uint64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
-					orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
-					#Mark this halo as done so it is not walked again in this orbital forest ID
-					# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
-					processedFlag[haloSnap][haloIndex] = True
+				#Mark this halo as done so it is not walked again in this orbital forest ID
+				# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
+				processedFlag[haloSnap][haloIndex] = True
 
-					# increment local halo counter
-					localhalocount += 1
+				# increment local halo counter
+				localhalocount += 1
 
-					# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
-					if((head==ID) | (haloSnap==mainRootHeadSnap) | (headSnap>mainRootHeadSnap)):
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+				# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
+				if((head==ID) | (haloSnap==mainRootHeadSnap) | (headSnap>mainRootHeadSnap)):
+					orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"]) + 1))
+					orbitdata[haloSnap]["Head"].append(orbitingHaloID)
+					break
+				elif(headTail!=ID): # If its heads tail is not pointing back to itself then it has merged with something
+
+					orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"]) + 1))
+
+					#See if this halo merges with the halo its is orbiting if so then set it to merge with it or have it point back to itself
+					sel = np.where(mainOrbitHaloIDs==head)[0]
+					if(sel):
+						orbitdata[haloSnap]["Head"].append(mainOrbitHaloIDs[sel])
+					else:
 						orbitdata[haloSnap]["Head"].append(orbitingHaloID)
-						break
-					elif(headTail!=ID): # If its heads tail is not pointing back to itself then it has merged with something
 
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
+					break
 
-						#See if this halo merges with the halo its is orbiting if so then set it to merge with it or have it point back to itself
-						sel = np.where(mainOrbitHaloIDs==head)[0]
-						if(sel):
-							orbitdata[haloSnap]["Head"].append(mainOrbitHaloIDs[sel])
-						else:
-							orbitdata[haloSnap]["Head"].append(orbitingHaloID)
+				elif((haloSnap==tailSnap) | (tailSnap<=mainRootTailSnap) | (haloSnap==snap)): # If at the base of the branch or when the main orbiting halo formed
+					orbitdata[haloSnap]["Tail"].append(orbitingHaloID)
+					orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
 
-						break
+				else: #Otherwise set its head/ tail as normal
+					orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"]) + 1))
+					orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
 
-					elif((haloSnap==tailSnap) | (tailSnap<=mainRootTailSnap)): # If at the base of the branch or when the main orbiting halo formed
-						orbitdata[haloSnap]["Tail"].append(orbitingHaloID)
-						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
-
-					else: #Otherwise set its head/ tail as normal
-						orbitdata[haloSnap]["Tail"].append(np.uint64(tailSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[tailSnap]["Tail"])))
-						orbitdata[haloSnap]["Head"].append(np.uint64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["Head"]) + 1))
-
-
-				#Stop walking if this branch if it merges, or at the end of the simulation or the main orbit branch no longer exits
-				# if((headTail!=ID) | (head==ID) | (haloSnap==mainRootHeadSnap)):
-				# 	print("Got here")
-				# 	break
 
 				# Move to its head
 				ID = head 
@@ -269,6 +259,7 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 				head = tree[haloSnap]["Head"][haloIndex]
 				headSnap = int(head/opt.TEMPORALHALOIDVAL)
 				headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
+
 	#Lets set all its orbital properties
 	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
 		for field in orbitalfields:
