@@ -363,8 +363,8 @@ HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned l
 		currentsnap = progensnap+1;
 
 		//Keep track of the halo that the progen is orbiting
-		orbitinghalosnap = (int)(snapdata[progensnap].Halo[progenindex].orbitinghaloid/opt.TEMPORALHALOIDVAL);
-		orbitinghaloindex = (unsigned long long)(snapdata[progensnap].Halo[progenindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+		orbitinghalosnap = (int)(snapdata[progensnap].Halo[progenindex].orbitedhaloid/opt.TEMPORALHALOIDVAL);
+		orbitinghaloindex = (unsigned long long)(snapdata[progensnap].Halo[progenindex].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
 
 		// Iterate until currentsnap==descsnap and extract
 		while(currentsnap!=descsnap){
@@ -426,9 +426,9 @@ HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned l
 
 			//Now need to set the halo it is orbiting to be the descendant of the host halo
 			//that the previous halo was orbiting and then move on to descendant halo
-			interphalos[j].orbitinghaloid = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].descendant;
-			orbitinghalosnap = (int)(interphalos[j].orbitinghaloid/opt.TEMPORALHALOIDVAL);
-			orbitinghaloindex = (unsigned long long)(interphalos[j].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+			interphalos[j].orbitedhaloid = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].descendant;
+			orbitinghalosnap = (int)(interphalos[j].orbitedhaloid/opt.TEMPORALHALOIDVAL);
+			orbitinghaloindex = (unsigned long long)(interphalos[j].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
 
 			if(currentsnap!=orbitinghalosnap)
 				cout<<"Warning: this halo is set to orbit a host halo thats at a different snapshot, have the host halos been interpolated?"<<endl;

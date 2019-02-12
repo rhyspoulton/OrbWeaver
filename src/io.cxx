@@ -152,7 +152,7 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].progenitor = longbuff[nn];
 
 
-		// OrbitingHaloID
+		// orbitedhaloid
 		ifield++;
 		count=offset;
 		rank = 1;
@@ -163,7 +163,7 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
 		halosdataset[ifield].read(longbuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
 
-		for(int nn=0;nn<ichunk;nn++) Halo[count++].orbitinghaloid = longbuff[nn];
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].orbitedhaloid = longbuff[nn];
 
 
 		// Npart
@@ -179,7 +179,7 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].npart = ulongbuff[nn];
 
-		// hostFlag
+		// fieldhalo
 		ifield++;
 		count=offset;
 		rank = 1;
@@ -190,7 +190,7 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
 		halosdataset[ifield].read(boolbuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
 
-		for(int nn=0;nn<ichunk;nn++) Halo[count++].hostFlag = boolbuff[nn];
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].fieldhalo = boolbuff[nn];
 
 		// M_200crit
 		ifield++;
@@ -673,6 +673,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	HDFOutputNames hdfdatasetnames;
 	char outfilename[1000];
 
+
 	//Create the buffers to load the data into
 	unsigned long long ullongbuf[numentries];
 	int intbuff[numentries];
@@ -793,7 +794,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* hosthaloID */
+		/* orbitedhaloID */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -814,7 +815,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].hosthaloID;
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].orbitedhaloID;
 		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1593,7 +1594,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* hostFlag */
+		/* fieldhalo */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1614,7 +1615,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlag;
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].fieldhalo;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -2046,7 +2047,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		idataset++;
 
 
-		/* hostFlaghost */
+		/* fieldhalohost */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -2067,7 +2068,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostFlaghost;
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].fieldhalohost;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 
 		file.close();

@@ -172,8 +172,8 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Keep track if this halo and its host is top of spatial herachy
-	tmporbitdata.hostFlag = orbitinghalo.hostFlag;
-	tmporbitdata.hostFlaghost = hosthalo.hostFlag;
+	tmporbitdata.fieldhalo = orbitinghalo.fieldhalo;
+	tmporbitdata.fieldhalohost = hosthalo.fieldhalo;
 
 	//Check if a crossing point has happened and it is not the same as the previous crossing point. In addition check if the same crossing point happend 
 	if((numrvircrossing!=0) & (numrvircrossing!=orbitprops.prevcrossingentrytype) & ((abs(numrvircrossing)!=abs(orbitprops.prevcrossingentrytype)) | (currentsnap>orbitprops.prevcrossingsnap+1))){
@@ -205,7 +205,7 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.haloID = orbitinghalo.origid;
 
 		//The host halo
-		tmporbitdata.hosthaloID = hosthalo.origid;
+		tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 		/* Calculate various properties to be outputted */
 
@@ -311,7 +311,7 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.haloID = orbitinghalo.origid;
 
 		//The host halo
-		tmporbitdata.hosthaloID = hosthalo.origid;
+		tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 		//The average mass loss rate
 		tmporbitdata.masslossrate = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -528,7 +528,7 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.haloID = orbitinghalo.origid;
 
 		//The host halo
-		tmporbitdata.hosthaloID = hosthalo.origid;
+		tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 		//The age of the universe at this point
 		tmporbitdata.uniage = snapdata[currentsnap].uniage;
@@ -683,7 +683,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 	if(interpsnaps.size()>0) InterpHaloProps(opt,halosnaps,haloindexes,interpsnaps,snapdata,splinefuncs);
 
 	for(int i=0;i<halosnaps.size();i++){
-		hostindexes.push_back((unsigned long long)(snapdata[halosnaps[i]].Halo[haloindexes[i]].orbitinghaloid%opt.TEMPORALHALOIDVAL-1));
+		hostindexes.push_back((unsigned long long)(snapdata[halosnaps[i]].Halo[haloindexes[i]].orbitedhaloid%opt.TEMPORALHALOIDVAL-1));
 	}
 
 	//Now the orbiting halo has been interpolated the interpolation functions can be setup for the host halo
@@ -717,7 +717,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 		tmporbitdata={0};
 
 		//Extract the halo it is orbiting at this snapshot
-		orbitinghaloindex = (unsigned long long)(snapdata[halosnap].Halo[haloindex].orbitinghaloid%opt.TEMPORALHALOIDVAL-1);
+		orbitinghaloindex = (unsigned long long)(snapdata[halosnap].Halo[haloindex].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
 
 
 		//Lets set this halos orbit data
@@ -797,7 +797,7 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++){
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
-			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitinghaloid==-1)) continue;
+			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitedhaloid==-1)) continue;
 
 			ProcessHalo(opt,orbitID,snap,i,snapdata,orbitdata);
 			orbitID++;

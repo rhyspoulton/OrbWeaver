@@ -94,7 +94,7 @@ datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
 # Build a new data stucture to contain the information for this file
-treefields = ["origID","ID","Head","Tail","OrbitingHaloID","hostFlag"]
+treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
@@ -104,9 +104,9 @@ orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields
 
 
 #Add in the extra datatypes for the extra orbit fields
-datatypes["origID"] =np.dtype("int64")
-datatypes["hostFlag"] = np.dtype("bool")
-datatypes["OrbitingHaloID"] = np.dtype("int64")
+datatypes["OrigID"] =np.dtype("uint64")
+datatypes["FieldHalo"] = np.dtype("bool")
+datatypes["OrbitedHaloID"] = np.dtype("int64")
 
 #initialize the dictionaries
 for snap in range(opt.numsnaps):

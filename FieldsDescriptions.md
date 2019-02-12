@@ -1,8 +1,9 @@
 | Field  | Units  | Description |  
 |---|---|---|
-| orbitID  | N/A | Unique ID to identify this orbit |
-| haloID  | N/A | Unique ID to identify this halo in the orignal catlogue |
-| hosthaloID  | N/A | Unique ID to identify the host halo in the orginal catalogue |
+| OrbitID  | N/A | Unique ID to identify this orbit in each file |
+| HaloID_orbweaver | N/A | Unique ID to identify this halo in the pre-processed catalog in each file |
+| HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue |
+| OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue |
 | entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
@@ -33,7 +34,7 @@
 | Vmax  | km/s | Maxiumum circular velocity of the halo |
 | Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |
 | cNFW | N/A  | Concentration of the halo |
-| hostFlag | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
+| fieldHalo | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
 | Vrad | km/s | The radial velocity of the orbiting halo with respect to its host |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | Mpc | X position of the halo relative to its host |
@@ -51,5 +52,5 @@
 | Rmax_host  | Mpc | Radial distance of Vmax for its host |
 | Vmax_host  | km/s | Maximum circular velocity of its host
 | cNFW_host | N/A  | Concentration of its host |
-|hostFlag_host | N/A | If this halo host is the top of its spatial hierachy (not a subhalo), where: 0 = No, 1 = Yes |
+|fieldhalo_host | N/A | If this halo host is the top of its spatial hierachy (not a subhalo), where: 0 = No, 1 = Yes |
 

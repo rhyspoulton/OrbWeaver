@@ -90,7 +90,7 @@ struct HaloData{
 	unsigned long long id;
 
 	//The original ID of the halo
-	long long origid;
+	unsigned long long origid;
 
 	//The descendant of the halo
 	long long descendant;
@@ -99,10 +99,10 @@ struct HaloData{
 	long long progenitor;
 
 	//If te halo is a subhalo
-	bool hostFlag;
+	bool fieldhalo;
 
 	//The ID of the halo which it is currently orbiting
-	long long orbitinghaloid; 
+	long long orbitedhaloid; 
 
 	//The number of particles in this halo
 	unsigned long long npart;
@@ -228,7 +228,7 @@ struct OrbitData{
 	unsigned long long haloID;
 
 	//The ID of its host halo
-	unsigned long long hosthaloID;
+	long long orbitedhaloID;
 
 	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
 	float entrytype;
@@ -324,7 +324,7 @@ struct OrbitData{
 	float cnfw;
 
 	//Boolean flag if this halo is a host halo (top of it spatial herachy)
-	bool hostFlag;
+	bool fieldhalo;
 
 	//The radial velocity of the halo with respect to its host
 	float vrad;
@@ -378,7 +378,7 @@ struct OrbitData{
 	float cnfwhost;
 
 	//Boolean flag if the host halo is a host halo (top of it spatial herachy)
-	bool hostFlaghost;
+	bool fieldhalohost;
 };
 
 struct OrbitProps{
@@ -548,12 +548,12 @@ struct HDFCatalogNames{
 		snapattrnames.push_back("scalefactor");
 
 		datasetnames.push_back("ID");
-		datasetnames.push_back("origID");
+		datasetnames.push_back("OrigID");
 		datasetnames.push_back("Head");
 		datasetnames.push_back("Tail");
-		datasetnames.push_back("OrbitingHaloID");
+		datasetnames.push_back("OrbitedHaloID");
 		datasetnames.push_back("npart");
-		datasetnames.push_back("hostFlag");
+		datasetnames.push_back("FieldHalo");
 		datasetnames.push_back("Mass_200crit");
 		datasetnames.push_back("R_200crit");
 		datasetnames.push_back("Xc");
@@ -570,7 +570,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("cNFW");
 
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
-		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
@@ -604,14 +604,14 @@ struct HDFOutputNames{
 
 	HDFOutputNames(){
 
-		datasetnames.push_back("orbitID");
-		datasettypes.push_back(PredType::STD_U64LE);
-		datasetnames.push_back("orbithaloID");
-		datasettypes.push_back(PredType::STD_I64LE);
-		datasetnames.push_back("haloID");
-		datasettypes.push_back(PredType::STD_I64LE);
-		datasetnames.push_back("hosthaloID");
-		datasettypes.push_back(PredType::STD_U64LE);
+		datasetnames.push_back("OrbitID");
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasetnames.push_back("HaloID_orbweaver");
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasetnames.push_back("HaloID_orig");
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasetnames.push_back("OrbitedHaloID_orig");
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("entrytype");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("numorbits");
@@ -663,7 +663,7 @@ struct HDFOutputNames{
 		datasetnames.push_back("VZ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Npart");
-		datasettypes.push_back(PredType::STD_I64LE);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("Mass");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
@@ -674,7 +674,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("cNFW");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("hostFlag");
+		datasetnames.push_back("FieldHalo");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasetnames.push_back("Vrad");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
@@ -710,7 +710,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("cNFW_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("hostFlag_host");
+		datasetnames.push_back("FieldHalo_host");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 	};
 };
