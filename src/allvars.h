@@ -62,6 +62,9 @@ struct Options
 	//The fraction of rvir host that a datapoint is created
 	float fracrvircross;
 
+	//The file number currently working on
+	int fileno;
+
 	//The value which the halo ID snapvalue is offset by
 	unsigned long long TEMPORALHALOIDVAL;
 
@@ -75,6 +78,7 @@ struct Options
 		outputbasename=NULL;
 		numsnaps=0;
 		fracrvircross=0;
+		fileno=0;
 		TEMPORALHALOIDVAL=0;
 		iverbose=0;
 	}
@@ -528,6 +532,7 @@ struct HDFCatalogNames{
 		cosmohdrname = "/Header/Cosmology";
 		unithdrname = "/Header/Units";
 
+		hdrattrnames.push_back("Fileno");
 		hdrattrnames.push_back("NSnaps");
 		hdrattrnames.push_back("TEMPORALHALOIDVAL");
 

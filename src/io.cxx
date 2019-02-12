@@ -410,14 +410,20 @@ void ReadHeader(Options &opt, H5File *Fhdf,HDFCatalogNames hdfnames){
 	//Open up the header group and extract the information
 	hdrgroup = Fhdf->openGroup(hdfnames.hdrname);
 
-	//The number of snapshots in the simulation
+	//The file number for this file
 	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[0]);
+	attrdataspace = attr.getSpace();
+	attr.read(PredType::NATIVE_INT,&intbuff);
+	opt.fileno=intbuff;
+
+	//The number of snapshots in the simulation
+	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[1]);
 	attrdataspace = attr.getSpace();
 	attr.read(PredType::NATIVE_INT,&intbuff);
 	opt.numsnaps=intbuff;
 
 	//The temporal haloID value to make halo IDs temporally unique
-	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[1]);
+	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[2]);
 	attrdataspace = attr.getSpace();
 	attr.read(PredType::STD_U64LE,&ullongbuf);
 	opt.TEMPORALHALOIDVAL=ullongbuf;
@@ -707,6 +713,11 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		file = H5File(outfilename,H5F_ACC_TRUNC);
 
 		//Create the attributes for the file
+
+		//The number of entries in the file
+		attrspace=DataSpace(H5S_SCALAR);
+		attr=file.createAttribute("Fileno", PredType::NATIVE_INT, attrspace);
+		attr.write(PredType::NATIVE_INT,&opt.fileno);
 
 		//The number of entries in the file
 		attrspace=DataSpace(H5S_SCALAR);

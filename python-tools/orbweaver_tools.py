@@ -18,6 +18,7 @@ def ReadOrbitData(filenamelist):
 	except ValueError:
 		raise IOError("The first line of the filelist (which says the number of files), cannot be interpreted as a integer")
 
+	fileno = np.zeros(numfiles,dtype=np.int32)
 	numentries = np.zeros(numfiles,dtype=np.uint64)
 	maxorbitIDs = np.zeros(numfiles,dtype=np.uint64)
 	prevmaxorbitID = np.uint64(0)
@@ -39,6 +40,7 @@ def ReadOrbitData(filenamelist):
 		hdffile = h5py.File(filename,"r")
 
 		#Read the header information
+		fileno[i] = np.int32(hdffile.attrs["Fileno"][...])
 		numentries[i] =  np.uint64(hdffile.attrs["Number_of_entries"][...])
 		maxorbitIDs[i] = prevmaxorbitID
 		prevmaxorbitID += np.uint64(hdffile.attrs["Max_orbitID"][...])
@@ -59,7 +61,7 @@ def ReadOrbitData(filenamelist):
 	orbitdata = {key:np.zeros(totnumentries,dtype = orbitdatatypes[key]) for key in orbitdatakeys}
 
 	#Add a field to contain the file number
-	orbitdata["fileno"] = np.zeros(totnumentries,dtype=np.int32)
+	orbitdata["Fileno"] = np.zeros(totnumentries,dtype=np.int32)
 
 	ioffset = np.uint64(0)
 
@@ -82,6 +84,8 @@ def ReadOrbitData(filenamelist):
 		#Lets offset the orbitID to make it unique across all the data
 		orbitdata["OrbitID"][startindex:endindex]+=maxorbitIDs[i]
 
+		#Set the fileno that this came from
+		orbitdata["Fileno"][startindex:endindex]=fileno[i]
 
 		hdffile.close()
 

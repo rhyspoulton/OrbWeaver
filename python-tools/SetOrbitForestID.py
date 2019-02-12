@@ -313,6 +313,7 @@ def OutputOrbitalForestIDFile(opt,
 	tothalos = 0 
 	for i in range(opt.numsnaps):
 		tothalos += len(orbitdata[i]['ID'])
+	hdrgrp.attrs["Fileno"] = np.int32(fileno)
 	hdrgrp.attrs["Total_number_of_halos"] = np.uint64(tothalos)
 	hdrgrp.attrs["Start_orbit_forest_ID"] = np.uint64(orbitForestIDStart)
 	hdrgrp.attrs["End_orbit_forest_ID"] = np.uint64(orbitForestIDEnd)

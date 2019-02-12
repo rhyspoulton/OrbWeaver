@@ -2,6 +2,7 @@ import subprocess
 import argparse
 import os
 import sys
+import h5py
 
 scriptpath=os.path.abspath(__file__)
 pythontoolsdir=scriptpath.split('runorbweaver.py')[0]
@@ -46,6 +47,18 @@ with open(tmpOpt.inputfilelist,"r") as filenamelist:
 		#Set the name of the input file
 		inputfilename = basefilename + ".orbweaver.preprocessed.hdf"
 
+		#Check the file exists
+		if(os.path.isfile(inputfilename)==False):
+			raise IOError(inputfilename,"does not exist")
+
+		#Open up the file so the fileno can be extracted
+		hdffile = h5py.File(inputfilename,"r")
+
+		#Extract the fileno
+		ifileno = int(hdffile["Header"].attrs["Fileno"][...])
+
+		hdffile.close()
+
 		#Check if either scheduler type avalible has been selected
 		if((tmpOpt.schedulertype=="PBS") | (tmpOpt.schedulertype=="Slurm")):
 
@@ -61,13 +74,13 @@ with open(tmpOpt.inputfilelist,"r") as filenamelist:
 				
 				#Update the file contents
 				fc = f.read()
-				fc = fc.replace("JOBNAME","OrbWeaver-%i"%i)
+				fc = fc.replace("JOBNAME","OrbWeaver-%i"%ifileno)
 				fc = fc + "\ncd " + baseorbweaverdir + "/build"
 				fc = fc + "\n./orbweaver -i " + inputfilename + " -o " + basefilename + " -c " + str(tmpOpt.fracrvircross) + " -v " + str(tmpOpt.iverbose)
 				
 			#Open up a new submit file with all the updated contents
-			if(tmpOpt.schedulertype=="PBS"): submitfilename = pythontoolsdir + "/runscripts/qsub.runorbweaver.%i.sh" %i 
-			else: submitfilename = pythontoolsdir + "/runscripts/runorbweaver.%i.sbatch" %i 
+			if(tmpOpt.schedulertype=="PBS"): submitfilename = pythontoolsdir + "/runscripts/qsub.runorbweaver.%i.sh" %ifileno 
+			else: submitfilename = pythontoolsdir + "/runscripts/runorbweaver.%i.sbatch" %ifileno
 			submitfile = open(submitfilename,"w")
 			submitfile.write(fc)
 			submitfile.close()
