@@ -27,6 +27,12 @@ elif(tmpOpt.fracrvircross>3.0):
 
 with open(tmpOpt.inputfilelist,"r") as filenamelist:
 
+	#Try and read the first line as int
+	try:
+		numfiles = int(filenamelist.readline())
+	except ValueError:
+		raise IOError("The first line of the filelist (which says the number of files), cannot be interpreted as a integer")
+
 	#Loop over all the filename in the list
 	for i,basefilename in enumerate(filenamelist):
 

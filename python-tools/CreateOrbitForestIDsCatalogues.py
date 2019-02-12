@@ -187,6 +187,10 @@ sys.stdout.flush()
 
 #Create a filelist containing all the filenames
 ifile = open(opt.outfilebasename + ".orbweaver.filelist.txt","w")
+
+#Output the number of files
+ifile.write("%i\n" %(ifileno+1))
+
 for i in range(ifileno+1):
 
 	#If on the final fileno then output a line without a newline
@@ -197,7 +201,7 @@ for i in range(ifileno+1):
 
 ifile.close()
 
-print("The file cotaining the list of the catalogues is here:\n\t",opt.outfilebasename + ".orbweaver.filelist.txt")
+print("The file containing the list of the catalogues is here:\n\t",opt.outfilebasename + ".orbweaver.filelist.txt")
 
 # #get the size of each forest
 # OrbitForestSize=np.zeros(orbitforestidval,dtype=np.int64)
