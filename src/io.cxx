@@ -669,10 +669,16 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	int rank;
 	HDFCatalogNames hdfnames;
 	int itemp=0;
-	unsigned long long numentries = orbitdata.size();
 	HDFOutputNames hdfdatasetnames;
 	char outfilename[1000];
+	unsigned long long numentries = orbitdata.size();
 
+	//Check the number of entries is >0
+	if(numentries==0){
+		cerr<<"Error: The number of entries to output is 0"<<endl;
+		EXIT_CODE = 2;
+		throw exception();
+	}
 
 	//Create the buffers to load the data into
 	unsigned long long ullongbuf[numentries];
@@ -692,9 +698,12 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		// handle the errors appropriately
 		Exception::dontPrint();
 
-		//Open up the file
+		//Get the filename
 		strcpy(outfilename,opt.outputbasename);
 		strcat(outfilename,".orbweaver.orbitdata.hdf");
+		cout<<"Outputting orbitdata to file "<<outfilename<<endl;
+
+		//Open up the file
 		file = H5File(outfilename,H5F_ACC_TRUNC);
 
 		//Create the attributes for the file
