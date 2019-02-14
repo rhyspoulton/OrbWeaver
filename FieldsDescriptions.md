@@ -13,7 +13,8 @@
 | Rperi_Wetzel2011 | Mpc | The calculated peri-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | Rapo_Wetzel2011 | Mpc | The calculated apo-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | closestapproach  | Mpc | Closest approach the halo has had to is host |
-| masslossrate  | solar masses/Gyr | The average rate at which the halo is losing mass |
+| masslossrate_inst  | solar masses/Gyr | The instantaneous rate at which the halo is losing mass (negative values means mass has been accreted) |
+| masslossrate_ave  | solar masses/Gyr | The average rate at which the halo is losing mass, this is only calculated at apsis points so will be average since its last passage  (negative values means mass has been accreted) |
 | LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined [here](https://en.wikipedia.org/wiki/Orbital_elements). |
 | Inclination | Radian | The inclination of the halos orbit with respect to the intial orbital plane |
 | ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |

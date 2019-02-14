@@ -143,7 +143,7 @@ void CalcOrbitProps(Options &opt,
 		orbitprops.hostlz += hosthalo.lz;
 
 		// Find the change mass in units of Msun/Gyr
-		orbitprops.masslossrate += (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
+		orbitprops.masslossrate += (prevorbitinghalo.mass - orbitinghalo.mass)/deltat;
 
 		//Find the total angle that the orbit has moved through since last orbit
 		orbitprops.phi+=acos((rx*prevrx + ry*prevry + rz*prevrz)/(r*prevr));
@@ -174,6 +174,14 @@ void CalcOrbitProps(Options &opt,
 	//Keep track if this halo and its host is top of spatial herachy
 	tmporbitdata.fieldhalo = orbitinghalo.fieldhalo;
 	tmporbitdata.fieldhalohost = hosthalo.fieldhalo;
+
+	//Compute the instaneous mass loss rate
+
+	//The difference in time since the previous snapshot
+	deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
+
+	// Find the change mass in units of Msun/Gyr
+	tmporbitdata.masslossrate_inst = (prevorbitinghalo.mass - orbitinghalo.mass )/deltat;
 
 	//Check if a crossing point has happened and it is not the same as the previous crossing point. In addition check if the same crossing point happend 
 	if((numrvircrossing!=0) & (numrvircrossing!=orbitprops.prevcrossingentrytype) & ((abs(numrvircrossing)!=abs(orbitprops.prevcrossingentrytype)) | (currentsnap>orbitprops.prevcrossingsnap+1))){
@@ -208,12 +216,6 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 		/* Calculate various properties to be outputted */
-
-		//The difference in time since the previous snapshot
-		deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
-
-		// Find the change mass in units of Msun/Gyr
-		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 
 		//Find the components of the radial vector
 		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
@@ -312,9 +314,6 @@ void CalcOrbitProps(Options &opt,
 
 		//The host halo
 		tmporbitdata.orbitedhaloID = hosthalo.origid;
-
-		//The average mass loss rate
-		tmporbitdata.masslossrate = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 		//Store the scalefactor this happens at
 		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vrad/(vrad - prevvrad))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
@@ -434,6 +433,9 @@ void CalcOrbitProps(Options &opt,
 			//Find the orbits apo and pericentric distances
 			tmporbitdata.rapo = (ltot*ltot)/((1-tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
 
+			//The average mass loss rate
+			tmporbitdata.masslossrate_ave = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
+
 			//Lets output the average angular momentum since the last passage
 			tmporbitdata.lxrel = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
 			tmporbitdata.lyrel = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -540,12 +542,6 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.mergertimescale = snapdata[currentsnap].uniage - orbitprops.crossrvirtime;
 
 		/* Calculate various properties to be outputted */
-
-		//The difference in time since the previous snapshot
-		deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
-
-		// Find the change mass in units of Msun/Gyr
-		tmporbitdata.masslossrate = (orbitinghalo.mass - prevorbitinghalo.mass)/deltat;
 
 		//Find the components of the radial vector
 		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);

@@ -261,8 +261,11 @@ struct OrbitData{
 	//The apo-centric distance
 	float rapo;
 
-	//Mass loss rate
-	float masslossrate;
+	//Instantaneous mass loss rate
+	float masslossrate_inst;
+
+	//Average mass loss rate
+	float masslossrate_ave;
 
 	//The longitude of the ascending node with respect to the intial orbital plane
 	float longascnode;
@@ -635,7 +638,9 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rapo_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("masslossrate");
+		datasetnames.push_back("masslossrate_inst");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("masslossrate_ave");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LongAscNode");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
