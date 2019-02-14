@@ -5,7 +5,7 @@
 # Copyright by UWA (in the framework of the ICRAR)
 # All rights reserved
 #
-# Contributed by Rodrigo Tobar
+# Contributed by Rodrigo Tobar and Rhys Poulton
 #
 # This file is part of OrbWeaver.
 
@@ -55,6 +55,30 @@ endmacro()
 
 find_hdf5()
 
+
+#
+# Make sure we have the git submodules we need
+#
+macro(ensure_git_submodules)
+	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/python-tools/VELOCIraptor_Python_Tools/velociraptor_python_tools.py")
+		find_package(Git QUIET)
+		if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+			# Update submodules as needed
+			message(STATUS "Getting the VELOCIraptor_Python_Tools submodule")
+			execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init
+			                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+			                RESULT_VARIABLE GIT_SUBMOD_RESULT)
+			if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+			    message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+			endif()
+		else()
+			message(FATAL_ERROR "Cannot get the VELOCIraptor_Python_Tools submodule automatically. Please make sure you get the submodule by using `git submodule update —-init`")
+		endif()
+	endif()
+endmacro()
+
+ensure_git_submodules()
+
 # cleanup duplicates and convert to single string
 list(REMOVE_DUPLICATES ORB_CXX_FLAGS)
 string(REPLACE ";" " " ORB_CXX_FLAGS "${ORB_CXX_FLAGS}")
@@ -76,7 +100,7 @@ message("-----------")
 message("")
 message(" Include dirs: ${ORB_INCLUDE_DIRS}")
 message(" Libs: ${ORB_LIBS}")
-message(" C++ flags: ${ORB_CXX_FLAGS}")
+message(" C++ flags: ${ORB_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
 message(" Link flags: ${ORB_LINK_FLAGS}")
 message("")
 
