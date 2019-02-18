@@ -7,12 +7,12 @@ import argparse
 
 #load local python routines
 scriptpath=os.path.abspath(__file__)
-basecodedir=scriptpath.split('CreateOrbitForestIDsCatalogues.py')[0]
-sys.path.append(basecodedir)
-sys.path.append(basecodedir+'/VELOCIraptor_Python_Tools/')
+basecodedir=scriptpath.split('CreateOrbitCatalogs.py')[0]
+sys.path.append(basecodedir+'/src/')
+sys.path.append(basecodedir+'/src/VELOCIraptor_Python_Tools/')
 
 #load the cythonized code if compiled
-if (len(glob.glob(basecodedir+'/VELOCIraptor_Python_Tools/velociraptor_python_tools_cython.*.so'))==1):
+if (len(glob.glob(basecodedir+'/src/VELOCIraptor_Python_Tools/velociraptor_python_tools_cython.*.so'))==1):
 	print('using cython VR+TF toolkit')
 	import velociraptor_python_tools_cython as VPT
 else:
@@ -20,7 +20,7 @@ else:
 	import velociraptor_python_tools as VPT
 
 #should add also some cythonize checks
-import SetOrbitForestID as SOF 
+from MakeOrbitForest import CreateOrbitForest,OutputOrbitCatalog
 from ui import Options
 
 
@@ -143,7 +143,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 			print("On oribital forest", orbitforestidval)
 			sys.stdout.flush()
 
-		orbithalocount[inumForest] = SOF.SetOrbitalForestID(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
+		orbithalocount[inumForest] = CreateOrbitForest(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
 		if (opt.iverbose > 1):
 			print("Done orbital forest", orbitforestidval, time.clock()-start3)
 			sys.stdout.flush()
@@ -155,7 +155,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 			#get orbit forest statistic
 			orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest+1], dtype=np.int64)
 
-			SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,
+			OutputOrbitCatalog(opt,orbitdata,datatypes,
 				prevorbitforestidval,orbitforestidval,ifileno,
 				atime,cosmodata,unitdata,
 				orbitforestdata)
@@ -180,7 +180,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 
 if(orbitforestidval!=prevorbitforestidval -1):
-	SOF.OutputOrbitalForestIDFile(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,ifileno,atime,cosmodata,unitdata,orbitforestdata)
+	OutputOrbitCatalog(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,ifileno,atime,cosmodata,unitdata,orbitforestdata)
 print("Done generating orbit forest",time.clock()-start)
 sys.stdout.flush()
 

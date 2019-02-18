@@ -60,7 +60,7 @@ find_hdf5()
 # Make sure we have the git submodules we need
 #
 macro(ensure_git_submodules)
-	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/python-tools/VELOCIraptor_Python_Tools/velociraptor_python_tools.py")
+	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/OrbitCatalogCreation/src/VELOCIraptor_Python_Tools/velociraptor_python_tools.py")
 		find_package(Git QUIET)
 		if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 			# Update submodules as needed

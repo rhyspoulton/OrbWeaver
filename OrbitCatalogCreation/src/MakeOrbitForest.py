@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import h5py
 
-def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata):
+def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata):
 	"""
 	Sets the orbital forestID by finding any halos which come with opt.numRvirSearch x Rvir of
 	the branch of interest over all the snapshots that it exists in
@@ -293,7 +293,7 @@ def SetOrbitalForestID(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata
 	return localhalocount
 
 
-def OutputOrbitalForestIDFile(opt,
+def OutputOrbitCatalog(opt,
 	orbitdata,datatypes,
 	orbitForestIDStart,orbitForestIDEnd,fileno,
 	atime,cosmodata,unitdata,
