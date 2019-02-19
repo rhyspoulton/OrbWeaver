@@ -5,23 +5,14 @@ import time
 from scipy.interpolate import interp1d
 import argparse
 
-#load local python routines
+#Load the other routines
 scriptpath=os.path.abspath(__file__)
 basecodedir=scriptpath.split('CreateOrbitCatalogs.py')[0]
 sys.path.append(basecodedir+'/src/')
-sys.path.append(basecodedir+'/src/VELOCIraptor_Python_Tools/')
 
-#load the cythonized code if compiled
-if (len(glob.glob(basecodedir+'/src/VELOCIraptor_Python_Tools/velociraptor_python_tools_cython.*.so'))==1):
-	print('using cython VR+TF toolkit')
-	import velociraptor_python_tools_cython as VPT
-else:
-	print('using python VR+TF toolkit')
-	import velociraptor_python_tools as VPT
-
-#should add also some cythonize checks
-from MakeOrbitForest import CreateOrbitForest,OutputOrbitCatalog
+from MakeOrbitForest import CreateOrbitForest
 from ui import Options
+from orbio import ReadVELOCIraptorTreeandHalodata,OutputOrbitCatalog
 
 
 parser = argparse.ArgumentParser()
@@ -34,42 +25,11 @@ tmpOpt = parser.parse_args()
 #store number of snaps
 opt = Options(tmpOpt)
 
-# np.set_printoptions(threshold=10)
+#Load in the VELOCIraptor halodata and tree
 desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
+atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
 
-start=time.clock()
-if(opt.iverbose): print("Reading the walkable tree")
-sys.stdout.flush()
-tree,numsnaps = VPT.ReadWalkableHDFTree(tmpOpt.inputtree,False)
-if(opt.iverbose): print("Done reading the walkable tree in",time.clock()-start)
-sys.stdout.flush()
 
-#Update the number of snapshots from the tree
-opt.update_numsnaps(numsnaps)
-
-start=time.clock()
-if(opt.iverbose): print("Reading in the halo catalog")
-sys.stdout.flush()
-numhalos=np.zeros(numsnaps,dtype=np.uint64)
-halodata=[dict() for i in range(numsnaps)]
-atime=np.zeros(numsnaps)
-for i in range(numsnaps):
-	start1 = time.clock()
-	halodata[i],numhalos[i]=VPT.ReadPropertyFile(tmpOpt.inputhalobbasename+'%03d.VELOCIraptor'%i, 2, 0, 0, desiredfields)
-	atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
-	for key in halodata[i].keys():
-		if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
-		if (halodata[i][key].dtype==np.float64):
-			halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
-		if (key == 'hostHaloID'):
-			halodata[i][key] = (halodata[i][key] == -1)
-
-	if(opt.iverbose > 1): print('Snapshot', i,'done in', time.clock()-start1)
-	sys.stdout.flush()
-if(opt.iverbose): print('Finished reading halo properties in', time.clock()-start)
-sys.stdout.flush()
-
-VPT.AdjustforPeriod(numsnaps, numhalos, halodata)
 
 # built KD tree to quickly search for near neighbours. only build if not passed.
 start=time.clock()
@@ -86,8 +46,6 @@ for snap in range(opt.numsnaps-1,-1,-1):
 if (opt.iverbose): print("Done building in",time.clock()-start)
 sys.stdout.flush()
 
-unitdata = halodata[0]["UnitInfo"]
-cosmodata = halodata[0]["SimulationInfo"]
 
 #Extract all the datatypes from the numpy arrays
 datatypes = {field:halodata[0][field].dtype for field in desiredfields}
