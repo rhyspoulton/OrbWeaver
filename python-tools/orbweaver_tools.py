@@ -70,6 +70,8 @@ def ReadOrbitData(filenamelist):
 
 		filename=filenames[i]
 
+		print("Reading orbitdata from",filename)
+
 		#Open up the file
 		hdffile = h5py.File(filename,"r")
 

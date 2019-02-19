@@ -1,9 +1,9 @@
 | Field  | Units  | Description |  
 |---|---|---|
 | OrbitID  | N/A | Unique ID to identify this orbit in each file |
-| HaloID_orbweaver | N/A | Unique ID to identify this halo in the pre-processed catalog in each file |
-| HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue |
-| OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue |
+| HaloID_orbweaver | N/A | Unique ID to identify this halo in the pre-processed catalog in each file. The 0 values represent interpolated halos that do not exist in the pre-processed catalog |
+| HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue. 0 values means it is a interpolated halo that does not exist in the original catalog |
+| OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue. 0 values means it is a interpolated halo that does not exist in the original catalog  |
 | entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |

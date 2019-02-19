@@ -369,8 +369,8 @@ HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned l
 		// Iterate until currentsnap==descsnap and extract
 		while(currentsnap!=descsnap){
 
-			//Find what will be the ID of this halo
-			interphalos[j].id = currentsnap*opt.TEMPORALHALOIDVAL + snapdata[currentsnap].numhalos+1;
+			//Set this halo ID to be zero so know it is interpolated
+			interphalos[j].id = 0;
 
 			//If at the first interpolated halo have the progenitor point to this halo
 			//and this halo point back to the halo as a progenitor. Otherwise have it point
