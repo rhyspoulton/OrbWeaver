@@ -95,8 +95,11 @@ void CalcOrbitProps(Options &opt,
 	//Store what orbitID number this is
 	tmporbitdata.orbitID = orbitID;
 
-	//Store the haloID this halo is in the orbit catalog
-	tmporbitdata.orbithaloID = orbitinghalo.id;
+	//Store the haloID this halo if it is not interpolated
+	if(orbitinghalo.interpflag)
+		tmporbitdata.orbithaloID = 0;
+	else
+		tmporbitdata.orbithaloID = orbitinghalo.id;
 
 	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvrad;
 
@@ -622,10 +625,10 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 	unsigned long long orbitinghaloindex;
 
 	//Keep track of the previous halos halodata and orbitdata
-	HaloData prevorbitinghalo = {0};
-	HaloData prevhosthalo = {0};
+	HaloData prevorbitinghalo;
+	HaloData prevhosthalo;
 	vector<OrbitData> branchorbitdata;
-	OrbitData tmporbitdata={0};
+	OrbitData tmporbitdata;
 	int prevsnap=halosnap;
 
 	//Keep track of the properties of this orbit
@@ -710,7 +713,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 	while(true){
 
 		//Reset all the data to zero
-		tmporbitdata={0};
+		tmporbitdata={};
 
 		//Extract the halo it is orbiting at this snapshot
 		orbitinghaloindex = (unsigned long long)(snapdata[halosnap].Halo[haloindex].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
@@ -772,15 +775,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
-	// Initilize the flag which marks the halo as being processed to false
-	for(int snap=0;snap<opt.numsnaps;snap++)
-		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++)
-			snapdata[snap].Halo[i].doneflag = false;
-
 	unsigned long long orbitID = 0;
-
-
-	bool done = false;
 
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found

@@ -81,7 +81,7 @@ struct Options
 		fileno=0;
 		TEMPORALHALOIDVAL=0;
 		iverbose=0;
-	}
+	};
 };
 
 
@@ -102,7 +102,7 @@ struct HaloData{
 	//The progenitor of the halo
 	long long progenitor;
 
-	//If te halo is a subhalo
+	//If the halo is a subhalo
 	bool fieldhalo;
 
 	//The ID of the halo which it is currently orbiting
@@ -135,9 +135,36 @@ struct HaloData{
 	//Concentration of the halo
 	double cnfw;
 
+	//Flag to say if this halo has been interpolated
+	bool interpflag;
+
 	//Flag to mark if the halo has been process or no
 	bool doneflag;
-	
+
+	HaloData(){
+		id=0;
+		origid=0;
+		descendant=0;
+		progenitor=0;
+		fieldhalo=false;
+		orbitedhaloid=0;
+		mass=0.0;
+		rvir=0.0;
+		x=0.0;
+		y=0.0;
+		z=0.0;
+		vx=0.0;
+		vy=0.0;
+		vz=0.0;
+		lx=0.0;
+		ly=0.0;
+		lz=0.0;
+		rmax=0.0;
+		cnfw=0.0;
+		interpflag=false;
+		doneflag=false;
+		interpflag=false;
+	};	
 };
 
 //Struct to contain the interpolation routine data
@@ -182,7 +209,7 @@ struct SplineFuncs{
 		vx=gsl_spline_alloc (gsl_interp_cspline, nhalo);
 		vy=gsl_spline_alloc (gsl_interp_cspline, nhalo);
 		vz=gsl_spline_alloc (gsl_interp_cspline, nhalo);
-	}
+	};
 
 	~SplineFuncs(){
 		gsl_interp_accel_free (xacc);
@@ -197,7 +224,7 @@ struct SplineFuncs{
 		gsl_spline_free (vx);
 		gsl_spline_free (vy);
 		gsl_spline_free (vz);
-	}
+	};
 };
 
 
@@ -386,6 +413,63 @@ struct OrbitData{
 
 	//Boolean flag if the host halo is a host halo (top of it spatial herachy)
 	bool fieldhalohost;
+	OrbitData(){
+		orbitID=0;
+		orbithaloID=0;
+		haloID=0;
+		orbitedhaloID=0;
+		entrytype=0.0;
+		numorbits=0;
+		orbitperiod=0.0;
+		closestapproach=0.0;
+		orbitecc=0.0;
+		orbiteccratio=0.0;
+		orbitalenergy=0.0;
+		rperi=0.0;
+		rapo=0.0;
+		masslossrate_inst=0.0;
+		masslossrate_ave=0.0;
+		longascnode=0.0;
+		inc=0.0;
+		argpariap=0.0;
+		phi=0.0;
+		hostalignment=0.0;
+		mergertimescale=0.0;
+		scalefactor=0.0;
+		uniage=0.0;
+		mergedflag=false;
+		x=0.0;
+		y=0.0;
+		z=0.0;
+		vx=0.0;
+		vy=0.0;
+		vz=0.0;
+		npart=0;
+		mass=0.0;
+		vmax=0.0;
+		vmaxpeak=0.0;
+		rmax=0.0;
+		cnfw=0.0;
+		fieldhalo=false;
+		vrad=0.0;
+		vtan=0.0;
+		xrel=0.0;
+		yrel=0.0;
+		zrel=0.0;
+		vxrel=0.0;
+		vyrel=0.0;
+		vzrel=0.0;
+		lxrel=0.0;
+		lyrel=0.0;
+		lzrel=0.0;
+		nparthost=0;
+		rvirhost=0.0;
+		masshost=0.0;
+		vmaxhost=0.0;
+		rmaxhost=0.0;
+		cnfwhost=0.0;
+		fieldhalohost=false;
+	};
 };
 
 struct OrbitProps{
@@ -672,7 +756,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Npart");
+		datasetnames.push_back("npart");
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("Mass");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
@@ -708,7 +792,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LZrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Npart_host");
+		datasetnames.push_back("npart_host");
 		datasettypes.push_back(PredType::STD_I64LE);
 		datasetnames.push_back("R_200crit_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
