@@ -14,9 +14,9 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 	x[2] = orbitdata.zrel - prevpos[2];
 
 	//The z-axis which is the angular momentum
-	z[0] = orbitdata.lxrel;
-	z[1] = orbitdata.lyrel;
-	z[2] = orbitdata.lzrel;
+	z[0] = orbitdata.lxrel_ave;
+	z[1] = orbitdata.lyrel_ave;
+	z[2] = orbitdata.lzrel_ave;
 
 	//Find the cross product of these to to find the y-axis
 	y[0] = (x[1] * z[2]) - (x[2] * z[1]);
@@ -233,14 +233,25 @@ void CalcOrbitProps(Options &opt,
 		vtanz = vrz - vradz;
 		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
+		//The halos reduced mass
+		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+		//Angular momentum vectors
+		lx = (ry * vrz) - (rz * vry);
+		ly = -((rx * vrz) - (rz * vrx));
+		lz = (rx * vry) - (ry * vrx);
+		tmporbitdata.lxrel_inst += mu * lx;
+		tmporbitdata.lyrel_inst += mu * ly;
+		tmporbitdata.lzrel_inst += mu * lz;
+
 		//Any additional properties to be calculated here
 
 		//Set the orbit period and eccentricty as -1.0
 		tmporbitdata.orbitperiod = -1.0;
 		tmporbitdata.orbitecc = -1.0;
-		tmporbitdata.lxrel = -1.0;
-		tmporbitdata.lyrel = -1.0;
-		tmporbitdata.lzrel = -1.0;
+		tmporbitdata.lxrel_ave = -1.0;
+		tmporbitdata.lyrel_ave = -1.0;
+		tmporbitdata.lzrel_ave = -1.0;
 		tmporbitdata.hostalignment = 0.0;
 
 		//Store the previous crossing point entry type
@@ -351,6 +362,17 @@ void CalcOrbitProps(Options &opt,
 		vtanz = vrz - vradz;
 		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
+		//The halos reduced mass
+		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+		//Angular momentum vectors
+		lx = (ry * vrz) - (rz * vry);
+		ly = -((rx * vrz) - (rz * vrx));
+		lz = (rx * vry) - (ry * vrx);
+		tmporbitdata.lxrel_inst += mu * lx;
+		tmporbitdata.lyrel_inst += mu * ly;
+		tmporbitdata.lzrel_inst += mu * lz;
+
 		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
 		if(orbitprops.orbitingflag){
@@ -440,9 +462,9 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.masslossrate_ave = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 			//Lets output the average angular momentum since the last passage
-			tmporbitdata.lxrel = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
-			tmporbitdata.lyrel = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
-			tmporbitdata.lzrel = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lxrel_ave = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lyrel_ave = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lzrel_ave = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 			//Find the average angular momentum of the host halo
 			orbitprops.hostlx /= (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -450,7 +472,8 @@ void CalcOrbitProps(Options &opt,
 			orbitprops.hostlz /= (double)(currentsnap - orbitprops.prevpassagesnap);
 
 			//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
-			tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel) + (orbitprops.hostly*tmporbitdata.lyrel)	+ (orbitprops.hostlz*tmporbitdata.lzrel))/(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel*tmporbitdata.lxrel + tmporbitdata.lyrel*tmporbitdata.lyrel + tmporbitdata.lzrel*tmporbitdata.lzrel)));
+			tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel_ave) + (orbitprops.hostly*tmporbitdata.lyrel_ave)	+ (orbitprops.hostlz*tmporbitdata.lzrel_ave))/
+				(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel_ave*tmporbitdata.lxrel_ave + tmporbitdata.lyrel_ave*tmporbitdata.lyrel_ave + tmporbitdata.lzrel_ave*tmporbitdata.lzrel_ave)));
 
 			/* Compute all the angles */
 
@@ -559,14 +582,25 @@ void CalcOrbitProps(Options &opt,
 		vtanz = vrz - vradz;
 		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
+		//The halos reduced mass
+		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+		//Angular momentum vectors
+		lx = (ry * vrz) - (rz * vry);
+		ly = -((rx * vrz) - (rz * vrx));
+		lz = (rx * vry) - (ry * vrx);
+		tmporbitdata.lxrel_inst += mu * lx;
+		tmporbitdata.lyrel_inst += mu * ly;
+		tmporbitdata.lzrel_inst += mu * lz;
+
 		//Any additional properties to be calculated here
 
 		//Set the orbit period and eccentricty as -1.0
 		tmporbitdata.orbitperiod = -1.0;
 		tmporbitdata.orbitecc = -1.0;
-		tmporbitdata.lxrel = -1.0;
-		tmporbitdata.lyrel = -1.0;
-		tmporbitdata.lzrel = -1.0;
+		tmporbitdata.lxrel_ave = -1.0;
+		tmporbitdata.lyrel_ave = -1.0;
+		tmporbitdata.lzrel_ave = -1.0;
 		tmporbitdata.hostalignment = 0.0;
 
 

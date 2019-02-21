@@ -34,7 +34,7 @@
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDSIN 21
-#define NHDFFIELDSOUT 50
+#define NHDFFIELDSOUT 58
 
 //Comoving or physical flags
 #define COMOVING 0
@@ -164,7 +164,7 @@ struct HaloData{
 		interpflag=false;
 		doneflag=false;
 		interpflag=false;
-	};	
+	};
 };
 
 //Struct to contain the interpolation routine data
@@ -384,14 +384,23 @@ struct OrbitData{
 	//The relative z velocity to the host
 	float vzrel;
 
+	//The instantaneous orbital angular momentum in x-direction
+	float lxrel_inst;
+
+	//The instantaneous orbital angular momentum in y-direction
+	float lyrel_inst;
+
+	//The instantaneous orbital angular momentum in z-direction
+	float lzrel_inst;
+
 	//The average orbital angular momentum in x-direction since last passage
-	float lxrel;
+	float lxrel_ave;
 
 	//The average orbital angular momentum in y-direction since last passage
-	float lyrel;
+	float lyrel_ave;
 
 	//The average orbital angular momentum in z-direction since last passage
-	float lzrel;
+	float lzrel_ave;
 
 	//The number of particles in the host halo
 	unsigned long long nparthost;
@@ -459,9 +468,12 @@ struct OrbitData{
 		vxrel=0.0;
 		vyrel=0.0;
 		vzrel=0.0;
-		lxrel=0.0;
-		lyrel=0.0;
-		lzrel=0.0;
+		lxrel_inst=0.0;
+		lyrel_inst=0.0;
+		lzrel_inst=0.0;
+		lxrel_ave=0.0;
+		lyrel_ave=0.0;
+		lzrel_ave=0.0;
 		nparthost=0;
 		rvirhost=0.0;
 		masshost=0.0;
@@ -786,11 +798,17 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("LXrel");
+		datasetnames.push_back("LXrel_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("LYrel");
+		datasetnames.push_back("LYrel_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("LZrel");
+		datasetnames.push_back("LZrel_inst");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LXrel_ave");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LYrel_ave");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("LZrel_ave");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("npart_host");
 		datasettypes.push_back(PredType::STD_I64LE);
