@@ -196,6 +196,9 @@ void CalcOrbitProps(Options &opt,
 		//Store how many rvir this entry is
 		tmporbitdata.entrytype = numrvircrossing;
 
+		//The current number of orbits
+		tmporbitdata.numorbits = orbitprops.numorbits;
+
 		tmporbitdata.uniage = InterpCrossingHaloProps(numrvircrossing,snapdata[currentsnap].uniage,snapdata[prevsnap].uniage,orbitinghalo,hosthalo,prevorbitinghalo,prevhosthalo,tmporbitdata,snapdata,splinefuncs,hostsplinefuncs);
 
 		tmporbitdata.scalefactor = GetScaleFactor(tmporbitdata.uniage);
@@ -548,6 +551,9 @@ void CalcOrbitProps(Options &opt,
 
 		//Set this as a merger entry
 		tmporbitdata.entrytype = 0.0;
+
+		//The current number of orbits
+		tmporbitdata.numorbits = orbitprops.numorbits;
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
