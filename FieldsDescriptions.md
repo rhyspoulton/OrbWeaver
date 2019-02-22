@@ -5,6 +5,7 @@
 | HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue. 0 values means it is a interpolated halo that does not exist in the original catalog |
 | OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue. 0 values means it is a interpolated halo that does not exist in the original catalog  |
 | entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
+| num_entrytype | N/A | This values tells you the number of each entry type so far in the orbit, such that if you want to extract the first crossing of rvir you can query the whole dataset using: entrytype==1.0 & num_entrytype==1 |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
 | orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |

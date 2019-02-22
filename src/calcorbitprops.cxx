@@ -58,7 +58,7 @@ void CalcOrbitProps(Options &opt,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
 	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
 	vector<SnapData> &snapdata,
-	OrbitProps &orbitprops, OrbitProps &prevorbitprops,
+	int* num_entrytypes, OrbitProps &orbitprops, OrbitProps &prevorbitprops,
 	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
@@ -159,6 +159,8 @@ void CalcOrbitProps(Options &opt,
 
 	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
 	float numrvircrossing=0;
+	int entrytypeindex=0;
+	int j = 0;
 	for(float i = 3.0;i>0.0;i-=opt.fracrvircross){
 
 		// Less check to see if the previous halo was beyond the host Rvir and
@@ -167,11 +169,19 @@ void CalcOrbitProps(Options &opt,
 		if((prevr>i*prevhosthalo.rvir) & (r<i*hosthalo.rvir)){
 			numrvircrossing = i;
 
+			entrytypeindex = j + 2;
+			num_entrytypes[entrytypeindex]++;
+
 			//Prioritize first infall when crossing rvir since this will set the merger timescale
 			if((i==1.0) & (orbitprops.crossrvirtime==0.0)) 	break;
 		}
-		else if((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir))
+		else if((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir)){
 			numrvircrossing = -i;
+
+			entrytypeindex = opt.numtypeofcrossingentries + j + 2;
+			num_entrytypes[entrytypeindex]++;
+		}
+		j++;
 	}
 
 	//Keep track if this halo and its host is top of spatial herachy
@@ -195,6 +205,9 @@ void CalcOrbitProps(Options &opt,
 
 		//Store how many rvir this entry is
 		tmporbitdata.entrytype = numrvircrossing;
+
+		//The number of this type of entry
+		tmporbitdata.num_entrytype = num_entrytypes[entrytypeindex];
 
 		//The current number of orbits
 		tmporbitdata.numorbits = orbitprops.numorbits;
@@ -294,10 +307,16 @@ void CalcOrbitProps(Options &opt,
 		/* Store some properties of the orbit halo and its host at this point */
 
 		//Set this as a passage point dependant if it is outgoing or infalling
-		if(vrad>0) //Peri-centric
+		if(vrad>0){ //Peri-centric
 			tmporbitdata.entrytype = 99;
-		else    //Apocentric
+			num_entrytypes[0]++;
+			tmporbitdata.num_entrytype = num_entrytypes[0];
+		}
+		else{    //Apocentric
 			tmporbitdata.entrytype = -99;
+			num_entrytypes[1]++;
+			tmporbitdata.num_entrytype = num_entrytypes[1];
+		}
 
 		//If the previous passage is the same entry type then remove it this can happen if the halo went outside of 3 Rvir host and underwent a passgae
 		if((orbitprops.prevpassageentrytype==tmporbitdata.entrytype) & (orbitprops.orbitingflag)){
@@ -644,7 +663,7 @@ void CalcOrbitProps(Options &opt,
 
 }
 
-void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned long long index, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned long long index, int* num_entrytypes, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	int halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
@@ -761,7 +780,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID,int snap, unsigned lon
 
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
-			CalcOrbitProps(opt,orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
+			CalcOrbitProps(opt,orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,num_entrytypes,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -817,6 +836,8 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 
 	unsigned long long orbitID = 0;
 
+	int *num_entrytypes = new int[opt.totnumtypeofentries];
+
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
 	// to be orbiting
@@ -827,10 +848,16 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// unsigned long long i = 1177;
 		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++){
 
+			if(orbitID==78099)
+				cout<<snap<<" "<<i<<endl;
+
 			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitedhaloid==-1)) continue;
 
-			ProcessHalo(opt,orbitID,snap,i,snapdata,orbitdata);
+			//Reset all the entrytypes to zero
+			for(int j=0; j<opt.totnumtypeofentries; j++) num_entrytypes[j]=0;
+
+			ProcessHalo(opt,orbitID,snap,i,num_entrytypes,snapdata,orbitdata);
 			orbitID++;
 
 		}

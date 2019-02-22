@@ -52,12 +52,17 @@ struct Options
 	// Filenames
 	char *fname;
 
-
 	//Base name for the output
 	char *outputbasename;
 
 	//Number of snapshots
 	int numsnaps;
+
+	//The number of types of crossing entries
+	int numtypeofcrossingentries;
+
+	//The total number of types of different entries
+	int totnumtypeofentries;
 
 	//The fraction of rvir host that a datapoint is created
 	float fracrvircross;
@@ -77,6 +82,8 @@ struct Options
 		fname=NULL;
 		outputbasename=NULL;
 		numsnaps=0;
+		numtypeofcrossingentries=0;
+		totnumtypeofentries=0;
 		fracrvircross=0;
 		fileno=0;
 		TEMPORALHALOIDVAL=0;
@@ -264,6 +271,9 @@ struct OrbitData{
 	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
 	float entrytype;
 
+	//Number of entries of the current entrytype
+	int num_entrytype;
+
 	//The number of orbits the halo has undergone
 	float numorbits;
 
@@ -428,6 +438,7 @@ struct OrbitData{
 		haloID=0;
 		orbitedhaloID=0;
 		entrytype=0.0;
+		num_entrytype=0;
 		numorbits=0;
 		orbitperiod=0.0;
 		closestapproach=0.0;
@@ -718,6 +729,8 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("entrytype");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("num_entrytype");
+		datasettypes.push_back(PredType::NATIVE_INT);
 		datasetnames.push_back("numorbits");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitalperiod");

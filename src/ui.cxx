@@ -56,6 +56,7 @@
 void GetArgs(int argc, char *argv[], Options &opt){
 
 	int option;
+	int itotnumtypeofentries;
 	// int configflag=0;
 	while ((option = getopt(argc, argv, "i:c:o:v:")) != EOF)
 	{
@@ -91,6 +92,20 @@ void GetArgs(int argc, char *argv[], Options &opt){
 
 	ConfigCheck(opt);
 
+	//The config check has passed can now calculate the number of types of crossing entry to expect
+	for(float i = 3.0;i>0.0;i-=opt.fracrvircross)
+		opt.numtypeofcrossingentries++;
+
+	//Calculate the total number of entries
+	itotnumtypeofentries = opt.numtypeofcrossingentries;
+
+	//This need to be 2x since we can also have negative (outward going) crossing points
+	itotnumtypeofentries*=2;
+
+	//Then add two more for the apsis points
+	itotnumtypeofentries+=2;
+
+	opt.totnumtypeofentries = itotnumtypeofentries;
 
 	return;
 }
