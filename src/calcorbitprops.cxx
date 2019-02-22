@@ -69,6 +69,13 @@ void CalcOrbitProps(Options &opt,
 	if((orbitinghalo.y - hosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
 	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
 
+	if((prevorbitinghalo.x - prevhosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
+	if((prevorbitinghalo.x - prevhosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
+
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r,vrad,vrel;
 
@@ -847,9 +854,6 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 	// unsigned long long i = 990;
 	// unsigned long long i = 1177;
 		for(unsigned long long i=0;i<snapdata[snap].numhalos;i++){
-
-			if(orbitID==78099)
-				cout<<snap<<" "<<i<<endl;
 
 			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitedhaloid==-1)) continue;

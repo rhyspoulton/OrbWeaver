@@ -37,8 +37,8 @@
 #define NHDFFIELDSOUT 58
 
 //Comoving or physical flags
-#define COMOVING 0
-#define PHYSICAL 1
+#define PHYSICAL 0
+#define COMOVING 1
 
 using namespace std;
 using namespace H5;
@@ -246,6 +246,7 @@ struct SnapData{
 	SnapData(){
 		numhalos=0;
 		scalefactor=0.0;
+		uniage=0.0;
 		Halo.empty();
 	};	
 	~SnapData(){
