@@ -25,7 +25,7 @@ double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, doub
 void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime);
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
-void ProcessHalo(Options &opt, int snap, unsigned long long i, vector<SnapData> &snapdata, OrbitData &orbitdata);
+void ProcessHalo(Options &opt, int snap, unsigned long long i, vector<SnapData> &snapdata, OrbitData &orbitdata, HaloData prevorbitinghalo, HaloData prevhosthalo, vector<OrbitData> branchorbitdata, OrbitData tmporbitdata, OrbitProps orbitprops, OrbitProps prevorbitprops, int *num_entrytypes);
 void CalcOrbitProps(Options &opt, unsigned long long orbitID, int currentsnap, int prevsnap, unsigned long long descendantProgenID, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, int* num_entrytypes, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 
 void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);

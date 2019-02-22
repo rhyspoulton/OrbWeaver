@@ -670,7 +670,12 @@ void CalcOrbitProps(Options &opt,
 
 }
 
-void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned long long index, int* num_entrytypes, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
+void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned long long index, 
+	vector<SnapData> &snapdata, vector<OrbitData> &orbitdata,
+	HaloData prevorbitinghalo, HaloData prevhosthalo,
+	vector<OrbitData> branchorbitdata, OrbitData tmporbitdata,
+	OrbitProps orbitprops, OrbitProps prevorbitprops,
+	int *num_entrytypes){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	int halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
@@ -689,17 +694,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 
 	//Store the index of the halo it is orbiting
 	unsigned long long orbitinghaloindex;
-
-	//Keep track of the previous halos halodata and orbitdata
-	HaloData prevorbitinghalo;
-	HaloData prevhosthalo;
-	vector<OrbitData> branchorbitdata;
-	OrbitData tmporbitdata;
 	int prevsnap=halosnap;
-
-	//Keep track of the properties of this orbit
-	OrbitProps orbitprops;
-	OrbitProps prevorbitprops;
 
 	//Keep track of the snapshot
 	int currentsnap = snap;
@@ -846,8 +841,17 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long orbitID = 0;
-
 	int *num_entrytypes = new int[opt.totnumtypeofentries];
+
+	//Keep track of the previous halos halodata and orbitdata
+	HaloData prevorbitinghalo;
+	HaloData prevhosthalo;
+	vector<OrbitData> branchorbitdata;
+	OrbitData tmporbitdata;
+
+	//Keep track of the properties of each orbit
+	OrbitProps orbitprops;
+	OrbitProps prevorbitprops;
 
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
@@ -862,10 +866,22 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 			// Lets first check if this halo has been processed or is not orbiting a halo
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitedhaloid==-1)) continue;
 
-			//Reset all the entrytypes to zero
+			//Reset all data to zero
 			for(int j=0; j<opt.totnumtypeofentries; j++) num_entrytypes[j]=0;
+			prevorbitinghalo = {};
+			prevhosthalo = {};
+			branchorbitdata.clear();
+			tmporbitdata = {};
+			orbitprops = {};
+			prevorbitprops = {};
 
-			ProcessHalo(opt,orbitID,snap,i,num_entrytypes,snapdata,orbitdata);
+			ProcessHalo(opt,orbitID,snap,i,
+				snapdata,orbitdata,
+				prevorbitinghalo, prevhosthalo,
+				branchorbitdata, tmporbitdata,
+				orbitprops,prevorbitprops,
+				num_entrytypes);
+
 			orbitID++;
 
 		}
