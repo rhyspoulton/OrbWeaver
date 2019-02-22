@@ -964,7 +964,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].closestapproach;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].closestapproach * orbitdata[j].scalefactor / Cosmo.h;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1064,7 +1064,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi * orbitdata[j].scalefactor / Cosmo.h;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1089,7 +1089,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo * orbitdata[j].scalefactor / Cosmo.h;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

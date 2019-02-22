@@ -573,7 +573,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 		//If when the halo has merged
-	if(orbitinghalo.id!=descendantProgenID){
+	if((orbitinghalo.id!=descendantProgenID) & (orbitinghalo.id!=orbitinghalo.descendant)){
 
 		//Set this as a merger entry
 		tmporbitdata.entrytype = 0.0;
@@ -802,6 +802,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 		if(descendantID==haloID)
 			break;
 		else if(descendantProgenID!=haloID){
+			merged=true;
 			break;
 		}
 
@@ -830,6 +831,9 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 
 
 	double simtime = snapdata.back().uniage - snapdata.front().uniage;
+
+	//If merged then set the MergedFlag == tur
+	if(merged) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
 
 	// CleanOrbits(branchorbitdata,simtime);
 
