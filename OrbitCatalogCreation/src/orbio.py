@@ -53,8 +53,10 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 
 			#Lets convert fields to comoving if required
 			if((key in comoveconvertfields) & (halodata[i]['UnitInfo']["Comoving_or_Physical"]==0)):
-				halodata[i][key]*=halodata[i]["h_val"]/atime[i]
+				halodata[i][key]*=halodata[i]["SimulationInfo"]["h_val"]/atime[i]
 
+
+		halodata[i]['UnitInfo']["Comoving_or_Physical"] = 1
 
 		if(opt.iverbose > 1): print('Snapshot', i,'done in', time.clock()-start1)
 		sys.stdout.flush()

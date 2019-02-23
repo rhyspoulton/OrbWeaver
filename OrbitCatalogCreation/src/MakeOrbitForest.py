@@ -1,6 +1,21 @@
 import numpy as np 
-from scipy.interpolate import interp1d
+from scipy.interpolate import InterpolatedUnivariateSpline
 import h5py
+
+def LogInterp(prevdata,nextdata,f):
+	inputdtype = prevdata.dtype
+	prevdata = np.float64(prevdata)
+	nextdata = np.float64(nextdata)
+	interpoutput = (nextdata**f) * (prevdata**(1-f))
+	return interpoutput.astype(inputdtype)
+
+def LinInterp(prevdata,nextdata,f):
+	inputdtype = prevdata.dtype
+	prevdata = np.float64(prevdata)
+	nextdata = np.float64(nextdata)
+	interpoutput = prevdata + (nextdata - prevdata)*f
+	return interpoutput.astype(inputdtype)
+
 
 def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata):
 	"""
@@ -28,6 +43,38 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	ID = tree[snap]["RootTail"][index]
 	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
+
+	#Walk this halo and see if it merges with anything
+	while(True):
+
+		headID = tree[haloSnap]["Head"][haloIndex]
+		headSnap = int(headID/opt.TEMPORALHALOIDVAL)
+		headIndex = int(headID%opt.TEMPORALHALOIDVAL - 1)
+
+		headTail = tree[headSnap]["Tail"][headIndex]
+
+		if(haloSnap==mainRootHeadSnap):
+			break
+		elif(headTail!=ID):
+			return 0
+
+		ID = headID
+		haloIndex = headIndex
+		haloSnap = headSnap
+
+	# Lets walk up this branch while it exists
+	ID = tree[snap]["RootTail"][index]
+	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
+	haloSnap = mainRootTailSnap
+
+	#Store the snapshots to be interpolated
+	interpsnaps = []
+	splinefields = ["Xc","Yc","Zc","VXc","VYc","VZc","Lx","Ly","Lz"]
+	loginterpfields = ["Mass_200crit","R_200crit","Vmax","Rmax","Mass_tot","Mass_FOF"]
+	lininterpfields = ["npart","cNFW"]
+
+	#Store the orbital data
+	tmporbitdata = {field:-1 * np.ones(opt.numsnaps,dtype=halodata[0][field].dtype) for field in splinefields}
 
 	#store number of halos in orbital forest. Start with number of halos in main branch
 	localhalocount = mainRootHeadSnap + 1 - mainRootTailSnap
@@ -73,34 +120,31 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			for field in orbitalfields:
 				orbitdata[snap][field].append(halodata[snap][field][haloIndex])
 
+				#Store the data for the spline functions
+				if(field in splinefields):
+					tmporbitdata[field][snap] = halodata[snap][field][haloIndex]
+
 		else: # Otherwise lets interpolate its properties
 
-			#If the halo is interoplated set ist origID to 0
+			#Store The snpashots to be interpolated
+			interpsnaps.append(snap)
+
+			#If the halo is interpolated set ist origID to 0
 			orbitdata[snap]["OrigID"].append(0)
 
 			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
 			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex] & halodata[headSnap]["hostHaloID"][headIndex])
 
-			for field in orbitalfields:
+			#Find the f needed to interpolate
+			f = (snap - haloSnap)/(headSnap - haloSnap)
 
-				#If the field is positional lets see if a periodicity correction needs to be done
-				if((field=="Xc") | (field=="Yc") |(field=="Zc")):
+			#Do a log interpolation of the fields
+			for field in loginterpfields:
+				orbitdata[snap][field].append(LogInterp(halodata[haloSnap][field][haloIndex],halodata[headSnap][field][headIndex],f))
 
-					halopos=halodata[haloSnap][field][haloIndex]
-					headpos=halodata[headSnap][field][headIndex]
-
-					if(headpos-halopos>0.5*halodata[snap]["SimulationInfo"]["Period"]): halopos+=halodata[snap]["SimulationInfo"]["Period"]
-					elif(headpos-halopos<-0.5*halodata[snap]["SimulationInfo"]["Period"]): halopos-=halodata[snap]["SimulationInfo"]["Period"]
-
-					f = interp1d([haloSnap,headSnap],[halopos,headpos])
-
-				else:
-
-					#Set the interpolation data
-					f = interp1d([haloSnap,headSnap],[halodata[haloSnap][field][haloIndex],halodata[headSnap][field][headIndex]])
-
-				#Do the interpolation
-				orbitdata[snap][field].append(f(snap))
+			#Do a linear interpolation of the fields
+			for field in lininterpfields:
+				orbitdata[snap][field].append(LinInterp(halodata[haloSnap][field][haloIndex],halodata[headSnap][field][headIndex],f))
 
 		#Store the current haloID as the next tail
 		mainOrbitTailID = mainOrbitHaloID
@@ -118,15 +162,6 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			#Mark this halo as done so it is not walked again in this orbital forest ID
 			processedFlag[snap][haloIndex]=True
 
-			#Extract the head tail to check if this branch 
-			headTail=tree[headSnap]["Tail"][headIndex]
-
-			#Lets check if this halo merges in the next snapshot, if so then set its head to the current halo
-			if(headTail!=ID):
-				mainRootHeadSnap=haloSnap
-				orbitdata[snap]["Head"][-1]=mainOrbitHaloID
-				break
-
 		#Lets check if the head is at the next snapshot
 		if(headSnap==snap+1):
 
@@ -141,6 +176,35 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		# likely unecessary
 		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
 		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
+
+
+	if(len(interpsnaps)):
+		for field in splinefields:
+
+			halosnaps = np.where(tmporbitdata[field]!=-1)[0]
+			nhalo = halosnaps.size
+
+			#If the field is positional lets see if a periodicity correction needs to be done
+			if((field=="Xc") | (field=="Yc") |(field=="Zc")):
+				boundry = 0
+
+				for i in range(nhalo):
+					tmporbitdata[field][halosnaps[i]] = tmporbitdata[field][halosnaps[i]]+boundry;
+					if(i<nhalo-1):
+						nextpos=tmporbitdata[field][halosnaps[i+1]]+boundry
+						if(nextpos-tmporbitdata[field][halosnaps[i]]>0.5*cosmodata["ComovingBoxSize"]): boundry-=cosmodata["ComovingBoxSize"]
+						elif(nextpos-tmporbitdata[field][halosnaps[i]]<-0.5*cosmodata["ComovingBoxSize"]): boundry+=cosmodata["ComovingBoxSize"]
+
+			#Lets setup the interpolation routine
+			try:
+				f = InterpolatedUnivariateSpline(halosnaps,tmporbitdata[field][halosnaps])
+			except:
+				print(HaloID,mainRootTailSnap,mainRootHeadSnap)
+				print(halosnaps,tmporbitdata[field])
+				raise SystemExit()
+
+			for snap in interpsnaps:
+				orbitdata[snap][field].append(f(snap))
 
 	#List to keep track of which indexes are needed to be extracted per snapshot
 	extractIndexes = [[] for i in range(opt.numsnaps)]
