@@ -31,6 +31,9 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	#Update the number of snapshots from the tree
 	opt.update_numsnaps(numsnaps)
 
+	#Fields which needs to be converted to comoving
+	comoveconvertfields = ["R_200crit","Xc","Yc","Zc","Rmax","Lx","Ly","Lz"]
+
 	start=time.clock()
 	if(opt.iverbose): print("Reading in the halo catalog")
 	sys.stdout.flush()
@@ -48,6 +51,11 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 			if (key == 'hostHaloID'):
 				halodata[i][key] = (halodata[i][key] == -1)
 
+			#Lets convert fields to comoving if required
+			if((key in comoveconvertfields) & (halodata[i]['UnitInfo']["Comoving_or_Physical"]==0)):
+				halodata[i][key]*=halodata[i]["h_val"]/atime[i]
+
+
 		if(opt.iverbose > 1): print('Snapshot', i,'done in', time.clock()-start1)
 		sys.stdout.flush()
 	if(opt.iverbose): print('Finished reading halo properties in', time.clock()-start)
@@ -58,6 +66,7 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 
 	unitdata = halodata[0]["UnitInfo"]
 	cosmodata = halodata[0]["SimulationInfo"]
+	cosmodata["ComovingBoxSize"] = np.round(cosmodata["Period"]*cosmodata["h_val"]/cosmodata["ScaleFactor"],1)
 
 	return atime, numhalos, halodata, tree, unitdata, cosmodata
 
@@ -94,14 +103,14 @@ def OutputOrbitCatalog(opt,
 
 	unitgrp=hdrgrp.create_group("Units")
 
-	unitgrp.attrs["Comoving_or_Physical"] = unitdata["Comoving_or_Physical"]
+	unitgrp.attrs["Comoving_or_Physical"] = 1
 	unitgrp.attrs["Length_unit_to_kpc"] = unitdata["Length_unit_to_kpc"]
 	unitgrp.attrs["Mass_unit_to_solarmass"] = unitdata["Mass_unit_to_solarmass"]
 	unitgrp.attrs["Velocity_unit_to_kms"] = unitdata["Velocity_unit_to_kms"]
 
 	cosmogrp=hdrgrp.create_group("Cosmology")
 
-	cosmogrp.attrs["BoxSize"] = np.round(cosmodata["Period"]*cosmodata["h_val"]/cosmodata["ScaleFactor"],1)
+	cosmogrp.attrs["BoxSize"] = cosmodata["ComovingBoxSize"]
 	cosmogrp.attrs["Hubble_param"] = cosmodata["h_val"]
 	cosmogrp.attrs["Gravity"] = cosmodata["Gravity"]
 	cosmogrp.attrs["Omega_Lambda"] = cosmodata["Omega_Lambda"]
