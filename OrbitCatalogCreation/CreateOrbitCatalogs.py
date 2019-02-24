@@ -26,7 +26,7 @@ tmpOpt = parser.parse_args()
 opt = Options(tmpOpt)
 
 #Load in the VELOCIraptor halodata and tree
-desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
+desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","numSubStruct","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
 atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
 
 
@@ -52,12 +52,12 @@ datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
 # Build a new data stucture to contain the information for this file
-treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo"]
+treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo","RatioOfMassinSubsStruct"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
 orbithalocount = np.zeros(opt.numOrbitForestPerFile, dtype=np.int64)
-orbitforestfields = ['Number_of_halos', 'Main_branch_length',]
+orbitforestfields = ['Number_of_halos', 'Main_branch_length']
 orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields}
 
 
@@ -65,6 +65,7 @@ orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields
 datatypes["OrigID"] =np.dtype("uint64")
 datatypes["FieldHalo"] = np.dtype("bool")
 datatypes["OrbitedHaloID"] = np.dtype("int64")
+datatypes["RatioOfMassinSubsStruct"] = np.dtype("float32")
 
 #initialize the dictionaries
 for snap in range(opt.numsnaps):

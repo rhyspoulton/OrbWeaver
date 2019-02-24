@@ -192,6 +192,32 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].fieldhalo = boolbuff[nn];
 
+		// numSubStruct
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(ulongbuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].numsubstruct = ulongbuff[nn];
+
+		// RatioOfMassinSubsStruct
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(doublebuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].ratioofmassinsubsstruct = doublebuff[nn];
+
 		// M_200crit
 		ifield++;
 		count=offset;
@@ -1693,6 +1719,58 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
+
+		/* numSubStruct */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].numsubstruct;
+		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+
+		/* RatioOfMassinSubStruct */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].ratioofmassinsubsstruct;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
 		/* vrad */
 
 		//Create the dataset
@@ -2219,6 +2297,57 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		//Write out the dataset
 		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].fieldhalohost;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* numSubStruct_host */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].numsubstructhost;
+		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+
+		/* RatioOfMassinSubStruct_host */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].ratioofmassinsubsstructhost;
+		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 
 		file.close();
 	}

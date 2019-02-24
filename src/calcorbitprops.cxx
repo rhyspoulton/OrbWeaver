@@ -195,6 +195,12 @@ void CalcOrbitProps(Options &opt,
 	tmporbitdata.fieldhalo = orbitinghalo.fieldhalo;
 	tmporbitdata.fieldhalohost = hosthalo.fieldhalo;
 
+	//Store the information about it and its host substructure
+	tmporbitdata.numsubstruct = orbitinghalo.numsubstruct;
+	tmporbitdata.ratioofmassinsubsstruct = orbitinghalo.ratioofmassinsubsstruct;
+	tmporbitdata.numsubstructhost = hosthalo.numsubstruct;
+	tmporbitdata.ratioofmassinsubsstructhost = hosthalo.ratioofmassinsubsstruct;
+
 	//Compute the instaneous mass loss rate
 
 	//The difference in time since the previous snapshot

@@ -48,8 +48,6 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 			if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
 			if (halodata[i][key].dtype==np.float64):
 				halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
-			if (key == 'hostHaloID'):
-				halodata[i][key] = (halodata[i][key] == -1)
 
 			#Lets convert fields to comoving if required
 			if((key in comoveconvertfields) & (halodata[i]['UnitInfo']["Comoving_or_Physical"]==0)):

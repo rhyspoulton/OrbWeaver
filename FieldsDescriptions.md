@@ -37,6 +37,8 @@
 | Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |
 | cNFW | N/A  | Concentration of the halo |
 | fieldHalo | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
+| numSubStruct | N/A | The number of substructure that this halo contains |
+| RatioOfMassinSubsStruct | N/A | The ratio of how much this halo's mass is in substructure |
 | Vrad | km/s | The radial velocity of the orbiting halo with respect to its host |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | phys Mpc | X position of the halo relative to its host |
@@ -58,4 +60,6 @@
 | Vmax_host  | km/s | Maximum circular velocity of its host
 | cNFW_host | N/A  | Concentration of its host |
 |fieldhalo_host | N/A | If this halo host is the top of its spatial hierachy (not a subhalo), where: 0 = No, 1 = Yes |
+| numSubStruct | N/A | The number of substructure that its host contains |
+| RatioOfMassinSubsStruct | N/A | The ratio of how much of its host's mass is in substructure |
 

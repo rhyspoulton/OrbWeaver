@@ -33,8 +33,8 @@
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDSIN 21
-#define NHDFFIELDSOUT 58
+#define NHDFFIELDSIN 23
+#define NHDFFIELDSOUT 62
 
 //Comoving or physical flags
 #define PHYSICAL 0
@@ -112,6 +112,12 @@ struct HaloData{
 	//If the halo is a subhalo
 	bool fieldhalo;
 
+	//The number ot substructure in the halo
+	unsigned long long numsubstruct;
+
+	//The ratio of mass in substructure for the halo
+	double ratioofmassinsubsstruct;
+
 	//The ID of the halo which it is currently orbiting
 	long long orbitedhaloid; 
 
@@ -154,7 +160,10 @@ struct HaloData{
 		descendant=0;
 		progenitor=0;
 		fieldhalo=false;
+		numsubstruct=0;
+		ratioofmassinsubsstruct=0.0;
 		orbitedhaloid=0;
+		npart=0;
 		mass=0.0;
 		rvir=0.0;
 		x=0.0;
@@ -371,6 +380,12 @@ struct OrbitData{
 	//Boolean flag if this halo is a host halo (top of it spatial herachy)
 	bool fieldhalo;
 
+	//The number of substructure in this halo
+	unsigned long long numsubstruct;
+
+	//The ratio of mass in substructure for this halo
+	float ratioofmassinsubsstruct;
+
 	//The radial velocity of the halo with respect to its host
 	float vrad;
 
@@ -433,6 +448,13 @@ struct OrbitData{
 
 	//Boolean flag if the host halo is a host halo (top of it spatial herachy)
 	bool fieldhalohost;
+
+	//The number of substructure in the host halo
+	unsigned long long numsubstructhost;
+
+	//The ratio of mass in substructure for the host ahlo
+	float ratioofmassinsubsstructhost;
+
 	OrbitData(){
 		orbitID=0;
 		orbithaloID=0;
@@ -472,6 +494,8 @@ struct OrbitData{
 		rmax=0.0;
 		cnfw=0.0;
 		fieldhalo=false;
+		numsubstruct=0;
+		ratioofmassinsubsstruct=0.0;
 		vrad=0.0;
 		vtan=0.0;
 		xrel=0.0;
@@ -493,6 +517,8 @@ struct OrbitData{
 		rmaxhost=0.0;
 		cnfwhost=0.0;
 		fieldhalohost=false;
+		numsubstructhost=0;
+		ratioofmassinsubsstructhost=0.0;
 	};
 };
 
@@ -670,6 +696,8 @@ struct HDFCatalogNames{
 		datasetnames.push_back("OrbitedHaloID");
 		datasetnames.push_back("npart");
 		datasetnames.push_back("FieldHalo");
+		datasetnames.push_back("numSubStruct");
+		datasetnames.push_back("RatioOfMassinSubsStruct");
 		datasetnames.push_back("Mass_200crit");
 		datasetnames.push_back("R_200crit");
 		datasetnames.push_back("Xc");
@@ -692,6 +720,8 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_UINT8);
+		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -796,6 +826,10 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("FieldHalo");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
+		datasetnames.push_back("numSubStruct");
+		datasettypes.push_back(PredType::STD_I64LE);
+		datasetnames.push_back("RatioOfMassinSubsStruct");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vrad");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vtan");
@@ -838,6 +872,10 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("FieldHalo_host");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
+		datasetnames.push_back("numSubStruct_host");
+		datasettypes.push_back(PredType::STD_I64LE);
+		datasetnames.push_back("RatioOfMassinSubsStruct_host");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 	};
 };
 
