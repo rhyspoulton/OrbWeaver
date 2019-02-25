@@ -44,6 +44,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
 
+	#Flag to keep track if the host has merged
+	hostMerges = False
+
 	#Walk this halo and see if it merges with anything
 	while(True):
 
@@ -56,7 +59,14 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		if(haloSnap==mainRootHeadSnap):
 			break
 		elif(headTail!=ID):
-			return 0
+
+			#If this halo has existed less than 20 snapshots before merging then don't include it in the orbit catalog
+			if((haloSnap-mainRootTailSnap)<opt.MinSnapExist):
+				return 0
+			else:
+				mainRootHeadSnap = haloSnap
+				hostMerges = True
+				break
 
 		ID = headID
 		haloIndex = headIndex
@@ -117,6 +127,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[snap]["FieldHalo"].append(halodata[snap]["hostHaloID"][haloIndex]==-1)
 
+			#Append if the orbit host has merged
+			orbitdata[snap]["hostMerges"].append(hostMerges)
+
 			#Find the ratio of mass in substructure only if these if sub structure
 			if(halodata[snap]["numSubStruct"][haloIndex]>0):
 				subStructIndexes = np.where(halodata[snap]["hostHaloID"]==ID)[0]
@@ -142,6 +155,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
 			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1 & halodata[headSnap]["hostHaloID"][headIndex]==-1)
+
+			#Append if the orbit host has merged
+			orbitdata[snap]["hostMerges"].append(hostMerges)
 
 			#Find the f needed to interpolate
 			f = (snap - haloSnap)/(headSnap - haloSnap)
@@ -210,13 +226,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 						elif(nextpos-tmporbitdata[field][halosnaps[i]]<-0.5*cosmodata["ComovingBoxSize"]): boundry+=cosmodata["ComovingBoxSize"]
 
 			#Lets setup the interpolation routine
-			try:
-				f = InterpolatedUnivariateSpline(halosnaps,tmporbitdata[field][halosnaps])
-			except:
-				print(HaloID,mainRootTailSnap,mainRootHeadSnap)
-				print(halosnaps,tmporbitdata[field])
-				raise SystemExit()
+			f = InterpolatedUnivariateSpline(halosnaps,tmporbitdata[field][halosnaps])
 
+			#Interpolate the data
 			for snap in interpsnaps:
 				orbitdata[snap][field].append(f(snap))
 
@@ -279,12 +291,18 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
 
+			#Append if this halo's orbit host has merged
+			orbitdata[haloSnap]["hostMerges"].append(hostMerges)
+
 			#Find the ratio of mass in substructure only if these if sub structure
 			if(halodata[haloSnap]["numSubStruct"][haloIndex]>0):
 				subStructIndexes = np.where(halodata[haloSnap]["hostHaloID"]==ID)[0]
 				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(np.sum(halodata[haloSnap]["Mass_200crit"][subStructIndexes])/halodata[haloSnap]["Mass_200crit"][haloIndex])
 			else:
 				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(0.0)
+
+			# increment local halo counter
+			localhalocount += 1
 
 			# #Set the re-mapped RootTails and RootHead for this branch
 
@@ -329,6 +347,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 				#Set a boolean if this halo is a host halo or not
 				orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
+
+				#Append if this halo's orbit host has merged
+				orbitdata[haloSnap]["hostMerges"].append(hostMerges)
 
 				# Re-map its tree properties
 				orbitdata[haloSnap]["OrigID"].append(np.uint64(ID))

@@ -192,6 +192,19 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].fieldhalo = boolbuff[nn];
 
+		// hostMerges
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(boolbuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].hostmerges = boolbuff[nn];
+
 		// numSubStruct
 		ifield++;
 		count=offset;
@@ -2296,6 +2309,31 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 		//Write out the dataset
 		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].fieldhalohost;
+		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* hostMerges */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) boolbuff[j] = orbitdata[j].hostmerges;
 		dataset.write(boolbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

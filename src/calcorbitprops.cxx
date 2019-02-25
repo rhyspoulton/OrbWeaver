@@ -195,6 +195,9 @@ void CalcOrbitProps(Options &opt,
 	tmporbitdata.fieldhalo = orbitinghalo.fieldhalo;
 	tmporbitdata.fieldhalohost = hosthalo.fieldhalo;
 
+	//Set a flag if the orbit host merges with another halo
+	tmporbitdata.hostmerges = orbitinghalo.hostmerges;
+
 	//Store the information about it and its host substructure
 	tmporbitdata.numsubstruct = orbitinghalo.numsubstruct;
 	tmporbitdata.ratioofmassinsubsstruct = orbitinghalo.ratioofmassinsubsstruct;

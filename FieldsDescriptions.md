@@ -60,6 +60,7 @@
 | Vmax_host  | km/s | Maximum circular velocity of its host
 | cNFW_host | N/A  | Concentration of its host |
 |fieldhalo_host | N/A | If this halo host is the top of its spatial hierachy (not a subhalo), where: 0 = No, 1 = Yes |
-| numSubStruct | N/A | The number of substructure that its host contains |
-| RatioOfMassinSubsStruct | N/A | The ratio of how much of its host's mass is in substructure |
+| hostMerges | N/A | A flag to indicate if the orbit host merges with another halo or not where 1 = merges, 0 = does not merge |
+| numSubStruct_host | N/A | The number of substructure that its host contains |
+| RatioOfMassinSubsStruct_host | N/A | The ratio of how much of its host's mass is in substructure |
 

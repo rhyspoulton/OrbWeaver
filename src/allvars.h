@@ -33,7 +33,7 @@
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDSIN 23
+#define NHDFFIELDSIN 24
 #define NHDFFIELDSOUT 62
 
 //Comoving or physical flags
@@ -111,6 +111,9 @@ struct HaloData{
 
 	//If the halo is a subhalo
 	bool fieldhalo;
+
+	//If the orbit host merged in the simulation
+	bool hostmerges;
 
 	//The number ot substructure in the halo
 	unsigned long long numsubstruct;
@@ -449,6 +452,9 @@ struct OrbitData{
 	//Boolean flag if the host halo is a host halo (top of it spatial herachy)
 	bool fieldhalohost;
 
+	//Boolean flag to mark if the host merged
+	bool hostmerges;
+
 	//The number of substructure in the host halo
 	unsigned long long numsubstructhost;
 
@@ -516,6 +522,7 @@ struct OrbitData{
 		vmaxhost=0.0;
 		rmaxhost=0.0;
 		cnfwhost=0.0;
+		hostmerges=false;
 		fieldhalohost=false;
 		numsubstructhost=0;
 		ratioofmassinsubsstructhost=0.0;
@@ -696,6 +703,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("OrbitedHaloID");
 		datasetnames.push_back("npart");
 		datasetnames.push_back("FieldHalo");
+		datasetnames.push_back("hostMerges");
 		datasetnames.push_back("numSubStruct");
 		datasetnames.push_back("RatioOfMassinSubsStruct");
 		datasetnames.push_back("Mass_200crit");
@@ -719,6 +727,7 @@ struct HDFCatalogNames{
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_DOUBLE);
@@ -871,6 +880,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("cNFW_host");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("FieldHalo_host");
+		datasettypes.push_back(PredType::NATIVE_UINT8);
+		datasetnames.push_back("hostMerges");
 		datasettypes.push_back(PredType::NATIVE_UINT8);
 		datasetnames.push_back("numSubStruct_host");
 		datasettypes.push_back(PredType::STD_I64LE);

@@ -77,7 +77,7 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 
 def OutputOrbitCatalog(opt,
 	orbitdata,datatypes,
-	orbitForestIDStart,orbitForestIDEnd,fileno,
+	orbitForestIDStart,orbitForestIDEnd,inumForest,fileno,
 	atime,cosmodata,unitdata,
 	orbitforestdata):
 
@@ -152,7 +152,7 @@ def OutputOrbitCatalog(opt,
 
 
 	orbitgrp=hdrgrp.create_group("OrbitInfo")
-	orbitgrp.attrs["Number_of_Orbital_Forest_IDs"]=orbitForestIDEnd - orbitForestIDStart
+	orbitgrp.attrs["Number_of_Orbital_Forest_IDs"] = inumForest
 	orbitgrp.create_dataset('Number_of_Halos_In_Forest',data=orbitforestdata['Number_of_halos'], dtype = np.int64, compression='gzip', compression_opts=6)
 	orbitgrp.create_dataset('OrbitForestID', data = np.arange(orbitForestIDStart, orbitForestIDEnd, dtype=np.int64), compression='gzip', compression_opts=6)
 

@@ -52,7 +52,7 @@ datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
 # Build a new data stucture to contain the information for this file
-treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo","RatioOfMassinSubsStruct"]
+treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo","RatioOfMassinSubsStruct","hostMerges"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
@@ -66,6 +66,7 @@ datatypes["OrigID"] =np.dtype("uint64")
 datatypes["FieldHalo"] = np.dtype("bool")
 datatypes["OrbitedHaloID"] = np.dtype("int64")
 datatypes["RatioOfMassinSubsStruct"] = np.dtype("float32")
+datatypes["hostMerges"] = np.dtype("bool")
 
 #initialize the dictionaries
 for snap in range(opt.numsnaps):
@@ -103,6 +104,11 @@ for j in range(opt.numsnaps-1,-1,-1):
 			sys.stdout.flush()
 
 		orbithalocount[inumForest] = CreateOrbitForest(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
+
+		#If there were zero entries in this halos orbit forest
+		if(orbithalocount[inumForest]==0):
+			continue
+
 		if (opt.iverbose > 1):
 			print("Done orbital forest", orbitforestidval, time.clock()-start3)
 			sys.stdout.flush()
@@ -112,10 +118,10 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 		if(inumForest == opt.numOrbitForestPerFile):
 			#get orbit forest statistic
-			orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest+1], dtype=np.int64)
+			orbitforestdata['Number_of_halos']=np.array(orbithalocount, dtype=np.int64)
 
 			OutputOrbitCatalog(opt,orbitdata,datatypes,
-				prevorbitforestidval,orbitforestidval,ifileno,
+				prevorbitforestidval,orbitforestidval,inumForest,ifileno,
 				atime,cosmodata,unitdata,
 				orbitforestdata)
 
@@ -139,7 +145,8 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 
 if(orbitforestidval!=prevorbitforestidval -1):
-	OutputOrbitCatalog(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,ifileno,atime,cosmodata,unitdata,orbitforestdata)
+	orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest], dtype=np.int64)
+	OutputOrbitCatalog(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,inumForest,ifileno,atime,cosmodata,unitdata,orbitforestdata)
 print("Done generating orbit forest",time.clock()-start)
 sys.stdout.flush()
 
