@@ -68,10 +68,22 @@ datatypes["OrbitedHaloID"] = np.dtype("int64")
 datatypes["RatioOfMassinSubsStruct"] = np.dtype("float32")
 datatypes["hostMerges"] = np.dtype("bool")
 
-#initialize the dictionaries
+#initialize the dictionaries and also generate the HeadIndex for the halos as this offers a significant speed up if computed here
 for snap in range(opt.numsnaps):
 	#Set a done flag for the halos who's orbits around have already be analysed
 	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
+	halodata[snap]["MassinSubStruct"] = np.zeros(numhalos[snap],dtype=np.float32)
+
+	#Generate a head index for each halo
+	tree[snap]["HeadIndex"] = np.array(tree[snap]["Head"]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
+
+#Lets pre-compute the mass in substructre for all halos
+for snap in range(opt.numsnaps):
+	indexes = np.where(halodata[snap]["hostHaloID"]>-1)[0]
+	hostIndxes = np.array(halodata[snap]["hostHaloID"][indexes]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
+	for i in range(indexes.size):
+		halodata[snap]["MassinSubStruct"][hostIndxes[i]]+=halodata[snap]["Mass_200crit"][indexes[i]]
+
 
 if(opt.iverbose): print("Building the orbit forests")
 

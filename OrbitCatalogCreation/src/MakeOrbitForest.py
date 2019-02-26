@@ -36,8 +36,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	index = int(HaloID%opt.TEMPORALHALOIDVAL-1)
 
 	# Set the snapshot for which this branch first comes into existence
-	mainRootTailSnap = int(tree[snap]["RootTail"][index]/opt.TEMPORALHALOIDVAL)
-	mainRootHeadSnap = int(tree[snap]["RootHead"][index]/opt.TEMPORALHALOIDVAL)
+	mainRootTailSnap = tree[snap]["RootTailSnap"][index]
+	mainRootHeadSnap = tree[snap]["RootHeadSnap"][index]
 
 	# Lets walk up this branch while it exists
 	ID = tree[snap]["RootTail"][index]
@@ -51,8 +51,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	while(True):
 
 		headID = tree[haloSnap]["Head"][haloIndex]
-		headSnap = int(headID/opt.TEMPORALHALOIDVAL)
-		headIndex = int(headID%opt.TEMPORALHALOIDVAL - 1)
+		headSnap = tree[haloSnap]["HeadSnap"][haloIndex]
+		headIndex = tree[haloSnap]["HeadIndex"][haloIndex]
 
 		headTail = tree[headSnap]["Tail"][headIndex]
 
@@ -131,11 +131,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[snap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			if(halodata[snap]["numSubStruct"][haloIndex]>0):
-				subStructIndexes = np.where(halodata[snap]["hostHaloID"]==ID)[0]
-				prevMassinSubStructure = np.sum(halodata[snap]["Mass_200crit"][subStructIndexes])/halodata[snap]["Mass_200crit"][haloIndex]
-			else:
-				prevMassinSubStructure = np.float32(0.0)
+			prevMassinSubStructure =halodata[snap]["MassinSubStruct"][haloIndex]/halodata[snap]["Mass_200crit"][haloIndex]
+
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(prevMassinSubStructure)
 
 			for field in orbitalfields:
@@ -163,8 +160,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			f = (snap - haloSnap)/(headSnap - haloSnap)
 
 			#Find the ratio of mass in substructure
-			nextSubStructIndexes = np.where(halodata[snap]["hostHaloID"]==ID)[0]
-			nextMassinSubStructure = np.sum(halodata[snap]["Mass_200crit"][nextSubStructIndexes])/halodata[snap]["Mass_200crit"][haloIndex]
+			# nextSubStructIndexes = np.where(halodata[snap]["hostHaloID"]==ID)[0]
+			nextMassinSubStructure =halodata[headSnap]["MassinSubStruct"][headIndex]/halodata[headSnap]["Mass_200crit"][headIndex]
 
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(LinInterp(prevMassinSubStructure,nextMassinSubStructure,f))
 
@@ -183,8 +180,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		if(ID!=0):
 			#Extract its head
 			head = tree[snap]["Head"][haloIndex]
-			headSnap = int(head/opt.TEMPORALHALOIDVAL)
-			headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
+			headSnap = tree[snap]["HeadSnap"][haloIndex]
+			headIndex = tree[snap]["HeadIndex"][haloIndex]
 
 			#Mark this halo as done in the global
 			halodata[snap]["doneFlag"][haloIndex]=True
@@ -259,8 +256,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#Start to walk up the branch
 			head = tree[haloSnap]["Head"][haloIndex]
-			headSnap = int(head/opt.TEMPORALHALOIDVAL)
-			headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
+			headSnap = tree[haloSnap]["HeadSnap"][haloIndex]
+			headIndex = tree[haloSnap]["HeadIndex"][haloIndex]
 
 			#Check we are still on the main branch
 			headTail = tree[headSnap]["Tail"][headIndex]
@@ -295,11 +292,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[haloSnap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			if(halodata[haloSnap]["numSubStruct"][haloIndex]>0):
-				subStructIndexes = np.where(halodata[haloSnap]["hostHaloID"]==ID)[0]
-				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(np.sum(halodata[haloSnap]["Mass_200crit"][subStructIndexes])/halodata[haloSnap]["Mass_200crit"][haloIndex])
-			else:
-				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(0.0)
+			orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass_200crit"][haloIndex])
+
 
 			# increment local halo counter
 			localhalocount += 1
@@ -329,15 +323,11 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 				#Extract its descendant
 				head = tree[haloSnap]["Head"][haloIndex]
-				headSnap = int(head/opt.TEMPORALHALOIDVAL)
-				headIndex = int(head%opt.TEMPORALHALOIDVAL-1)
+				headSnap = tree[haloSnap]["HeadSnap"][haloIndex]
+				headIndex = tree[haloSnap]["HeadIndex"][haloIndex]
 
 				#Have a list of all the extracted indexes per
 				extractIndexes[haloSnap].append(haloIndex)
-
-				#Lets also store its TailSanp
-				tail = tree[haloSnap]["Tail"][haloIndex]
-				tailSnap = int(tail/opt.TEMPORALHALOIDVAL)
 
 				#Check we are still on the main branch
 				headTail = tree[headSnap]["Tail"][headIndex]
@@ -358,11 +348,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
 				#Find the ratio of mass in substructure only if these if sub structure
-				if(halodata[haloSnap]["numSubStruct"][haloIndex]>0):
-					subStructIndexes = np.where(halodata[haloSnap]["hostHaloID"]==ID)[0]
-					orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(np.sum(halodata[haloSnap]["Mass_200crit"][subStructIndexes])/halodata[haloSnap]["Mass_200crit"][haloIndex])
-				else:
-					orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(0.0)
+				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass_200crit"][haloIndex])
 
 				#Mark this halo as done so it is not walked again in this orbital forest ID
 				# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid
@@ -372,7 +358,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				localhalocount += 1
 
 				# Mark the end of the branch if we have reached end of its existence or at the end of the main orbiting halo's existence
-				if((head==ID) | (haloSnap==mainRootHeadSnap) | (headSnap>mainRootHeadSnap)):
+				if((head==ID) | (headSnap>mainRootHeadSnap)):
 					orbitdata[haloSnap]["Tail"].append(orbitingTailID)
 					orbitdata[haloSnap]["Head"].append(orbitingHaloID)
 					break
