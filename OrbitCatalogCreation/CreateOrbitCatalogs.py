@@ -52,7 +52,7 @@ datatypes = {field:halodata[0][field].dtype for field in desiredfields}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
 # Build a new data stucture to contain the information for this file
-treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","FieldHalo","RatioOfMassinSubsStruct","hostMerges"]
+treefields = ["OrigID","ID","Head","Tail","OrbitedHaloID","OrbitedHaloOrigRootTailID","FieldHalo","RatioOfMassinSubsStruct","hostMerges"]
 orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
@@ -65,6 +65,7 @@ orbitforestdata = {orbitforestfield:[] for orbitforestfield in orbitforestfields
 datatypes["OrigID"] =np.dtype("uint64")
 datatypes["FieldHalo"] = np.dtype("bool")
 datatypes["OrbitedHaloID"] = np.dtype("int64")
+datatypes["OrbitedHaloOrigRootTailID"] = np.dtype("int64")
 datatypes["RatioOfMassinSubsStruct"] = np.dtype("float32")
 datatypes["hostMerges"] = np.dtype("bool")
 

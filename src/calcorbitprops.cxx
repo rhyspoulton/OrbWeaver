@@ -250,6 +250,9 @@ void CalcOrbitProps(Options &opt,
 		//The host halo
 		tmporbitdata.orbitedhaloID = hosthalo.origid;
 
+		//The original Root Progenitor of the orbited halo from the halo catalog
+		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
+
 		/* Calculate various properties to be outputted */
 
 		//Find the components of the radial vector
@@ -366,6 +369,9 @@ void CalcOrbitProps(Options &opt,
 
 		//The host halo
 		tmporbitdata.orbitedhaloID = hosthalo.origid;
+
+		//The original Root Progenitor of the orbited halo from the halo catalog
+		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
 
 		//Store the scalefactor this happens at
 		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vrad/(vrad - prevvrad))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
@@ -598,6 +604,9 @@ void CalcOrbitProps(Options &opt,
 
 		//The host halo
 		tmporbitdata.orbitedhaloID = hosthalo.origid;
+
+		//The original Root Progenitor of the orbited halo from the halo catalog
+		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
 
 		//The age of the universe at this point
 		tmporbitdata.uniage = snapdata[currentsnap].uniage;

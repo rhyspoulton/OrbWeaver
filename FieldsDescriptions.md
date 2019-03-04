@@ -4,6 +4,7 @@
 | HaloID_orbweaver | N/A | Unique ID to identify this halo in the pre-processed catalog in each file. The 0 values represent interpolated halos that do not exist in the pre-processed catalog |
 | HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue. 0 values means it is a interpolated halo that does not exist in the original catalog |
 | OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue. 0 values means it is a interpolated halo that does not exist in the original catalog  |
+| OrbitedHaloRootProgen_orig  | N/A | Unique ID to identify the original root progen of the orbited halo in the halo catalog. This can also be used to find any halos that have orbited this object, by finding the objects that have the same value of this dataset  |
 | entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
 | num_entrytype | N/A | This values tells you the number of each entry type so far in the orbit, such that if you want to extract the first crossing of rvir you can query the whole dataset using: entrytype==1.0 & num_entrytype==1 |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |

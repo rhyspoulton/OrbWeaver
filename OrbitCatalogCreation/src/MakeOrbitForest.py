@@ -39,8 +39,11 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	mainRootTailSnap = tree[snap]["RootTailSnap"][index]
 	mainRootHeadSnap = tree[snap]["RootHeadSnap"][index]
 
+	#Store the original RootTailID for this host
+	origRootTailID = tree[snap]["RootTail"][index]
+
 	# Lets walk up this branch while it exists
-	ID = tree[snap]["RootTail"][index]
+	ID = origRootTailID
 	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
 	haloSnap = mainRootTailSnap
 
@@ -112,8 +115,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		orbitdata[snap]["Head"].append(mainOrbitHeadID)
 
 
-		#Set its OrbitingHaloID to -1 as it is a host halo
+		#Set its OrbitingHaloID to -1 as it is a orbit host halo and store the original root tail for this branch
 		orbitdata[snap]["OrbitedHaloID"].append(-1)
+		orbitdata[snap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 		#Store the mainOrbitID
 		mainOrbitHaloIDs[snap] = mainOrbitHaloID
@@ -282,8 +286,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			#Update a list of all the extracted indexes per
 			extractIndexes[haloSnap].append(haloIndex)
 
-			# Set this halos orbital forest ID and the halo it is orbiting
+			# Set this halos orbital forest ID and the halo it is orbiting, plus the orbit host RootTail so it can be easily extracted
 			orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
+			orbitdata[haloSnap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
@@ -332,8 +337,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				#Check we are still on the main branch
 				headTail = tree[headSnap]["Tail"][headIndex]
 
-				# Set this halos orbital forest ID and the halo it is orbiting
+				# Set this halos orbital forest ID and the halo it is orbiting, plus the orbit host RootTail so it can be easily extracted
 				orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
+				orbitdata[haloSnap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 				#Set a boolean if this halo is a host halo or not
 				orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)

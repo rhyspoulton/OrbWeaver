@@ -166,6 +166,20 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 		for(int nn=0;nn<ichunk;nn++) Halo[count++].orbitedhaloid = longbuff[nn];
 
 
+		// orbitedhaloorigrootprogen
+		ifield++;
+		count=offset;
+		rank = 1;
+		dim[0] = ichunk;
+		idataspace = DataSpace(rank,dim);
+		filespacecount[0]=ichunk;filespacecount[1]=1;
+		filespaceoffset[0]=n;filespaceoffset[1]=0;
+		halosdataspace[ifield].selectHyperslab(H5S_SELECT_SET,filespacecount,filespaceoffset);
+		halosdataset[ifield].read(longbuff,hdfnames.datasettypes[ifield],idataspace,halosdataspace[ifield]);
+
+		for(int nn=0;nn<ichunk;nn++) Halo[count++].orbitedhaloorigrootprogen = longbuff[nn];
+
+
 		// Npart
 		ifield++;
 		count=offset;
@@ -731,6 +745,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 
 	//Create the buffers to load the data into
 	unsigned long long ullongbuf[numentries];
+	long long llongbuf[numentries];
 	int intbuff[numentries];
 	float floatbuff[numentries];
 	bool boolbuff[numentries];
@@ -878,8 +893,33 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) ullongbuf[j] = orbitdata[j].orbitedhaloID;
-		dataset.write(ullongbuf,hdfdatasetnames.datasettypes[idataset]);
+		for(unsigned int j=0; j<numentries;j++) llongbuf[j] = orbitdata[j].orbitedhaloID;
+		dataset.write(llongbuf,hdfdatasetnames.datasettypes[idataset]);
+		idataset++;
+
+		/* orbitedhaloorigrootprogen */
+
+		//Create the dataset
+		dataspace = DataSpace(rank,dims);
+
+		if(chunk_dims[0]>0){
+
+			hdfdatasetproplist=DSetCreatPropList();
+			// Modify dataset creation property to enable chunking
+			hdfdatasetproplist.setChunk(rank, chunk_dims);
+			// Set ZLIB (DEFLATE) Compression using level 6.
+			hdfdatasetproplist.setDeflate(6);
+
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace,hdfdatasetproplist);
+
+		}
+		else{
+			dataset = file.createDataSet(hdfdatasetnames.datasetnames[idataset],hdfdatasetnames.datasettypes[idataset],dataspace);
+		}
+
+		//Write out the dataset
+		for(unsigned int j=0; j<numentries;j++) llongbuf[j] = orbitdata[j].orbitedhaloorigrootprogen;
+		dataset.write(llongbuf,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
 		/* entrytype */
