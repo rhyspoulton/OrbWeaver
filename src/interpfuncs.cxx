@@ -224,6 +224,7 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	//Interpolate the orbiting halo's properties
 	tmporbitdata.npart = (unsigned long long)LogInterp(prevorbitinghalo.npart,orbitinghalo.npart,f);
 	tmporbitdata.mass = LogInterp(prevorbitinghalo.mass,orbitinghalo.mass,f);
+	tmporbitdata.rvir = LogInterp(prevorbitinghalo.rvir,orbitinghalo.rvir,f);
 	tmporbitdata.vmax = LogInterp(prevorbitinghalo.vmax,orbitinghalo.vmax,f);
 	tmporbitdata.rmax = LogInterp(prevorbitinghalo.rmax,orbitinghalo.rmax,f);
 	tmporbitdata.cnfw = LinInterp(prevorbitinghalo.cnfw,orbitinghalo.cnfw,f);

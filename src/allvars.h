@@ -375,6 +375,9 @@ struct OrbitData{
 	//The viral mass of the orbiting halo
 	float mass;
 
+	//The virial radius of the orbiting halo
+	float rvir;
+
 	//The vmax of the orbiting halo
 	float vmax;
 
@@ -503,6 +506,7 @@ struct OrbitData{
 		vz=0.0;
 		npart=0;
 		mass=0.0;
+		rvir=0.0;
 		vmax=0.0;
 		vmaxpeak=0.0;
 		rmax=0.0;
@@ -836,6 +840,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("npart");
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("Mass");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("R_200crit");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
