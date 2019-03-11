@@ -5,7 +5,7 @@
 | HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue. 0 values means it is a interpolated halo that does not exist in the original catalog |
 | OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue. 0 values means it is a interpolated halo that does not exist in the original catalog  |
 | OrbitedHaloRootProgen_orig  | N/A | Unique ID to identify the original root progen of the orbited halo in the halo catalog. This can also be used to find any halos that have orbited this object, by finding the objects that have the same value of this dataset  |
-| entrytype  | N/A | This value tell if this entry is either -99 = Apo-center, 99 = pericenter, 0 = mergerpoint or the entrytype * Rvir_host crossing (positive if infalling and negative if outfalling)  |
+| entrytype  | N/A | This value tell if this entry is either: <br> **-99** = Apo-center <br> **99** = pericenter <br> **0** = endpoint of a orbit (the halo has either; terminated/merged with another halo, merged with its host [see MergedFlag] or host has terminated/ merged [see hostMergedFlag] ) <br> **All other values** = the fraction of host crossing i.e. entrytype * R\_200crit\_host crossing (positive if infalling and negative if outfalling). To get the correct number of R\_200crit\_host, this dataset will need to be rounded to the desired number of decimals.  |
 | num_entrytype | N/A | This values tells you the number of each entry type so far in the orbit, such that if you want to extract the first crossing of rvir you can query the whole dataset using: entrytype==1.0 & num_entrytype==1 |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | orbitalperiod  | Gyr | Current period of its orbit |
@@ -22,7 +22,6 @@
 | ArgPeriap | Radian | The argument of periapsis with respect to the intial orbital plane |
 | HostAlignment | Radian | The alignment of the orbital angular momentum vector with the host halo's angular momentum vector |
 | Phi | Radian | The angle moved through since last passage |
-| MergerTimeScale | Gyr | How long the halo takes to merge once crossing 1.0 Rvir of its host halo, this is set the first time the orbiting halo crosses 1.0 Rvir |
 | scalefactor  | N/A | Scalefactor of this entry |
 | uniage | Gyr | Age of the universe of this entry |
 | X  | phys Mpc | X position of the halo in the simulation |
@@ -41,6 +40,8 @@
 | fieldHalo | N/A | Flag if this orbiting halo is top of its spatial hierachy (not a subhalo) ,where: 0 = No, 1 = Yes |
 | numSubStruct | N/A | The number of substructure that this halo contains |
 | RatioOfMassinSubsStruct | N/A | The ratio of how much this halo's mass is in substructure |
+| MergerTimeScale | Gyr | How long the halo takes to merge once crossing 1.0 Rvir of its host halo, this is set the first time the orbiting halo crosses 1.0 Rvir |
+| MergedFlag | N/A | A flag identifying if this halo merges with its orbit host |
 | Vrad | km/s | The radial velocity of the orbiting halo with respect to its host |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
 | Xrel  | phys Mpc | X position of the halo relative to its host |

@@ -54,7 +54,6 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 void CalcOrbitProps(Options &opt,
 	unsigned long long orbitID,
 	int currentsnap, int prevsnap,
-	unsigned long long descendantProgenID,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
 	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
 	vector<SnapData> &snapdata,
@@ -160,7 +159,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, E, f, vtan, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarPeriod, *currangles;
+	double ltot, E, f, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarPeriod, *currangles;
 	int prevpassageindex;
 
 
@@ -180,7 +179,7 @@ void CalcOrbitProps(Options &opt,
 			num_entrytypes[entrytypeindex]++;
 
 			//Prioritize first infall when crossing rvir since this will set the merger timescale
-			if((i==1.0) & (orbitprops.crossrvirtime==0.0)) 	break;
+			if(((round(i *10)/10)==1.0) & (orbitprops.crossrvirtime==0.0)) 	break;
 		}
 		else if((prevr<i*prevhosthalo.rvir) & (r>i*hosthalo.rvir)){
 			numrvircrossing = -i;
@@ -205,9 +204,6 @@ void CalcOrbitProps(Options &opt,
 	tmporbitdata.ratioofmassinsubsstructhost = hosthalo.ratioofmassinsubsstruct;
 
 	//Compute the instaneous mass loss rate
-
-	//The difference in time since the previous snapshot
-	deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
 
 	// Find the change mass in units of Msun/Gyr
 	tmporbitdata.masslossrate_inst = (prevorbitinghalo.mass - orbitinghalo.mass )/deltat;
@@ -305,7 +301,7 @@ void CalcOrbitProps(Options &opt,
 		branchorbitdata.push_back(tmporbitdata);
 
 		//Set the time when this halo first crosses 1 rvir of its host halo
-		if((numrvircrossing==1.0) & (orbitprops.crossrvirtime==0.0))
+		if(((round(numrvircrossing*10.0)/10.0)==1.0) & (orbitprops.crossrvirtime==0.0))
 			orbitprops.crossrvirtime = tmporbitdata.uniage;
 
 	}
@@ -584,109 +580,173 @@ void CalcOrbitProps(Options &opt,
 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
-
 	}
-
-		//If when the halo has merged
-	if((orbitinghalo.id!=descendantProgenID) & (orbitinghalo.id!=orbitinghalo.descendant)){
-
-		//Set this as a merger entry
-		tmporbitdata.entrytype = 0.0;
-
-		//The current number of orbits
-		tmporbitdata.numorbits = orbitprops.numorbits;
-
-		//Set the orbit period as -1.0 here as only calculated at the passages
-		tmporbitdata.orbitperiod = -1.0;
-
-		//The orbting halo
-		tmporbitdata.haloID = orbitinghalo.origid;
-
-		//The host halo
-		tmporbitdata.orbitedhaloID = hosthalo.origid;
-
-		//The original Root Progenitor of the orbited halo from the halo catalog
-		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
-
-		//The age of the universe at this point
-		tmporbitdata.uniage = snapdata[currentsnap].uniage;
-
-		//The scalefactor of the universe
-		tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
-
-		if(orbitprops.crossrvirtime>0)
-			tmporbitdata.mergertimescale = snapdata[currentsnap].uniage - orbitprops.crossrvirtime;
-
-		/* Calculate various properties to be outputted */
-
-		//Find the components of the radial vector
-		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
-		vradx = vcomp * rx;
-		vrady = vcomp * ry;
-		vradz = vcomp * rz;
-		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
-
-		//Then can use these components to find the components of the tangential velocity
-		vtanx = vrx - vradx;
-		vtany = vry - vrady;
-		vtanz = vrz - vradz;
-		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
-
-		//The halos reduced mass
-		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
-
-		//Angular momentum vectors
-		lx = (ry * vrz) - (rz * vry);
-		ly = -((rx * vrz) - (rz * vrx));
-		lz = (rx * vry) - (ry * vrx);
-		tmporbitdata.lxrel_inst += mu * lx;
-		tmporbitdata.lyrel_inst += mu * ly;
-		tmporbitdata.lzrel_inst += mu * lz;
-
-		//Any additional properties to be calculated here
-
-		//Set the orbit period and eccentricty as -1.0
-		tmporbitdata.orbitperiod = -1.0;
-		tmporbitdata.orbitecc = -1.0;
-		tmporbitdata.lxrel_ave = -1.0;
-		tmporbitdata.lyrel_ave = -1.0;
-		tmporbitdata.lzrel_ave = -1.0;
-		tmporbitdata.hostalignment = 0.0;
-
-
-		//The halo properties
-		tmporbitdata.npart = orbitinghalo.npart;
-		tmporbitdata.mass = orbitinghalo.mass;
-		tmporbitdata.vmax = orbitinghalo.vmax;
-		tmporbitdata.rmax = orbitinghalo.rmax;
-		tmporbitdata.cnfw = orbitinghalo.cnfw;
-
-		//Interpolate the host halo properties
-		tmporbitdata.nparthost = hosthalo.npart;
-		tmporbitdata.masshost = hosthalo.mass;
-		tmporbitdata.rvirhost = hosthalo.rvir;
-		tmporbitdata.vmaxhost = hosthalo.vmax;
-		tmporbitdata.rmaxhost = hosthalo.rmax;
-		tmporbitdata.cnfwhost = hosthalo.cnfw;
-
-		//Interpolate the posistions and velocities from the spline functions
-		tmporbitdata.x = orbitinghalo.x;
-		tmporbitdata.y = orbitinghalo.y;
-		tmporbitdata.z = orbitinghalo.z;
-
-		tmporbitdata.xrel = rx;
-		tmporbitdata.yrel = ry;
-		tmporbitdata.zrel = rz;
-
-		//Now append it into the orbitdata dataset
-		branchorbitdata.push_back(tmporbitdata);
-
-
-	}
-
-
 
 }
+
+void AddFinalEntry(Options &opt,
+	unsigned long long orbitID,
+	int currentsnap, int prevsnap,
+	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo,
+	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
+	vector<SnapData> &snapdata,
+	OrbitProps &orbitprops,
+	bool mergedflag){
+
+	//First correct for periodicity compared to the host halo
+	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
+	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
+	if((orbitinghalo.z - hosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
+	if((orbitinghalo.x - hosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
+	if((orbitinghalo.y - hosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
+	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
+
+	//This is where all the orbital properties are calculate for the halo at this snapshot
+	double rx,ry,rz,vrx,vry,vrz,r, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
+
+	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
+	rx = hosthalo.x - orbitinghalo.x;
+	ry = hosthalo.y - orbitinghalo.y;
+	rz = hosthalo.z - orbitinghalo.z;
+	vrx = hosthalo.vx - orbitinghalo.vx;
+	vry = hosthalo.vy - orbitinghalo.vy;
+	vrz = hosthalo.vz - orbitinghalo.vz;
+	r = sqrt(rx * rx + ry * ry + rz * rz);
+
+
+	//Store the peak vmax in the orbiting halos history
+	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
+		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
+
+	//Now done the interpolation can check if this is the closest approach so far
+	if(r<orbitprops.closestapproach)
+		tmporbitdata.closestapproach=r;
+
+	//Store what orbitID number this is
+	tmporbitdata.orbitID = orbitID;
+
+	//Store the haloID this halo if it is not interpolated
+	if(orbitinghalo.interpflag)
+		tmporbitdata.orbithaloID = 0;
+	else
+		tmporbitdata.orbithaloID = orbitinghalo.id;
+
+
+	//Keep track if this halo and its host is top of spatial herachy
+	tmporbitdata.fieldhalo = orbitinghalo.fieldhalo;
+	tmporbitdata.fieldhalohost = hosthalo.fieldhalo;
+
+	//Set a flag if the orbit host merges with another halo
+	tmporbitdata.hostmerges = orbitinghalo.hostmerges;
+
+	//Store the information about it and its host substructure
+	tmporbitdata.numsubstruct = orbitinghalo.numsubstruct;
+	tmporbitdata.ratioofmassinsubsstruct = orbitinghalo.ratioofmassinsubsstruct;
+	tmporbitdata.numsubstructhost = hosthalo.numsubstruct;
+	tmporbitdata.ratioofmassinsubsstructhost = hosthalo.ratioofmassinsubsstruct;
+
+	//Compute the instaneous mass loss rate
+
+	//The difference in time since the previous snapshot
+	deltat = snapdata[currentsnap].uniage - snapdata[prevsnap].uniage;
+
+	// Find the change mass in units of Msun/Gyr
+	tmporbitdata.masslossrate_inst = (prevorbitinghalo.mass - orbitinghalo.mass )/deltat;
+
+
+	//Set this as a merger entry
+	tmporbitdata.entrytype = 0.0;
+
+	//The current number of orbits
+	tmporbitdata.numorbits = orbitprops.numorbits;
+
+	//Set the orbit period as -1.0 here as only calculated at the passages
+	tmporbitdata.orbitperiod = -1.0;
+
+	//The orbting halo
+	tmporbitdata.haloID = orbitinghalo.origid;
+
+	//The host halo
+	tmporbitdata.orbitedhaloID = hosthalo.origid;
+
+	//The original Root Progenitor of the orbited halo from the halo catalog
+	tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
+
+	//The age of the universe at this point
+	tmporbitdata.uniage = snapdata[currentsnap].uniage;
+
+	//The scalefactor of the universe
+	tmporbitdata.scalefactor = snapdata[currentsnap].scalefactor;
+
+	if((orbitprops.crossrvirtime>0) & (mergedflag))
+		tmporbitdata.mergertimescale = snapdata[currentsnap].uniage - orbitprops.crossrvirtime;
+
+	/* Calculate various properties to be outputted */
+
+	//Find the components of the radial vector
+	vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
+	vradx = vcomp * rx;
+	vrady = vcomp * ry;
+	vradz = vcomp * rz;
+	tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
+
+	//Then can use these components to find the components of the tangential velocity
+	vtanx = vrx - vradx;
+	vtany = vry - vrady;
+	vtanz = vrz - vradz;
+	tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
+
+	//The halos reduced mass
+	mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+
+	//Angular momentum vectors
+	lx = (ry * vrz) - (rz * vry);
+	ly = -((rx * vrz) - (rz * vrx));
+	lz = (rx * vry) - (ry * vrx);
+	tmporbitdata.lxrel_inst += mu * lx;
+	tmporbitdata.lyrel_inst += mu * ly;
+	tmporbitdata.lzrel_inst += mu * lz;
+
+	//Any additional properties to be calculated here
+
+	//Set the orbit period and eccentricty as -1.0
+	tmporbitdata.orbitperiod = -1.0;
+	tmporbitdata.orbitecc = -1.0;
+	tmporbitdata.lxrel_ave = -1.0;
+	tmporbitdata.lyrel_ave = -1.0;
+	tmporbitdata.lzrel_ave = -1.0;
+	tmporbitdata.hostalignment = 0.0;
+
+
+	//The halo properties
+	tmporbitdata.npart = orbitinghalo.npart;
+	tmporbitdata.mass = orbitinghalo.mass;
+	tmporbitdata.rvir = orbitinghalo.rvir;
+	tmporbitdata.vmax = orbitinghalo.vmax;
+	tmporbitdata.rmax = orbitinghalo.rmax;
+	tmporbitdata.cnfw = orbitinghalo.cnfw;
+
+	//Interpolate the host halo properties
+	tmporbitdata.nparthost = hosthalo.npart;
+	tmporbitdata.masshost = hosthalo.mass;
+	tmporbitdata.rvirhost = hosthalo.rvir;
+	tmporbitdata.vmaxhost = hosthalo.vmax;
+	tmporbitdata.rmaxhost = hosthalo.rmax;
+	tmporbitdata.cnfwhost = hosthalo.cnfw;
+
+	//Interpolate the posistions and velocities from the spline functions
+	tmporbitdata.x = orbitinghalo.x;
+	tmporbitdata.y = orbitinghalo.y;
+	tmporbitdata.z = orbitinghalo.z;
+
+	tmporbitdata.xrel = rx;
+	tmporbitdata.yrel = ry;
+	tmporbitdata.zrel = rz;
+
+	//Now append it into the orbitdata dataset
+	branchorbitdata.push_back(tmporbitdata);
+}
+
 
 void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned long long index, 
 	vector<SnapData> &snapdata, vector<OrbitData> &orbitdata,
@@ -780,7 +840,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 
 
 	//Flag to keep track if the halo has merged
-	bool merged = false;
+	bool mergedflag = false;
 
 
 	// ofstream file;
@@ -800,7 +860,14 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 
 		//Lets set this halos orbit data
 		if(halosnap!=prevsnap)
-			CalcOrbitProps(opt,orbitID,halosnap,prevsnap,descendantProgenID,snapdata[halosnap].Halo[haloindex],snapdata[halosnap].Halo[orbitinghaloindex],prevorbitinghalo,prevhosthalo,branchorbitdata,tmporbitdata,snapdata,num_entrytypes,orbitprops,prevorbitprops,splinefuncs,hostsplinefuncs);
+			CalcOrbitProps(opt,
+				orbitID,
+				halosnap, prevsnap,
+				snapdata[halosnap].Halo[haloindex], snapdata[halosnap].Halo[orbitinghaloindex], prevorbitinghalo,prevhosthalo,
+				branchorbitdata,tmporbitdata,
+				snapdata,
+				num_entrytypes, orbitprops, prevorbitprops,
+				splinefuncs, hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
 		// 	file<<-halosnap<<" "<<snapdata[halosnap].Halo[haloindex].x - snapdata[halosnap].Halo[orbitinghaloindex].x<<" "<<snapdata[halosnap].Halo[haloindex].y - snapdata[halosnap].Halo[orbitinghaloindex].y<<" "<<snapdata[halosnap].Halo[haloindex].z - snapdata[halosnap].Halo[orbitinghaloindex].z<<endl;
@@ -815,7 +882,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 		if(descendantID==haloID)
 			break;
 		else if(descendantProgenID!=haloID){
-			merged=true;
+			mergedflag=true;
 			break;
 		}
 
@@ -842,11 +909,21 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	// file2.close();
 	// file.close();
 
+	//Output a final entry point if the halo has undergone a crossing or passage point
+	AddFinalEntry(opt,
+				orbitID,
+				halosnap, prevsnap,
+				snapdata[halosnap].Halo[haloindex], snapdata[halosnap].Halo[orbitinghaloindex], prevorbitinghalo,
+				branchorbitdata,tmporbitdata,
+				snapdata,
+				orbitprops,
+				mergedflag);
+
 
 	double simtime = snapdata.back().uniage - snapdata.front().uniage;
 
 	//If merged then set the MergedFlag == tur
-	if(merged) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
+	if(mergedflag) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
 
 	// CleanOrbits(branchorbitdata,simtime);
 
