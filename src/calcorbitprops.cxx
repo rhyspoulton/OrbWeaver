@@ -810,7 +810,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	}
 
 	//If a halo exist less than 10 snapshots then lets remove it from the catalogue
-	if((halosnaps.size()+interpsnaps.size())<10) return;
+	if(((halosnaps.size()+interpsnaps.size())<10) | (halosnaps.size()<5)) return;
 
 	//Lets setup the interpolation functions for the Position and Velocity of the orbiting halo
 	SplineFuncs splinefuncs(halosnaps.size());
