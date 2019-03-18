@@ -919,6 +919,9 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 				orbitprops,
 				mergedflag);
 
+	//Set the total number of orbits for all entries
+	for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].totnumorbits=orbitprops.numorbits;
+
 
 	double simtime = snapdata.back().uniage - snapdata.front().uniage;
 

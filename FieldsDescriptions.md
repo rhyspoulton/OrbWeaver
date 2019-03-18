@@ -8,6 +8,7 @@
 | entrytype  | N/A | This value tell if this entry is either: <br> **-99** = Apo-center <br> **99** = pericenter <br> **0** = endpoint of a orbit (the halo has either; terminated/merged with another halo, merged with its host [see MergedFlag] or host has terminated/ merged [see hostMergedFlag] ) <br> **All other values** = the fraction of host crossing i.e. entrytype * R\_200crit\_host crossing (positive if infalling and negative if outfalling). To get the correct number of R\_200crit\_host, this dataset will need to be rounded to the desired number of decimals.  |
 | num_entrytype | N/A | This values tells you the number of each entry type so far in the orbit, such that if you want to extract the first crossing of rvir you can query the whole dataset using: entrytype==1.0 & num_entrytype==1 |
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
+| totnumorbits | N/A | The total number of orbits that the halo has completed in the simulation |
 | orbitalperiod  | Gyr | Current period of its orbit |
 | orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |

@@ -34,7 +34,7 @@
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDSIN 25
-#define NHDFFIELDSOUT 62
+#define NHDFFIELDSOUT 63
 
 //Comoving or physical flags
 #define PHYSICAL 0
@@ -297,6 +297,9 @@ struct OrbitData{
 	//The number of orbits the halo has undergone
 	float numorbits;
 
+	//The total number of orbits that the satellite has undergone
+	float totnumorbits;
+
 	//The orbital period
 	float orbitperiod;
 
@@ -480,6 +483,7 @@ struct OrbitData{
 		entrytype=0.0;
 		num_entrytype=0;
 		numorbits=0;
+		totnumorbits=0;
 		orbitperiod=0.0;
 		closestapproach=0.0;
 		orbitecc=0.0;
@@ -788,6 +792,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("num_entrytype");
 		datasettypes.push_back(PredType::NATIVE_INT);
 		datasetnames.push_back("numorbits");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("totnumorbits");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitalperiod");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
