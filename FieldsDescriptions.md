@@ -34,6 +34,8 @@
 | Npart | N/A | Number of particles in the orbiting halo |
 | Mass  | solar masses | Mass of the halo (depends on mass definition given) |
 | R_200crit | phys Mpc | Virial radius of the halo |
+| min_Rscale | phys Mpc |  Minimum of the scale radius in this orbit history, used to see if the halo can be disrupted artificially due to inadequate force softening | 
+| min_Rmax | phys Mpc |  Minimum of the radius that the maximu circular velocity is at in this orbit history, used to see if the halo can be disrupted artificially due to inadequate force softening. | 
 | Rmax  | phys Mpc | Radial distance of Vmax |
 | Vmax  | km/s | Maxiumum circular velocity of the halo |
 | Vmaxpeak | km/s | The peak Vmax has had in its existence up to the current entry time |

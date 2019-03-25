@@ -93,6 +93,12 @@ void CalcOrbitProps(Options &opt,
 	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
 		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
 
+	//Store the minimum minrmax and rscale so far
+	if(orbitinghalo.rmax<orbitprops.minrmax)
+		orbitprops.minrmax = orbitinghalo.rmax;
+	if((orbitinghalo.rvir/orbitinghalo.cnfw)<orbitprops.minrscale)
+		orbitprops.minrscale = orbitinghalo.rvir/orbitinghalo.cnfw;
+
 	//Now done the interpolation can check if this is the closest approach so far
 	if(r<orbitprops.closestapproach)
 		orbitprops.closestapproach=r;
@@ -920,8 +926,11 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 				mergedflag);
 
 	//Set the total number of orbits for all entries
-	for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].totnumorbits=orbitprops.numorbits;
-
+	for(int i = 0; i<branchorbitdata.size(); i++){
+		branchorbitdata[i].totnumorbits = orbitprops.numorbits;
+		branchorbitdata[i].minrscale = orbitprops.minrscale;
+		branchorbitdata[i].minrmax = orbitprops.minrmax;
+	}
 
 	double simtime = snapdata.back().uniage - snapdata.front().uniage;
 

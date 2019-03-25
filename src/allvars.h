@@ -34,7 +34,7 @@
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDSIN 25
-#define NHDFFIELDSOUT 63
+#define NHDFFIELDSOUT 65
 
 //Comoving or physical flags
 #define PHYSICAL 0
@@ -381,6 +381,12 @@ struct OrbitData{
 	//The virial radius of the orbiting halo
 	float rvir;
 
+	//The minimum radius which half the mass is within
+	float minrmax;
+
+	//The minimum scale radius
+	float minrscale;
+
 	//The vmax of the orbiting halo
 	float vmax;
 
@@ -511,6 +517,8 @@ struct OrbitData{
 		npart=0;
 		mass=0.0;
 		rvir=0.0;
+		minrmax=0.0;
+		minrscale=0.0;
 		vmax=0.0;
 		vmaxpeak=0.0;
 		rmax=0.0;
@@ -591,6 +599,10 @@ struct OrbitProps{
 	//The closest approach; that the halo had to its host
 	double closestapproach;
 
+	//The minimum rhalfmass and scale radius
+	double minrmax;
+	double minrscale;
+
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
 	// and its host, total orbital angular momentum, orbital energy and 
 	// gravitational velocity so the average can be calculated
@@ -621,6 +633,8 @@ struct OrbitProps{
 		prevpassagepos[1]=0;
 		prevpassagepos[2]=0;
 		closestapproach=numeric_limits<double>::max();
+		minrmax=numeric_limits<double>::max();
+		minrscale=numeric_limits<double>::max();
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;
@@ -848,6 +862,10 @@ struct HDFOutputNames{
 		datasetnames.push_back("Mass");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("R_200crit");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("min_Rmax");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("min_Rscale");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vmax");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
