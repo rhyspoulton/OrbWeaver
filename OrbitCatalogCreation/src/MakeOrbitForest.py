@@ -117,7 +117,6 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 		#Set its OrbitingHaloID to -1 as it is a orbit host halo and store the original root tail for this branch
 		orbitdata[snap]["OrbitedHaloID"].append(-1)
-		orbitdata[snap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 		#Store the mainOrbitID
 		mainOrbitHaloIDs[snap] = mainOrbitHaloID
@@ -127,6 +126,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		if(ID!=0):
 			#Store the orginal haloID
 			orbitdata[snap]["OrigID"].append(np.uint64(ID))
+			orbitdata[snap]["OrigRootProgenID"].append(np.uint64(origRootTailID))
 
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[snap]["FieldHalo"].append(halodata[snap]["hostHaloID"][haloIndex]==-1)
@@ -153,6 +153,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#If the halo is interpolated set ist origID to 0
 			orbitdata[snap]["OrigID"].append(0)
+			orbitdata[snap]["OrigRootProgenID"].append(np.uint64(origRootTailID))
 
 			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
 			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1 & halodata[headSnap]["hostHaloID"][headIndex]==-1)
@@ -272,6 +273,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#Store the halos original ID
 			orbitdata[haloSnap]["OrigID"].append(np.uint64(ID))
+			orbitdata[haloSnap]["OrigRootProgenID"].append(np.uint64(tree[haloSnap]["RootTail"][haloIndex]))
 
 			#At the first snapshot lets set the tail == haloID and its head
 			orbitingHaloID = np.int64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
@@ -288,7 +290,6 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			# Set this halos orbital forest ID and the halo it is orbiting, plus the orbit host RootTail so it can be easily extracted
 			orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
-			orbitdata[haloSnap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
@@ -339,7 +340,6 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 				# Set this halos orbital forest ID and the halo it is orbiting, plus the orbit host RootTail so it can be easily extracted
 				orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
-				orbitdata[haloSnap]["OrbitedHaloOrigRootTailID"].append(origRootTailID)
 
 				#Set a boolean if this halo is a host halo or not
 				orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
@@ -349,6 +349,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 				# Re-map its tree properties
 				orbitdata[haloSnap]["OrigID"].append(np.uint64(ID))
+				orbitdata[haloSnap]["OrigRootProgenID"].append(np.uint64(tree[haloSnap]["RootTail"][haloIndex]))
 				orbitingHaloID = orbitingHeadID
 				orbitingHeadID = np.int64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["ID"]) + 1)
 				orbitdata[haloSnap]["ID"].append(orbitingHaloID)

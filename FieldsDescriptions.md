@@ -3,6 +3,7 @@
 | OrbitID  | N/A | Unique ID to identify this orbit in each file |
 | HaloID_orbweaver | N/A | Unique ID to identify this halo in the pre-processed catalog in each file. The 0 values represent interpolated halos that do not exist in the pre-processed catalog |
 | HaloID_orig  | N/A | Unique ID to identify this halo in the orignal catlogue. 0 values means it is a interpolated halo that does not exist in the original catalog |
+| HaloRootProgen_orig | N/A | Unique ID to indentify the root progenitor for the halo from the original halo catlog |
 | OrbitedHaloID_orig  | N/A | Unique ID to identify the orbit host halo in the orginal catalogue. 0 values means it is a interpolated halo that does not exist in the original catalog  |
 | OrbitedHaloRootProgen_orig  | N/A | Unique ID to identify the original root progen of the orbited halo in the halo catalog. This can also be used to find any halos that have orbited this object, by finding the objects that have the same value of this dataset  |
 | entrytype  | N/A | This value tell if this entry is either: <br> **-99** = Apo-center <br> **99** = pericenter <br> **0** = endpoint of a orbit (the halo has either; terminated/merged with another halo, merged with its host [see MergedFlag] or host has terminated/ merged [see hostMergedFlag] ) <br> **All other values** = the fraction of host crossing i.e. entrytype * R\_200crit\_host crossing (positive if infalling and negative if outfalling). To get the correct number of R\_200crit\_host, this dataset will need to be rounded to the desired number of decimals.  |

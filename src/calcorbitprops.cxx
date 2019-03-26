@@ -58,6 +58,18 @@ void CalcOrbitProps(Options &opt,
 	//Store what orbitID number this is
 	tmporbitdata.orbitID = orbitID;
 
+	//The orbting halo
+	tmporbitdata.haloID = orbitinghalo.origid;
+
+	//The original Root Progenitor for the orbiting halo
+	tmporbitdata.halorootprogenID = orbitinghalo.origrootprogenitor;
+
+	//The host halo
+	tmporbitdata.orbitedhaloID = hosthalo.origid;
+
+	//The original Root Progenitor of the orbited halo from the halo catalog
+	tmporbitdata.orbitedhaloorigrootprogenID = hosthalo.origrootprogenitor;
+
 	//Store the haloID this halo if it is not interpolated
 	if(orbitinghalo.interpflag)
 		tmporbitdata.orbithaloID = 0;
@@ -197,15 +209,6 @@ void CalcOrbitProps(Options &opt,
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
 
-		//The orbting halo
-		tmporbitdata.haloID = orbitinghalo.origid;
-
-		//The host halo
-		tmporbitdata.orbitedhaloID = hosthalo.origid;
-
-		//The original Root Progenitor of the orbited halo from the halo catalog
-		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
-
 		/* Calculate various properties to be outputted */
 
 		//Find the components of the radial vector
@@ -329,15 +332,6 @@ void CalcOrbitProps(Options &opt,
 				 orbitprops = prevorbitprops;
 			}
 		}
-
-		//The orbting halo
-		tmporbitdata.haloID = orbitinghalo.origid;
-
-		//The host halo
-		tmporbitdata.orbitedhaloID = hosthalo.origid;
-
-		//The original Root Progenitor of the orbited halo from the halo catalog
-		tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
 
 		//Store the scalefactor this happens at
 		tmporbitdata.scalefactor = exp(log(snapdata[currentsnap].scalefactor) -abs((vrad/(vrad - prevvrad))) * (log(snapdata[currentsnap].scalefactor/snapdata[prevsnap].scalefactor)));
@@ -649,11 +643,14 @@ void AddFinalEntry(Options &opt,
 	//The orbting halo
 	tmporbitdata.haloID = orbitinghalo.origid;
 
+	//The original Root Progenitor for the orbiting halo
+	tmporbitdata.halorootprogenID = orbitinghalo.origrootprogenitor;
+
 	//The host halo
 	tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 	//The original Root Progenitor of the orbited halo from the halo catalog
-	tmporbitdata.orbitedhaloorigrootprogen = orbitinghalo.orbitedhaloorigrootprogen;
+	tmporbitdata.orbitedhaloorigrootprogenID = hosthalo.origrootprogenitor;
 
 	//The age of the universe at this point
 	tmporbitdata.uniage = snapdata[currentsnap].uniage;
