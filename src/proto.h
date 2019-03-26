@@ -24,6 +24,9 @@ double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, doub
 
 void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime);
 
+double *computeAngles(double prevpos[3], OrbitData orbitdata);
+double Menc(double r, double Mvir, double c, double Rvir);
+
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Options &opt, int snap, unsigned long long i, vector<SnapData> &snapdata, OrbitData &orbitdata, HaloData prevorbitinghalo, HaloData prevhosthalo, vector<OrbitData> branchorbitdata, OrbitData tmporbitdata, OrbitProps orbitprops, OrbitProps prevorbitprops, int *num_entrytypes);
 void CalcOrbitProps(Options &opt, unsigned long long orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, int* num_entrytypes, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);

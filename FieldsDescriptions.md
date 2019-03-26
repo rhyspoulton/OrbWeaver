@@ -10,11 +10,14 @@
 | numorbits  | N/A | Number of orbits the halo has completed since its first pericentric passage |
 | totnumorbits | N/A | The total number of orbits that the halo has completed in the simulation |
 | orbitalperiod  | Gyr | Current period of its orbit |
-| orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | orbiteccratio | N/A | The orbital eccetricity found from the peri/apo-centric distances in the simulation |
-| orbitalEnergy | solarmasses km^2 / s^2 | The average energy of the orbit since infall or last passage |
+| orbitalenergy_inst | solarmasses km^2 / s^2 | The instantaneous energy of the orbit |
+| orbitalenergy_ave | solarmasses km^2 / s^2 | The average energy of the orbit since infall or last passage, only outputted at apsis points |
+| R_circ | phys Mpc | The radius of a circular orbit with the same orbital energy, calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241) |
+| J_circ | solar masses phys Mpc km/s | The orbital angular momentum of a circular orbit with the same orbitalenergy, calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241)|
 | Rperi_Wetzel2011 | phys Mpc | The calculated peri-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | Rapo_Wetzel2011 | phys Mpc | The calculated apo-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
+| orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | closestapproach  | phys Mpc | Closest approach the halo has had to is host |
 | masslossrate_inst  | solar masses/Gyr | The instantaneous rate at which the halo is losing mass (negative values means mass has been accreted) |
 | masslossrate_ave  | solar masses/Gyr | The average rate at which the halo is losing mass, this is only calculated at apsis points so will be average since its last passage  (negative values means mass has been accreted) |

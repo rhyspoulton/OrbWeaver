@@ -34,7 +34,7 @@
 
 //Define the amount of fields to read in from the hdf5 file 
 #define NHDFFIELDSIN 25
-#define NHDFFIELDSOUT 65
+#define NHDFFIELDSOUT 68
 
 //Comoving or physical flags
 #define PHYSICAL 0
@@ -306,20 +306,29 @@ struct OrbitData{
 	//Closest approach for this halo to the halo it is orbiting
 	float closestapproach;
 
-	//The orbital eccentricity
-	float orbitecc;
-
 	//The orbital eccentricity from ratio of passage distances
 	float orbiteccratio;
 
-	//Average orbital Energy
-	float orbitalenergy;
+	//The instananeous orbital energy
+	float orbitalenergy_inst;
 
-	//The peri-centric distance
-	float rperi;
+	//The average orbital Energy
+	float orbitalenergy_ave;
 
-	//The apo-centric distance
-	float rapo;
+	//The radius of a circular orbit with the same energy
+	float rcirc;
+
+	//The angular momentum of a circular orbit with the same energy
+	float jcirc;
+
+	//The peri-centric distance from wetzel 2011
+	float rperi_wetzel2011;
+
+	//The apo-centric distance from wetzel 2011
+	float rapo_wetzel2011;
+
+	//The orbital eccentricity from wetzel 2011
+	float orbitecc_wetzel2011;
 
 	//Instantaneous mass loss rate
 	float masslossrate_inst;
@@ -492,11 +501,14 @@ struct OrbitData{
 		totnumorbits=0;
 		orbitperiod=0.0;
 		closestapproach=0.0;
-		orbitecc=0.0;
+		orbitecc_wetzel2011=0.0;
 		orbiteccratio=0.0;
-		orbitalenergy=0.0;
-		rperi=0.0;
-		rapo=0.0;
+		orbitalenergy_inst=0.0;
+		orbitalenergy_ave=0.0;
+		rcirc=0.0;
+		jcirc=0.0;
+		rperi_wetzel2011=0.0;
+		rapo_wetzel2011=0.0;
 		masslossrate_inst=0.0;
 		masslossrate_ave=0.0;
 		longascnode=0.0;
@@ -813,15 +825,21 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("closestapproach");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("orbitecc_Wetzel2011");
-		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbiteccratio");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("orbitalEnergy");
+		datasetnames.push_back("orbitalenergy_inst");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbitalenergy_ave");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("R_circ");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("J_circ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rperi_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rapo_Wetzel2011");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("orbitecc_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

@@ -2,55 +2,6 @@
 
 #include "orbweaver.h"
 
-
-double *computeAngles(double prevpos[3], OrbitData orbitdata){
-
-	double x[3],y[3],z[3], mag;
-	double* angles = new double[3];
-
-	//Get the x-axis which is along the semi-major axis
-	x[0] = orbitdata.xrel - prevpos[0];
-	x[1] = orbitdata.yrel - prevpos[1];
-	x[2] = orbitdata.zrel - prevpos[2];
-
-	//The z-axis which is the angular momentum
-	z[0] = orbitdata.lxrel_ave;
-	z[1] = orbitdata.lyrel_ave;
-	z[2] = orbitdata.lzrel_ave;
-
-	//Find the cross product of these to to find the y-axis
-	y[0] = (x[1] * z[2]) - (x[2] * z[1]);
-	y[1] = -((x[0] * z[2]) - (x[2] * z[0]));
-	y[2] = (x[0] * z[1]) - (x[1] * z[0]);
-
-
-	//Now we can find the x vector that is perpendicular to the y and z vectors
-	x[0] = (y[1] * z[2]) - (y[2] * z[1]);
-	x[1] = -((y[0] * z[2]) - (y[2] * z[0]));
-	x[2] = (y[0] * z[1]) - (y[1] * z[0]);
-
-	//Normalize the vectors
-	mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-	x[0] /= mag;
-	x[1] /= mag;
-	x[2] /= mag;
-	mag = sqrt(y[0]*y[0] + y[1]*y[1] + y[2]*y[2]);
-	y[0] /= mag;
-	y[1] /= mag;
-	y[2] /= mag;
-	mag = sqrt(z[0]*z[0] + z[1]*z[1] + z[2]*z[2]);
-	z[0] /= mag;
-	z[1] /= mag;
-	z[2] /= mag;
-
-	//Compute the Euler angles
-	angles[0] = acos(-z[1]/sqrt(1-z[2]*z[2]));
-	angles[1] = acos(z[2]);
-	angles[2] = acos(y[2]/sqrt(1-z[2]*z[2]));
-
-	return angles;
-}
-
 void CalcOrbitProps(Options &opt,
 	unsigned long long orbitID,
 	int currentsnap, int prevsnap,
@@ -165,7 +116,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, E, f, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarPeriod, *currangles;
+	double ltot, f, vcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od, *currangles;
 	int prevpassageindex;
 
 
@@ -262,7 +213,7 @@ void CalcOrbitProps(Options &opt,
 		vradx = vcomp * rx;
 		vrady = vcomp * ry;
 		vradz = vcomp * rz;
-		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
+		tmporbitdata.vrad = vcomp;
 
 		//Then can use these components to find the components of the tangential velocity
 		vtanx = vrx - vradx;
@@ -281,11 +232,24 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.lyrel_inst += mu * ly;
 		tmporbitdata.lzrel_inst += mu * lz;
 
+
+		//Find the energy of the orbit
+		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
+
+		//Find the radius of a circular orbit with the same energy
+		tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+
+		//Find the circular velocity of a circular orbit with the same energy
+		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+		//Can use these to find the orbital angular momentum of a circular orbit
+		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
+
 		//Any additional properties to be calculated here
 
 		//Set the orbit period and eccentricty as -1.0
 		tmporbitdata.orbitperiod = -1.0;
-		tmporbitdata.orbitecc = -1.0;
+		tmporbitdata.orbitecc_wetzel2011 = -1.0;
 		tmporbitdata.lxrel_ave = -1.0;
 		tmporbitdata.lyrel_ave = -1.0;
 		tmporbitdata.lzrel_ave = -1.0;
@@ -419,6 +383,19 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.lyrel_inst += mu * ly;
 		tmporbitdata.lzrel_inst += mu * lz;
 
+		//Find the energy of the orbit
+		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
+
+		//Find the radius of a circular orbit with the same energy
+		tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+
+		//Find the circular velocity of a circular orbit with the same energy
+		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+		//Can use these to find the orbital angular momentum of a circular orbit
+		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+
 		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
 		if(orbitprops.orbitingflag){
@@ -437,7 +414,7 @@ void CalcOrbitProps(Options &opt,
 
 			// semiMajor = (prevpassager+r)/2.0; //sqrt((rx-orbitprops.prevpassagepos[0])*(rx-orbitprops.prevpassagepos[0]) + (ry-orbitprops.prevpassagepos[1])*(ry-orbitprops.prevpassagepos[1]) + (rz-orbitprops.prevpassagepos[2])*(rz-orbitprops.prevpassagepos[2]));
 
-			// keplarPeriod = 2*3.142 * sqrt((semiMajor*semiMajor*semiMajor)/(Cosmo.G * (hosthalo.mass + orbitinghalo.mass))) *(3.086e+19/3.15e+16);
+			// keplarperi_wetzel2011od = 2*3.142 * sqrt((semiMajor*semiMajor*semiMajor)/(Cosmo.G * (hosthalo.mass + orbitinghalo.mass))) *(3.086e+19/3.15e+16);
 
 			//Remove any passages 
 			if((currentsnap - orbitprops.prevpassagesnap) < 3){
@@ -489,20 +466,19 @@ void CalcOrbitProps(Options &opt,
 			}
 
 			//Find the average energy, total angular momentum and reduced mass
-			E = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);
 			ltot = orbitprops.ltot / (double)(currentsnap - orbitprops.prevpassagesnap);
 			mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
 
-			tmporbitdata.orbitalenergy = E;
+			tmporbitdata.orbitalenergy_ave = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);;
 
 			//The halos orbital eccentricity from the average properties
-			tmporbitdata.orbitecc = sqrt(1.0 + ((2.0 * E * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+			tmporbitdata.orbitecc_wetzel2011 = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_ave * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
 
 			//Find the orbits apo and pericentric distances
-			tmporbitdata.rperi = (ltot*ltot)/((1+tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+			tmporbitdata.rperi_wetzel2011 = (ltot*ltot)/((1+tmporbitdata.orbitecc_wetzel2011) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 			//Find the orbits apo and pericentric distances
-			tmporbitdata.rapo = (ltot*ltot)/((1-tmporbitdata.orbitecc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
+			tmporbitdata.rapo_wetzel2011 = (ltot*ltot)/((1-tmporbitdata.orbitecc_wetzel2011) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
 
 			//The average mass loss rate
 			tmporbitdata.masslossrate_ave = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -608,7 +584,7 @@ void AddFinalEntry(Options &opt,
 	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
+	double rx,ry,rz,vrx,vry,vrz,r, vrel, vcirc, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
 	rx = hosthalo.x - orbitinghalo.x;
@@ -618,6 +594,7 @@ void AddFinalEntry(Options &opt,
 	vry = hosthalo.vy - orbitinghalo.vy;
 	vrz = hosthalo.vz - orbitinghalo.vz;
 	r = sqrt(rx * rx + ry * ry + rz * rz);
+	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 
 	//Store the peak vmax in the orbiting halos history
@@ -713,11 +690,23 @@ void AddFinalEntry(Options &opt,
 	tmporbitdata.lyrel_inst += mu * ly;
 	tmporbitdata.lzrel_inst += mu * lz;
 
+	//Find the energy of the orbit
+	tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
+
+	//Find the radius of a circular orbit with the same energy
+	tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+
+	//Find the circular velocity of a circular orbit with the same energy
+	vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+	//Can use these to find the orbital angular momentum of a circular orbit
+	tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
+
 	//Any additional properties to be calculated here
 
 	//Set the orbit period and eccentricty as -1.0
 	tmporbitdata.orbitperiod = -1.0;
-	tmporbitdata.orbitecc = -1.0;
+	tmporbitdata.orbitecc_wetzel2011 = -1.0;
 	tmporbitdata.lxrel_ave = -1.0;
 	tmporbitdata.lyrel_ave = -1.0;
 	tmporbitdata.lzrel_ave = -1.0;

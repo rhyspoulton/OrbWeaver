@@ -9,7 +9,8 @@ set(_orbweaver_sources
 	interpfuncs.cxx
 	io.cxx
 	main.cxx
-	ui.cxx)
+	ui.cxx
+	utils.cxx)
 
 
 add_executable(orbweaver ${_orbweaver_sources})
