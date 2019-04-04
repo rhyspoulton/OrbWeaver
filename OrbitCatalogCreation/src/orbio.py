@@ -100,6 +100,7 @@ def OutputOrbitCatalog(opt,
 	hdrgrp.attrs["Start_orbit_forest_ID"] = np.uint64(orbitForestIDStart)
 	hdrgrp.attrs["End_orbit_forest_ID"] = np.uint64(orbitForestIDEnd)
 	hdrgrp.attrs["TEMPORALHALOIDVAL"] = np.uint64(opt.TEMPORALHALOIDVAL)
+	hdrgrp.attrs["numRvirSearch"] = opt.numRvirSearch
 
 	unitgrp=hdrgrp.create_group("Units")
 

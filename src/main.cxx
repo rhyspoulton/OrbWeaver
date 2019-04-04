@@ -5,6 +5,7 @@ using namespace std;
 int main(int argc,char **argv)
 {
     int nthreads;
+    int itotnumtypeofentries;
 #ifdef USEOPENMP
 #pragma omp parallel
     {
@@ -32,6 +33,21 @@ int main(int argc,char **argv)
         // First need to load in the catalogue data from VELOCIraptor and TreeFrog catalogues
         ReadData(opt,snapdata);
 
+        //The options and data has been readcan now calculate the number of types of crossing entry to expect
+        for(float i = opt.numRvirSearch;i>0.0;i-=opt.fracrvircross)
+            opt.numtypeofcrossingentries++;
+
+        //Calculate the total number of entries
+        itotnumtypeofentries = opt.numtypeofcrossingentries;
+
+        //This need to be 2x since we can also have negative (outward going) crossing points
+        itotnumtypeofentries*=2;
+
+        //Then add two more for the apsis points
+        itotnumtypeofentries+=2;
+        opt.totnumtypeofentries = itotnumtypeofentries;
+
+
         //Find the ages of the universe from the scalefactors in the snapdata
         for(int snap=0;snap<opt.numsnaps;snap++)
             snapdata[snap].uniage = GetUniverseAge(snapdata[snap].scalefactor);
@@ -49,7 +65,6 @@ int main(int argc,char **argv)
         return EXIT_CODE;
 
     }
-
 
 
     return EXIT_CODE;

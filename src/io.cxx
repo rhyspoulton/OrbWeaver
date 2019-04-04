@@ -484,6 +484,12 @@ void ReadHeader(Options &opt, H5File *Fhdf,HDFCatalogNames hdfnames){
 	attr.read(PredType::STD_U64LE,&ullongbuf);
 	opt.TEMPORALHALOIDVAL=ullongbuf;
 
+	//The number of the host Rvir used to find orbiting object
+	attr = hdrgroup.openAttribute(hdfnames.hdrattrnames[3]);
+	attrdataspace = attr.getSpace();
+	attr.read(PredType::NATIVE_FLOAT,&floatbuff);
+	opt.numRvirSearch=floatbuff;
+
 	//Open up the Units header group and extract the information
 	unitgroup = Fhdf->openGroup(hdfnames.unithdrname);
 

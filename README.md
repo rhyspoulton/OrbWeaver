@@ -30,7 +30,7 @@ There are two stages to running OrbWeaver the first is to run to generate a prep
 
 In the configuration file you can modify the orbit host selection and the region around orbit host which is used for the superset of orbiting halos. Each orbit host has a orbit forest (that contains halos that ever passed within the region of interest) and the code outputs a file that contains multiple orbit forest within them, the number is set by numOrbitForestPerFile in the configuration file. So multiple preprocessed files are created with the naming scheme:
 
-		<output base filename>.<fileno>.orbweaver.preprocessed.hdf
+	<output base filename>.<fileno>.orbweaver.preprocessed.hdf
 
 A file containing the list of filenames is also outputted with the naming scheme
 

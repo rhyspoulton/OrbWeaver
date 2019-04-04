@@ -132,11 +132,11 @@ void CalcOrbitProps(Options &opt,
 	int prevpassageindex;
 
 
-	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numrvir */
+	/* Now lets see if a new datapoint needs to be created if the halo has crossed through a interger number of rvir up to opt.numRvirSearch */
 	float numrvircrossing=0;
 	int entrytypeindex=0;
 	int j = 0;
-	for(float i = 3.0;i>0.0;i-=opt.fracrvircross){
+	for(float i = opt.numRvirSearch;i>0.0;i-=opt.fracrvircross){
 
 		// Less check to see if the previous halo was beyond the host Rvir and
 		//if the current halo is within the host Rvir so it has infallen or if it

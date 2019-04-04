@@ -35,7 +35,7 @@ class Options(object):
 				line = line.split("=")
 
 				if(line[0]=="numRvirSearch"):
-					self.numRvirSearch=int(line[1])
+					self.numRvirSearch=np.float32(line[1])
 
 				elif(line[0]=="NpartLimHost"):
 					self.NpartLimHost=np.int64(line[1])

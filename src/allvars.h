@@ -70,6 +70,10 @@ struct Options
 	//The file number currently working on
 	int fileno;
 
+	//The number of the hosts Rvir used to search for orbiting object,
+	//this is also used as the upper limit for which crossing points are outputted.
+	float numRvirSearch;
+
 	//The value which the halo ID snapvalue is offset by
 	unsigned long long TEMPORALHALOIDVAL;
 
@@ -86,6 +90,7 @@ struct Options
 		totnumtypeofentries=0;
 		fracrvircross=0;
 		fileno=0;
+		numRvirSearch=0.0;
 		TEMPORALHALOIDVAL=0;
 		iverbose=0;
 	};
@@ -725,6 +730,7 @@ struct HDFCatalogNames{
 		hdrattrnames.push_back("Fileno");
 		hdrattrnames.push_back("NSnaps");
 		hdrattrnames.push_back("TEMPORALHALOIDVAL");
+		hdrattrnames.push_back("numRvirSearch");
 
 		cosmoattrnames.push_back("BoxSize");
 		cosmoattrnames.push_back("Hubble_param");
