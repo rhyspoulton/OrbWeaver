@@ -718,7 +718,7 @@ void AddFinalEntry(Options &opt,
 	tmporbitdata.rmax = orbitinghalo.rmax;
 	tmporbitdata.cnfw = orbitinghalo.cnfw;
 
-	//Interpolate the host halo properties
+	//Extract the host halo properties
 	tmporbitdata.nparthost = hosthalo.npart;
 	tmporbitdata.masshost = hosthalo.mass;
 	tmporbitdata.rvirhost = hosthalo.rvir;
@@ -726,14 +726,16 @@ void AddFinalEntry(Options &opt,
 	tmporbitdata.rmaxhost = hosthalo.rmax;
 	tmporbitdata.cnfwhost = hosthalo.cnfw;
 
-	//Interpolate the posistions and velocities from the spline functions
+	//Extract the posistions and velocities
 	tmporbitdata.x = orbitinghalo.x;
 	tmporbitdata.y = orbitinghalo.y;
 	tmporbitdata.z = orbitinghalo.z;
-
 	tmporbitdata.xrel = rx;
 	tmporbitdata.yrel = ry;
 	tmporbitdata.zrel = rz;
+	tmporbitdata.vxrel = vrx;
+	tmporbitdata.vyrel = vry;
+	tmporbitdata.vzrel = vrz;
 
 	//Now append it into the orbitdata dataset
 	branchorbitdata.push_back(tmporbitdata);
