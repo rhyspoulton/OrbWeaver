@@ -668,7 +668,7 @@ void AddFinalEntry(Options &opt,
 	vradx = vcomp * rx;
 	vrady = vcomp * ry;
 	vradz = vcomp * rz;
-	tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
+	tmporbitdata.vrad = vcomp;
 
 	//Then can use these components to find the components of the tangential velocity
 	vtanx = vrx - vradx;
@@ -730,6 +730,9 @@ void AddFinalEntry(Options &opt,
 	tmporbitdata.x = orbitinghalo.x;
 	tmporbitdata.y = orbitinghalo.y;
 	tmporbitdata.z = orbitinghalo.z;
+	tmporbitdata.vx = orbitinghalo.vx;
+	tmporbitdata.vy = orbitinghalo.vy;
+	tmporbitdata.vz = orbitinghalo.vz;
 	tmporbitdata.xrel = rx;
 	tmporbitdata.yrel = ry;
 	tmporbitdata.zrel = rz;
