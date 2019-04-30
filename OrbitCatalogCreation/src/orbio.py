@@ -31,8 +31,8 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	#Update the number of snapshots from the tree
 	opt.update_numsnaps(numsnaps)
 
-	#Fields which needs to be converted to comoving
-	comoveconvertfields = ["R_200crit","Xc","Yc","Zc","Rmax","Lx","Ly","Lz"]
+	#The fields that needs to be converted to physical
+	physconvertfields = ["Xc","Yc","Zc","R_200crit","Rmax","Lx","Ly","Lz"]
 
 	start=time.clock()
 	if(opt.iverbose): print("Reading in the halo catalog")
@@ -46,18 +46,21 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 		atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
 		for key in halodata[i].keys():
 			if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
+
+			#Reduce the precision of the datasets since OrbWeaver is all in float32
 			if (halodata[i][key].dtype==np.float64):
-				halodata[i][key] = np.array(halodata[i][key],dtype=np.float32)
+				halodata[i][key].astype(np.float32,casting="same_kind",copy=False)
 
-			#Lets convert fields to comoving if required
-			if((key in comoveconvertfields) & (halodata[i]['UnitInfo']["Comoving_or_Physical"]==0)):
-				halodata[i][key]*=halodata[i]["SimulationInfo"]["h_val"]/atime[i]
+			#Lets convert fields to physical if required
+			if((key in physconvertfields) & (halodata[i]['UnitInfo']["Comoving_or_Physical"]==1)):
+				halodata[i][key] *= atime[i]/halodata[i]["SimulationInfo"]["h_val"]
 
-
-		halodata[i]['UnitInfo']["Comoving_or_Physical"] = 1
+		#Set the flag to physical
+		halodata[i]['UnitInfo']["Comoving_or_Physical"] = 0
 
 		if(opt.iverbose > 1): print('Snapshot', i,'done in', time.clock()-start1)
 		sys.stdout.flush()
+
 	if(opt.iverbose): print('Finished reading halo properties in', time.clock()-start)
 	sys.stdout.flush()
 
@@ -104,7 +107,7 @@ def OutputOrbitCatalog(opt,
 
 	unitgrp=hdrgrp.create_group("Units")
 
-	unitgrp.attrs["Comoving_or_Physical"] = 1
+	unitgrp.attrs["Comoving_or_Physical"] = 0
 	unitgrp.attrs["Length_unit_to_kpc"] = unitdata["Length_unit_to_kpc"]
 	unitgrp.attrs["Mass_unit_to_solarmass"] = unitdata["Mass_unit_to_solarmass"]
 	unitgrp.attrs["Velocity_unit_to_kms"] = unitdata["Velocity_unit_to_kms"]

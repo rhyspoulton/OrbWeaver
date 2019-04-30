@@ -209,8 +209,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		# orbitdata[snap]["RootTail"].append(np.uint64(mainRootTailSnap * opt.TEMPORALHALOIDVAL +1))
 		# orbitdata[snap]["RootHead"].append(np.uint64(mainRootHeadSnap * opt.TEMPORALHALOIDVAL +1))
 
-
+	#See if anything needs to be interpolated
 	if(len(interpsnaps)):
+
 		for field in splinefields:
 
 			halosnaps = np.where(tmporbitdata[field]!=-1)[0]
@@ -218,6 +219,10 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#If the field is positional lets see if a periodicity correction needs to be done
 			if((field=="Xc") | (field=="Yc") |(field=="Zc")):
+
+				#First the distances needs to be converted to comoving for the periodicity correction
+				tmporbitdata[field][halosnaps] *= cosmodata["h_val"]/atime[halosnaps]
+
 				boundry = 0
 
 				for i in range(nhalo):
@@ -226,6 +231,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 						nextpos=tmporbitdata[field][halosnaps[i+1]]+boundry
 						if(nextpos-tmporbitdata[field][halosnaps[i]]>0.5*cosmodata["ComovingBoxSize"]): boundry-=cosmodata["ComovingBoxSize"]
 						elif(nextpos-tmporbitdata[field][halosnaps[i]]<-0.5*cosmodata["ComovingBoxSize"]): boundry+=cosmodata["ComovingBoxSize"]
+
+				#Then converted back into physical before the interpolation
+				tmporbitdata[field][halosnaps] *= atime[halosnaps]/cosmodata["h_val"]
 
 			#Lets setup the interpolation routine
 			f = InterpolatedUnivariateSpline(halosnaps,tmporbitdata[field][halosnaps])

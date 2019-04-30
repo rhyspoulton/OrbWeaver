@@ -21,15 +21,25 @@ void SetupPosVelInterpFunctions(vector<int> &halosnaps, vector<unsigned long lon
 
 	/* xpos */
 
+	//First convert the distances to comoving since they are being compared across snapshot
+	for(int i = 0; i<nhalo; i++)
+		x[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+
+
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		x[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].x+boundry;
+		x[i] = x[i]+boundry;
 		if(i<nhalo-1){
-			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].x+boundry;
+			nextpos=x[i+1]+boundry;
 			if(nextpos-x[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(nextpos-x[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}
 	}
+
+	//Convert back into physical before the interpolation
+	for(int i = 0; i<nhalo; i++)
+		x[i] = x[i] * snapdata[halosnaps[i]].scalefactor/Cosmo.h;
+
 
 	//Intialize the data for the spline
 	gsl_spline_init (splinefuncs.x, halouniages, x, nhalo);
@@ -40,15 +50,23 @@ void SetupPosVelInterpFunctions(vector<int> &halosnaps, vector<unsigned long lon
 	//Reset the boundary
 	boundry=0;
 
+	//First convert the distances to comoving since they are being compared across snapshot
+	for(int i = 0; i<nhalo; i++)
+		y[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].y * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		y[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].y+boundry;
+		y[i] = y[i]+boundry;
 		if(i<nhalo-1){
-			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].y+boundry;
+			nextpos=y[i+1]+boundry;
 			if(nextpos-y[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(nextpos-y[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}
 	}
+
+	//Convert back into physical before the interpolation
+	for(int i = 0; i<nhalo; i++)
+		y[i] = y[i] * snapdata[halosnaps[i]].scalefactor/Cosmo.h;
 
 	//Intialize the data for the spline
 	gsl_spline_init (splinefuncs.y, halouniages, y, nhalo);
@@ -59,15 +77,23 @@ void SetupPosVelInterpFunctions(vector<int> &halosnaps, vector<unsigned long lon
 	//Reset the boundary
 	boundry=0;
 
+	//First convert the distances to comoving since they are being compared across snapshot
+	for(int i = 0; i<nhalo; i++)
+		z[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].z * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		z[i] = snapdata[halosnaps[i]].Halo[haloindexes[i]].z+boundry;
+		z[i] = z[i]+boundry;
 		if(i<nhalo-1){
-			nextpos=snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].z+boundry;
+			nextpos=z[i+1]+boundry;
 			if(nextpos-z[i]>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(nextpos-z[i]<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}
 	}
+
+	//Convert back into physical before the interpolation
+	for(int i = 0; i<nhalo; i++)
+		z[i] = z[i] * snapdata[halosnaps[i]].scalefactor/Cosmo.h;
 
 	//Intialize the data for the spline
 	gsl_spline_init (splinefuncs.z, halouniages, z, nhalo);
@@ -107,7 +133,7 @@ void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long
 	//Need to interpolate the host's position and do periodicity corrections based on the oribiting halo
 	int nhalo = halosnaps.size();
 	double boundry=0, nextpos;
-	double halouniages[nhalo], x[nhalo], y[nhalo], z[nhalo], vx[nhalo], vy[nhalo], vz[nhalo];
+	double halouniages[nhalo], x[nhalo], y[nhalo], z[nhalo], xhost[nhalo], yhost[nhalo], zhost[nhalo], vx[nhalo], vy[nhalo], vz[nhalo];
 	double tmppos, orbitinghalopos, orbitinghalonextpos;
 
 
@@ -117,17 +143,22 @@ void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long
 
 	/* xpos */
 
+
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].x;
-		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].x+boundry;
+
+		//Convert to comoving for the periodic correction since this is done across snapshot
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].x * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].x * Cosmo.h/snapdata[halosnaps[i]].scalefactor+boundry;
 
 		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
 		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
 
-		x[i] = tmppos;
+		//Convert back to physical for output
+		x[i] = tmppos* snapdata[halosnaps[i]].scalefactor/Cosmo.h;
+
 		if(i<nhalo-1){
-			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].x+boundry;
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].x * Cosmo.h/snapdata[halosnaps[i+1]].scalefactor+boundry;
 			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}
@@ -144,15 +175,19 @@ void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long
 
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].y;
-		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].y+boundry;
+
+		//Convert to comoving for the periodic correction since this is done across snapshot
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].y * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].y * Cosmo.h/snapdata[halosnaps[i]].scalefactor+boundry;
 
 		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
 		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
 
-		y[i] = tmppos;
+		//Convert back to physical for output
+		y[i] = tmppos* snapdata[halosnaps[i]].scalefactor/Cosmo.h;
+
 		if(i<nhalo-1){
-			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].y+boundry;
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].y * Cosmo.h/snapdata[halosnaps[i+1]].scalefactor+boundry;
 			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}
@@ -170,15 +205,19 @@ void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long
 
 	//Lets extract the data for the interpolation routine
 	for(int i = 0;i<nhalo;i++){
-		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].z;
-		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].z+boundry;
+
+		//Convert to comoving for the periodic correction since this is done across snapshot
+		tmppos = snapdata[halosnaps[i]].Halo[hostindexes[i]].z * Cosmo.h/snapdata[halosnaps[i]].scalefactor;
+		orbitinghalopos = snapdata[halosnaps[i]].Halo[haloindexes[i]].z * Cosmo.h/snapdata[halosnaps[i]].scalefactor+boundry;
 
 		if(tmppos-orbitinghalopos>0.5*Cosmo.boxsize) tmppos -=Cosmo.boxsize;
 		if(tmppos-orbitinghalopos<-0.5*Cosmo.boxsize) tmppos +=Cosmo.boxsize;
 
-		z[i] = tmppos;
+		//Convert back to physical for output
+		z[i] = tmppos* snapdata[halosnaps[i]].scalefactor/Cosmo.h;
+
 		if(i<nhalo-1){
-			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].z+boundry;
+			orbitinghalonextpos = snapdata[halosnaps[i+1]].Halo[haloindexes[i+1]].z * Cosmo.h/snapdata[halosnaps[i+1]].scalefactor+boundry;
 			if(orbitinghalonextpos-orbitinghalopos>0.5*Cosmo.boxsize) boundry-=Cosmo.boxsize;
 			else if(orbitinghalonextpos-orbitinghalopos<-0.5*Cosmo.boxsize) boundry+=Cosmo.boxsize;
 		}

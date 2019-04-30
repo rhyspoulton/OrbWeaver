@@ -41,7 +41,7 @@ for snap in range(opt.numsnaps-1,-1,-1):
 		start1 = time.clock()
 		if(opt.iverbose>1): print('Snapshot', snap, 'producing spatial tree')
 		pos=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
-		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"]*halodata[snap]["SimulationInfo"]["h_val"]/halodata[snap]["SimulationInfo"]["ScaleFactor"])
+		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
 		if(opt.iverbose>1): print('Done',snap,'in',time.clock()-start1)
 if (opt.iverbose): print("Done building in",time.clock()-start)
 sys.stdout.flush()
