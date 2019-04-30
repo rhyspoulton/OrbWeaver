@@ -128,7 +128,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, f, vcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od, *currangles;
+	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od, *currangles;
 	int prevpassageindex;
 
 
@@ -205,6 +205,7 @@ void CalcOrbitProps(Options &opt,
 		vrx = tmporbitdata.vxrel;
 		vry = tmporbitdata.vyrel;
 		vrz = tmporbitdata.vzrel;
+		vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
@@ -225,28 +226,36 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
 		//The halos reduced mass
-		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+		mu = (tmporbitdata.mass * tmporbitdata.masshost) / (tmporbitdata.mass + tmporbitdata.masshost);
 
 		//Angular momentum vectors
 		lx = (ry * vrz) - (rz * vry);
 		ly = -((rx * vrz) - (rz * vrx));
 		lz = (rx * vry) - (ry * vrx);
+		ltot = mu* sqrt(lx*lx + ly*ly + lz*lz);
 		tmporbitdata.lxrel_inst += mu * lx;
 		tmporbitdata.lyrel_inst += mu * ly;
 		tmporbitdata.lzrel_inst += mu * lz;
 
-
 		//Find the energy of the orbit
-		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
+		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * tmporbitdata.mass*tmporbitdata.masshost)/r;
 
-		//Find the radius of a circular orbit with the same energy
-		tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+		// only compute Rcirc and Jcirc if on a bound orbit (E<0)
+		if(tmporbitdata.orbitalenergy_inst<0){
 
-		//Find the circular velocity of a circular orbit with the same energy
-		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+			//Find the radius of a circular orbit with the same energy
+			tmporbitdata.rcirc = abs((Cosmo.G * tmporbitdata.mass * Menc(r,tmporbitdata.masshost,tmporbitdata.cnfwhost,tmporbitdata.rvirhost))/(2.0 * tmporbitdata.orbitalenergy_inst));
 
-		//Can use these to find the orbital angular momentum of a circular orbit
-		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+			//Find the circular velocity of a circular orbit with the same energy
+			vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+			//Can use these to find the orbital angular momentum of a circular orbit
+			jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+			//Compute the circularity for the orbit (eta)
+			tmporbitdata.eta = ltot/jcirc;
+		}
 
 		//Any additional properties to be calculated here
 
@@ -367,28 +376,36 @@ void CalcOrbitProps(Options &opt,
 		tmporbitdata.vtan = sqrt(vtanx*vtanx + vtany*vtany + vtanz*vtanz);
 
 		//The halos reduced mass
-		mu = (orbitinghalo.mass * hosthalo.mass) / (orbitinghalo.mass + hosthalo.mass);
+		mu = (tmporbitdata.mass * tmporbitdata.masshost) / (tmporbitdata.mass + tmporbitdata.masshost);
 
 		//Angular momentum vectors
 		lx = (ry * vrz) - (rz * vry);
 		ly = -((rx * vrz) - (rz * vrx));
 		lz = (rx * vry) - (ry * vrx);
+		ltot = mu* sqrt(lx*lx + ly*ly + lz*lz);
 		tmporbitdata.lxrel_inst += mu * lx;
 		tmporbitdata.lyrel_inst += mu * ly;
 		tmporbitdata.lzrel_inst += mu * lz;
 
 		//Find the energy of the orbit
-		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
+		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * tmporbitdata.mass*tmporbitdata.masshost)/r;
 
-		//Find the radius of a circular orbit with the same energy
-		tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+		// only compute Rcirc and Jcirc if on a bound orbit (E<0)
+		if(tmporbitdata.orbitalenergy_inst<0){
 
-		//Find the circular velocity of a circular orbit with the same energy
-		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+			//Find the radius of a circular orbit with the same energy
+			tmporbitdata.rcirc = abs((Cosmo.G * tmporbitdata.mass * Menc(r,tmporbitdata.masshost,tmporbitdata.cnfwhost,tmporbitdata.rvirhost))/(2.0 * tmporbitdata.orbitalenergy_inst));
 
-		//Can use these to find the orbital angular momentum of a circular orbit
-		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
 
+			//Find the circular velocity of a circular orbit with the same energy
+			vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+			//Can use these to find the orbital angular momentum of a circular orbit
+			jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+			//Compute the circularity for the orbit (eta)
+			tmporbitdata.eta = ltot/jcirc;
+		}
 
 		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
@@ -578,7 +595,7 @@ void AddFinalEntry(Options &opt,
 	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r, vrel, vcirc, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
+	double rx,ry,rz,vrx,vry,vrz,r, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
 	rx = hosthalo.x - orbitinghalo.x;
@@ -683,6 +700,7 @@ void AddFinalEntry(Options &opt,
 	lx = (ry * vrz) - (rz * vry);
 	ly = -((rx * vrz) - (rz * vrx));
 	lz = (rx * vry) - (ry * vrx);
+	ltot = mu*sqrt(lx*lx + ly*ly + lz*lz);
 	tmporbitdata.lxrel_inst += mu * lx;
 	tmporbitdata.lyrel_inst += mu * ly;
 	tmporbitdata.lzrel_inst += mu * lz;
@@ -690,14 +708,22 @@ void AddFinalEntry(Options &opt,
 	//Find the energy of the orbit
 	tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * orbitinghalo.mass*hosthalo.mass)/r;
 
-	//Find the radius of a circular orbit with the same energy
-	tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
+	// only compute Rcirc and Jcirc if on a bound orbit (E<0)
+	if(tmporbitdata.orbitalenergy_inst<0){
 
-	//Find the circular velocity of a circular orbit with the same energy
-	vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+		//Find the radius of a circular orbit with the same energy
+		tmporbitdata.rcirc = abs((Cosmo.G * orbitinghalo.mass * Menc(r,hosthalo.mass,hosthalo.cnfw,hosthalo.rvir))/(2.0 * tmporbitdata.orbitalenergy_inst));
 
-	//Can use these to find the orbital angular momentum of a circular orbit
-	tmporbitdata.jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+		//Find the circular velocity of a circular orbit with the same energy
+		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+
+		//Can use these to find the orbital angular momentum of a circular orbit
+		jcirc = mu * tmporbitdata.rcirc * vcirc;
+
+		//Compute the circularity for the orbit (eta)
+		tmporbitdata.eta = ltot/jcirc;
+	}
 
 	//Any additional properties to be calculated here
 

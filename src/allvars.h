@@ -327,7 +327,7 @@ struct OrbitData{
 	float rcirc;
 
 	//The angular momentum of a circular orbit with the same energy
-	float jcirc;
+	float eta;
 
 	//The peri-centric distance from wetzel 2011
 	float rperi_wetzel2011;
@@ -515,7 +515,7 @@ struct OrbitData{
 		orbitalenergy_inst=0.0;
 		orbitalenergy_ave=0.0;
 		rcirc=0.0;
-		jcirc=0.0;
+		eta=0.0;
 		rperi_wetzel2011=0.0;
 		rapo_wetzel2011=0.0;
 		masslossrate_inst=0.0;
@@ -845,7 +845,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("R_circ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("J_circ");
+		datasetnames.push_back("Eta");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Rperi_Wetzel2011");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

@@ -1202,7 +1202,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* jcirc */
+		/* eta */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1223,7 +1223,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rcirc;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].eta;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
