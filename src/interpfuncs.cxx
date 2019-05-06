@@ -276,6 +276,13 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	tmporbitdata.rmaxhost = LogInterp(prevhosthalo.rmax,hosthalo.rmax,f);
 	tmporbitdata.cnfwhost = LinInterp(prevhosthalo.cnfw,hosthalo.cnfw,f);
 
+	//Check if the interpolation time is outside of the surrounding snapshot times
+	// if so then set it to the snapshot time it is greater/ less than
+	if(interpuniage>currentuniage)
+		interpuniage = currentuniage;
+	else if(interpuniage<prevuniage)
+		interpuniage = prevuniage;
+
 	//Interpolate the posistions from the spline functions
 	tmporbitdata.x = gsl_spline_eval(splinefuncs.x,interpuniage,splinefuncs.xacc);
 	tmporbitdata.y = gsl_spline_eval(splinefuncs.y,interpuniage,splinefuncs.yacc);
