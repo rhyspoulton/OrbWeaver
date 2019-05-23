@@ -11,8 +11,8 @@ basecodedir=scriptpath.split('CreateOrbitCatalogs.py')[0]
 sys.path.append(basecodedir+'/src/')
 
 from MakeOrbitForest import CreateOrbitForest
-from ui import Options
-from orbio import ReadVELOCIraptorTreeandHalodata,OutputOrbitCatalog
+from ui import Options, GetHostSelection
+from orbio import ReadVELOCIraptorFields,ReadVELOCIraptorTreeandHalodata,OutputOrbitCatalog
 
 
 parser = argparse.ArgumentParser()
@@ -25,11 +25,14 @@ tmpOpt = parser.parse_args()
 #store number of snaps
 opt = Options(tmpOpt)
 
+fields = ReadVELOCIraptorFields(opt)
+
+hostselexpr, snapshotselexpr = GetHostSelection(opt,fields)
+
+
 #Load in the VELOCIraptor halodata and tree
 desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","numSubStruct","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
-atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
-
-
+atime, redshift, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
 
 # built KD tree to quickly search for near neighbours. only build if not passed.
 start=time.clock()
@@ -96,11 +99,26 @@ start=time.clock()
 inumForest = 0
 prevorbitforestidval=0
 ifileno=0
-for j in range(opt.numsnaps-1,-1,-1):
+
+#See if there has been a redshift selection
+if(snapshotselexpr!=""):
+	#Lets attempt to evaluate the expression for the redshif
+	snapshots = np.where(eval(snapshotselexpr))[0]
+
+	if(opt.iverbose): print("From the redshift selection, snapshots from",np.min(snapshots),"to",np.max(snapshots),"have been selected")
+else:
+	snapshots = range(numsnaps)
+
+for j in snapshots:
 	start2=time.clock()
 	if (numhalos[j]==0): continue
-	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
-	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist))[0]
+
+	# Lets find the haloes of interest based on the input selection
+	if(hostselexpr!=""):
+		haloIndexes = np.where(eval(hostselexpr) & ((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist))[0]
+	else:
+		haloIndexes = np.where((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist)[0]
+
 	if(opt.iverbose>1): print('Snapshot',j,' containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
 	sys.stdout.flush()
 

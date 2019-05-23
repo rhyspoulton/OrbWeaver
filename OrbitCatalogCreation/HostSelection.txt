@@ -1,0 +1,41 @@
+#####################################################################
+#                                                                   #
+#    This is a file to select host of interest for OrbWeaver        #
+#                                                                   #
+#       Please have only one property/ expression per line          #
+#                                                                   #
+#         The operators avalible are <, <=, >, >=, ==, !=           #
+#                                                                   #
+#           These lines need to valid with python syntax            #
+#                                                                   #
+#####################################################################
+
+##############################
+#     Redshift selection     #
+##############################
+
+#Use this to select the range of redshifts of interest
+
+#The lower limit of redshift
+0 <= redshift
+
+#The upper limit in the redshift (use inf if you want no upper limit)
+redshift <= inf
+
+###############################
+#  Host Properties selection  #
+###############################
+
+#Please use the name of the datasets that are here: https://github.com/ICRAR/VELOCIraptor-STF/blob/master/doc/output.rst
+#It is possible to use or operator here, but this needs to be on a single line. For example:
+#
+# (hostHaloID!=-1) | (Mass_200crit > 1e10)
+#
+#This selection is to select for host (hostHaloID!=-1) or has a mass greater than 1e10 Msun (Mass_200crit > 1e10), both sure they are both within brackets 
+
+# The minimum number of snapshots that a objects has to exist to be considered as being a host (default 20)
+MinSnapExist = 20
+
+
+#Selecting hosts wih 50,000 particles
+npart >= 50000

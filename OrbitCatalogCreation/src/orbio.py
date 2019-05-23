@@ -17,6 +17,25 @@ else:
 	print('using python VR+TF toolkit')
 	import velociraptor_python_tools as VPT
 
+def ReadVELOCIraptorFields(opt):
+
+
+	filename = opt.inputhalobbasename +"000.VELOCIraptor.properties"
+	# load header
+	if (os.path.isfile(filename) == False):
+		filename = opt.inputhalobbasename+"000.VELOCIraptor.properties.0"
+		if (os.path.isfile(filename) == False):
+			raise IOError("VELOCIraptor file "+filename+" could not be found")
+
+	VELfile = h5py.File(filename,"r")
+
+	#Lets extract the feilds from the VELOCIraptor file
+	fields = list(VELfile.keys())
+
+	VELfile.close()
+
+	return fields
+
 
 
 def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
@@ -67,11 +86,14 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata)
 
 
+	#Computer the redshift from the scalefactor
+	redshift = 1.0/atime - 1.0
+
 	unitdata = halodata[0]["UnitInfo"]
 	cosmodata = halodata[0]["SimulationInfo"]
 	cosmodata["ComovingBoxSize"] = np.round(cosmodata["Period"]*cosmodata["h_val"]/cosmodata["ScaleFactor"],1)
 
-	return atime, numhalos, halodata, tree, unitdata, cosmodata
+	return atime, redshift, numhalos, halodata, tree, unitdata, cosmodata
 
 
 
