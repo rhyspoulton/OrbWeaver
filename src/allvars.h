@@ -262,6 +262,7 @@ struct SnapData{
 	unsigned long long numhalos;
 	double scalefactor;
 	double uniage; // Age of the universe at this snapshot
+	double physboxsize; //The physical size of the box
 	vector<HaloData> Halo;
 
 	SnapData(){

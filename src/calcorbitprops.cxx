@@ -12,19 +12,19 @@ void CalcOrbitProps(Options &opt,
 	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
-	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
-	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
-	if((orbitinghalo.z - hosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
-	if((orbitinghalo.x - hosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
-	if((orbitinghalo.y - hosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
-	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
+	if((orbitinghalo.x - hosthalo.x)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.y - hosthalo.y)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.z - hosthalo.z)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.x - hosthalo.x)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x+=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.y - hosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y+=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.z - hosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
-	if((prevorbitinghalo.x - prevhosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
-	if((prevorbitinghalo.y - prevhosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
-	if((prevorbitinghalo.z - prevhosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
-	if((prevorbitinghalo.x - prevhosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
-	if((prevorbitinghalo.y - prevhosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
-	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
+	if((prevorbitinghalo.x - prevhosthalo.x)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.x - prevhosthalo.x)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x+=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y+=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r,vrad,vrel;
@@ -587,12 +587,12 @@ void AddFinalEntry(Options &opt,
 	bool mergedflag){
 
 	//First correct for periodicity compared to the host halo
-	if((orbitinghalo.x - hosthalo.x)>0.5*Cosmo.boxsize) orbitinghalo.x-=Cosmo.boxsize;
-	if((orbitinghalo.y - hosthalo.y)>0.5*Cosmo.boxsize) orbitinghalo.y-=Cosmo.boxsize;
-	if((orbitinghalo.z - hosthalo.z)>0.5*Cosmo.boxsize) orbitinghalo.z-=Cosmo.boxsize;
-	if((orbitinghalo.x - hosthalo.x)<-0.5*Cosmo.boxsize) orbitinghalo.x+=Cosmo.boxsize;
-	if((orbitinghalo.y - hosthalo.y)<-0.5*Cosmo.boxsize) orbitinghalo.y+=Cosmo.boxsize;
-	if((orbitinghalo.z - hosthalo.z)<-0.5*Cosmo.boxsize) orbitinghalo.z+=Cosmo.boxsize;
+	if((orbitinghalo.x - hosthalo.x)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.y - hosthalo.y)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.z - hosthalo.z)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z-=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.x - hosthalo.x)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x+=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.y - hosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y+=snapdata[currentsnap].physboxsize;
+	if((orbitinghalo.z - hosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;

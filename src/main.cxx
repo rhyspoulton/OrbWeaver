@@ -48,9 +48,11 @@ int main(int argc,char **argv)
         opt.totnumtypeofentries = itotnumtypeofentries;
 
 
-        //Find the ages of the universe from the scalefactors in the snapdata
-        for(int snap=0;snap<opt.numsnaps;snap++)
+        //Find the ages of the universe and the physical boxsizes from the scalefactors in the snapdata
+        for(int snap=0;snap<opt.numsnaps;snap++){
             snapdata[snap].uniage = GetUniverseAge(snapdata[snap].scalefactor);
+            snapdata[snap].physboxsize = Cosmo.boxsize * snapdata[snap].scalefactor / Cosmo.h;
+        }
 
         //Declare the orbitdata as a 2d vector so the interpolated halos can be added
         vector<OrbitData> orbitdata;
