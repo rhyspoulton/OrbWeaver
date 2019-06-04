@@ -19,12 +19,12 @@ void CalcOrbitProps(Options &opt,
 	if((orbitinghalo.y - hosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y+=snapdata[currentsnap].physboxsize;
 	if((orbitinghalo.z - hosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
-	if((prevorbitinghalo.x - prevhosthalo.x)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x-=snapdata[currentsnap].physboxsize;
-	if((prevorbitinghalo.y - prevhosthalo.y)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y-=snapdata[currentsnap].physboxsize;
-	if((prevorbitinghalo.z - prevhosthalo.z)>0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z-=snapdata[currentsnap].physboxsize;
-	if((prevorbitinghalo.x - prevhosthalo.x)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.x+=snapdata[currentsnap].physboxsize;
-	if((prevorbitinghalo.y - prevhosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.y+=snapdata[currentsnap].physboxsize;
-	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.x - prevhosthalo.x)>0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.x-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)>0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.y-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)>0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.z-=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.x - prevhosthalo.x)<-0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.x+=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.y - prevhosthalo.y)<-0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.y+=snapdata[currentsnap].physboxsize;
+	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r,vrad,vrel;
