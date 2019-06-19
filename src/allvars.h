@@ -315,6 +315,9 @@ struct OrbitData{
 	//Closest approach for this halo to the halo it is orbiting
 	float closestapproach;
 
+	//The scalefactor of the closest approach
+	float closestapproachscalefactor;
+
 	//The orbital eccentricity from ratio of passage distances
 	float orbiteccratio;
 
@@ -511,6 +514,7 @@ struct OrbitData{
 		totnumorbits=0;
 		orbitperiod=0.0;
 		closestapproach=0.0;
+		closestapproachscalefactor=0.0;
 		orbitecc_wetzel2011=0.0;
 		orbiteccratio=0.0;
 		orbitalenergy_inst=0.0;
@@ -621,6 +625,9 @@ struct OrbitProps{
 	//The closest approach; that the halo had to its host
 	double closestapproach;
 
+	//The scalefactor that the closest approach happened at
+	double closestapproachscalefactor;
+
 	//The minimum rhalfmass and scale radius
 	double minrmax;
 	double minrscale;
@@ -655,6 +662,7 @@ struct OrbitProps{
 		prevpassagepos[1]=0;
 		prevpassagepos[2]=0;
 		closestapproach=numeric_limits<double>::max();
+		closestapproachscalefactor=0.0;
 		minrmax=numeric_limits<double>::max();
 		minrscale=numeric_limits<double>::max();
 		mu=0.0;
@@ -837,6 +845,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitalperiod");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("closestapproach");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("closestapproachscalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbiteccratio");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

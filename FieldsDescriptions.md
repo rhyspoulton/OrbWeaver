@@ -19,7 +19,8 @@
 | Rperi_Wetzel2011 | phys Mpc | The calculated peri-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | Rapo_Wetzel2011 | phys Mpc | The calculated apo-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | orbitecc_Wetzel2011  | N/A | The calculated eccentricity of its orbit from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
-| closestapproach  | phys Mpc | Closest approach the halo has had to is host |
+| closestapproach  | phys Mpc | Closest approach the halo has had to is host up to this point in its orbit |
+| closestapproachscalefactor | N/A | The scalefactor which the closest approach occured at |
 | masslossrate_inst  | solar masses/Gyr | The instantaneous rate at which the halo is losing mass (negative values means mass has been accreted) |
 | masslossrate_ave  | solar masses/Gyr | The average rate at which the halo is losing mass, this is only calculated at apsis points so will be average since its last passage  (negative values means mass has been accreted) |
 | LongAscNode | Radian | The angle of longitude of the ascending node with respect to the intial orbital plane defined [here](https://en.wikipedia.org/wiki/Orbital_elements). |

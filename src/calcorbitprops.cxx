@@ -27,7 +27,7 @@ void CalcOrbitProps(Options &opt,
 	if((prevorbitinghalo.z - prevhosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) prevorbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r,vrad,vrel;
+	double rx,ry,rz,vrx,vry,vrz,r,rcomove,vrad,vrel;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
 	rx = hosthalo.x - orbitinghalo.x;
@@ -50,10 +50,15 @@ void CalcOrbitProps(Options &opt,
 	if((orbitinghalo.rvir/orbitinghalo.cnfw)<orbitprops.minrscale)
 		orbitprops.minrscale = orbitinghalo.rvir/orbitinghalo.cnfw;
 
-	//Now done the interpolation can check if this is the closest approach so far
-	if(r<orbitprops.closestapproach)
-		orbitprops.closestapproach=r;
-	tmporbitdata.closestapproach=orbitprops.closestapproach;
+	//Can see if this is the closest approach, this needs to be compared in comoving
+	rcomove = r * Cosmo.h / snapdata[currentsnap].scalefactor;
+	if(rcomove<orbitprops.closestapproach)
+		orbitprops.closestapproach = rcomove;
+		orbitprops.closestapproachscalefactor = snapdata[currentsnap].scalefactor;
+
+	//Put into the output data and convert back to physical
+	tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
+	tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
 
 	//Store what orbitID number this is
 	tmporbitdata.orbitID = orbitID;
@@ -273,11 +278,15 @@ void CalcOrbitProps(Options &opt,
 		//Store the snapshot which this crossing point happened
 		orbitprops.prevcrossingsnap = currentsnap;
 
-		//Now done the interpolation can check if this is the closest approach so far
-		r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
-		if(r<orbitprops.closestapproach)
-			orbitprops.closestapproach=r;
-		tmporbitdata.closestapproach=orbitprops.closestapproach;
+		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
+		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
+		if(rcomove<orbitprops.closestapproach)
+			orbitprops.closestapproach = rcomove;
+			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
+
+		//Put into the output data and convert back to physical
+		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
+		tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
 
 		//Now append it into the orbitdata dataset
 		branchorbitdata.push_back(tmporbitdata);
@@ -561,11 +570,15 @@ void CalcOrbitProps(Options &opt,
 		orbitprops.prevpassagepos[1] = ry;
 		orbitprops.prevpassagepos[2] = rz;
 
-		//Now done the interpolation can check if this is the closest approach so far
-		r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
-		if(r<orbitprops.closestapproach)
-			orbitprops.closestapproach=r;
-		tmporbitdata.closestapproach=orbitprops.closestapproach;
+		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
+		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
+		if(rcomove<orbitprops.closestapproach)
+			orbitprops.closestapproach = rcomove;
+			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
+
+		//Put into the output data and convert back to physical
+		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
+		tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
 
 		//If not set to be orbiting then update the flag to say this object is orbiting
 		if(orbitprops.orbitingflag==false)
@@ -595,7 +608,7 @@ void AddFinalEntry(Options &opt,
 	if((orbitinghalo.z - hosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
+	double rx,ry,rz,vrx,vry,vrz,r,rcomove, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
 	rx = hosthalo.x - orbitinghalo.x;
@@ -612,9 +625,15 @@ void AddFinalEntry(Options &opt,
 	if(orbitinghalo.vmax>tmporbitdata.vmaxpeak)
 		tmporbitdata.vmaxpeak = orbitinghalo.vmax;
 
-	//Now done the interpolation can check if this is the closest approach so far
-	if(r<orbitprops.closestapproach)
-		tmporbitdata.closestapproach=r;
+	//Can see if this is the closest approach, this needs to be compared in comoving
+	rcomove = r * Cosmo.h / snapdata[currentsnap].scalefactor;
+	if(rcomove<orbitprops.closestapproach)
+		orbitprops.closestapproach = rcomove;
+		orbitprops.closestapproachscalefactor = snapdata[currentsnap].scalefactor;
+
+	//Put into the output data and convert back to physical
+	tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
+	tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
 
 	//Store what orbitID number this is
 	tmporbitdata.orbitID = orbitID;
