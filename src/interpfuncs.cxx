@@ -478,6 +478,7 @@ HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned l
 			//that the previous halo was orbiting and then move on to descendant halo
 			interphalos[j].orbitedhaloid = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].descendant;
 			interphalos[j].origrootprogenitor = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].origrootprogenitor;
+			interphalos[j].origrootdescendant = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].origrootdescendant;
 			orbitinghalosnap = (int)(interphalos[j].orbitedhaloid/opt.TEMPORALHALOIDVAL);
 			orbitinghaloindex = (unsigned long long)(interphalos[j].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
 

@@ -69,11 +69,17 @@ void CalcOrbitProps(Options &opt,
 	//The original Root Progenitor for the orbiting halo
 	tmporbitdata.halorootprogenID = orbitinghalo.origrootprogenitor;
 
+	//The original Root Descendant for the orbiting halo
+	tmporbitdata.halorootdescenID = orbitinghalo.origrootdescendant;
+
 	//The host halo
 	tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 	//The original Root Progenitor of the orbited halo from the halo catalog
 	tmporbitdata.orbitedhaloorigrootprogenID = hosthalo.origrootprogenitor;
+
+	//The original Root Descendant of the orbited halo from the halo catalog
+	tmporbitdata.orbitedhaloorigrootdescenID = hosthalo.origrootdescendant;
 
 	//Store the haloID this halo if it is not interpolated
 	if(orbitinghalo.interpflag)
@@ -682,11 +688,17 @@ void AddFinalEntry(Options &opt,
 	//The original Root Progenitor for the orbiting halo
 	tmporbitdata.halorootprogenID = orbitinghalo.origrootprogenitor;
 
+	//The original Root Descendant for the orbiting halo
+	tmporbitdata.halorootdescenID = orbitinghalo.origrootdescendant;
+
 	//The host halo
 	tmporbitdata.orbitedhaloID = hosthalo.origid;
 
 	//The original Root Progenitor of the orbited halo from the halo catalog
 	tmporbitdata.orbitedhaloorigrootprogenID = hosthalo.origrootprogenitor;
+
+	//The original Root Descendant of the orbited halo from the halo catalog
+	tmporbitdata.orbitedhaloorigrootdescenID = hosthalo.origrootdescendant;
 
 	//The age of the universe at this point
 	tmporbitdata.uniage = snapdata[currentsnap].uniage;

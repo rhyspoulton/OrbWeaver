@@ -33,7 +33,7 @@
 #define HDFOUTCHUNKSIZE 8192
 
 //Define the amount of fields to read in from the hdf5 file 
-#define NHDFFIELDSIN 25
+#define NHDFFIELDSIN 26
 #define NHDFFIELDSOUT 74
 
 //Comoving or physical flags
@@ -117,6 +117,9 @@ struct HaloData{
 	//The original root progenitor of the halo
 	long long origrootprogenitor;
 
+	//The original root descendant of the halo
+	long long origrootdescendant;
+
 	//If the halo is a subhalo
 	bool fieldhalo;
 
@@ -171,6 +174,7 @@ struct HaloData{
 		descendant=0;
 		progenitor=0;
 		origrootprogenitor=0;
+		origrootdescendant=0;
 		fieldhalo=false;
 		numsubstruct=0;
 		ratioofmassinsubsstruct=0.0;
@@ -291,11 +295,17 @@ struct OrbitData{
 	//The original Root Progenitor of the orbiting halo
 	long long halorootprogenID;
 
+	//The original Root Descendant of the orbiting halo
+	long long halorootdescenID;
+
 	//The original ID of its host halo
 	long long orbitedhaloID;
 
 	//The original Root Progenitor of the orbited halo from the halo catalog
 	long long orbitedhaloorigrootprogenID;
+
+	//The original Root Descendant of the orbited halo from the halo catalog
+	long long orbitedhaloorigrootdescenID;
 
 	//Type of datapoint this is 4 = apocenter, 3 = crossing 3x host's rvir, 2 = crossing 2x host's rvir, 1 = crossing 1x host's rvir, 0 = pericenter
 	float entrytype;
@@ -506,8 +516,10 @@ struct OrbitData{
 		orbithaloID=0;
 		haloID=0;
 		halorootprogenID=0;
+		halorootdescenID=0;
 		orbitedhaloID=0;
 		orbitedhaloorigrootprogenID=0;
+		orbitedhaloorigrootdescenID=0;
 		entrytype=0.0;
 		num_entrytype=0;
 		numorbits=0;
@@ -762,6 +774,7 @@ struct HDFCatalogNames{
 		datasetnames.push_back("Head");
 		datasetnames.push_back("Tail");
 		datasetnames.push_back("OrigRootProgenID");
+		datasetnames.push_back("OrigRootDescenID");
 		datasetnames.push_back("OrbitedHaloID");
 		datasetnames.push_back("npart");
 		datasetnames.push_back("FieldHalo");
@@ -785,6 +798,7 @@ struct HDFCatalogNames{
 
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
+		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasettypes.push_back(PredType::NATIVE_LLONG);
@@ -830,9 +844,13 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("HaloRootProgen_orig");
 		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasetnames.push_back("HaloRootDescen_orig");
+		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasetnames.push_back("OrbitedHaloID_orig");
 		datasettypes.push_back(PredType::NATIVE_ULLONG);
 		datasetnames.push_back("OrbitedHaloRootProgen_orig");
+		datasettypes.push_back(PredType::NATIVE_LLONG);
+		datasetnames.push_back("OrbitedHaloRootDescen_orig");
 		datasettypes.push_back(PredType::NATIVE_LLONG);
 		datasetnames.push_back("entrytype");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
