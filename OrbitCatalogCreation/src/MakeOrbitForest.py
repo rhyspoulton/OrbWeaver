@@ -1,6 +1,7 @@
 import numpy as np 
 from scipy.interpolate import InterpolatedUnivariateSpline
 import h5py
+from scipy.spatial import cKDTree
 
 def LogInterp(prevdata,nextdata,f):
 	inputdtype = prevdata.dtype
@@ -255,7 +256,11 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		mainOrbitHaloNpart = orbitdata[snap]["npart"][index]
 
 		#Lets find any halos that are within opt.numRvirSearch of this halo
-		indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["Xc"][index],orbitdata[snap]["Yc"][index],orbitdata[snap]["Zc"][index]],r = opt.numRvirSearch * orbitdata[snap]["R_200crit"][index])
+		if isinstance(pos_tree[snap], cKDTree):
+			indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["Xc"][index],orbitdata[snap]["Yc"][index],orbitdata[snap]["Zc"][index]],r = opt.numRvirSearch * orbitdata[snap]["R_200crit"][index])
+		else:
+			print("Warning: snapshot", snap, "does not contain a KDtree. This can occur due to a gap in the halo tree.")
+			indexes = []
 
 		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:
