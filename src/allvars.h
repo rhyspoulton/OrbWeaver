@@ -631,8 +631,9 @@ struct OrbitProps{
 	//Store the reference angles
 	double *refangles;
 
-	//Store the radial vector for the previous position
+	//Store the radial vector for the previous position and the comoving radius
 	double prevpassagepos[3];
+	double prevpassagercomove;
 
 	//The closest approach; that the halo had to its host
 	double closestapproach;
@@ -673,6 +674,7 @@ struct OrbitProps{
 		prevpassagepos[0]=0;
 		prevpassagepos[1]=0;
 		prevpassagepos[2]=0;
+		prevpassagercomove=0.0;
 		closestapproach=numeric_limits<double>::max();
 		closestapproachscalefactor=0.0;
 		minrmax=numeric_limits<double>::max();

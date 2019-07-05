@@ -422,25 +422,30 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.eta = ltot/jcirc;
 		}
 
+
+		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
+		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
+		if(rcomove<orbitprops.closestapproach)
+			orbitprops.closestapproach = rcomove;
+			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
+
+		//Put into the output data and convert back to physical
+		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
+		tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
+
 		/* Calculate various properties to be outputted if the halo is marked as orbiting */
 
 		if(orbitprops.orbitingflag){
-
-			prevpassager = sqrt(orbitprops.prevpassagepos[0]*orbitprops.prevpassagepos[0] + orbitprops.prevpassagepos[1]*orbitprops.prevpassagepos[1] + orbitprops.prevpassagepos[2]*orbitprops.prevpassagepos[2]);
-
+			// Calculate the orbit eccentricity
 			if(vrad>0)
-				tmporbitdata.orbiteccratio = (prevpassager-r)/(prevpassager+r);
+				tmporbitdata.orbiteccratio = (orbitprops.prevpassagercomove-rcomove)/(orbitprops.prevpassagercomove+rcomove);
 			else
-				tmporbitdata.orbiteccratio = (r-prevpassager)/(r+prevpassager);
-
-			// omega = acos((rx * orbitprops.prevpassagepos[0] + ry * orbitprops.prevpassagepos[1] + rz * orbitprops.prevpassagepos[2])/(r * sqrt(orbitprops.prevpassagepos[0]*orbitprops.prevpassagepos[0] + orbitprops.prevpassagepos[1]*orbitprops.prevpassagepos[1] + orbitprops.prevpassagepos[2]*orbitprops.prevpassagepos[2])));
+				tmporbitdata.orbiteccratio = (rcomove-orbitprops.prevpassagercomove)/(rcomove+orbitprops.prevpassagercomove);
 
 			// //Calculate the orbit period as 2x the previous passage
 			tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
 
 			// semiMajor = (prevpassager+r)/2.0; //sqrt((rx-orbitprops.prevpassagepos[0])*(rx-orbitprops.prevpassagepos[0]) + (ry-orbitprops.prevpassagepos[1])*(ry-orbitprops.prevpassagepos[1]) + (rz-orbitprops.prevpassagepos[2])*(rz-orbitprops.prevpassagepos[2]));
-
-			// keplarperi_wetzel2011od = 2*3.142 * sqrt((semiMajor*semiMajor*semiMajor)/(Cosmo.G * (hosthalo.mass + orbitinghalo.mass))) *(3.086e+19/3.15e+16);
 
 			//Remove any passages 
 			if((currentsnap - orbitprops.prevpassagesnap) < 3){
@@ -571,20 +576,11 @@ void CalcOrbitProps(Options &opt,
 		//Store the previous entrytype;
 		orbitprops.prevpassageentrytype = tmporbitdata.entrytype;
 
-		//Store the radial vector for this passage
+		//Store the radial vector for this passage and the comoving radius
 		orbitprops.prevpassagepos[0] = rx;
 		orbitprops.prevpassagepos[1] = ry;
 		orbitprops.prevpassagepos[2] = rz;
-
-		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
-		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
-		if(rcomove<orbitprops.closestapproach)
-			orbitprops.closestapproach = rcomove;
-			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
-
-		//Put into the output data and convert back to physical
-		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
-		tmporbitdata.closestapproachscalefactor = orbitprops.closestapproachscalefactor;
+		orbitprops.prevpassagercomove = rcomove;
 
 		//If not set to be orbiting then update the flag to say this object is orbiting
 		if(orbitprops.orbitingflag==false)
