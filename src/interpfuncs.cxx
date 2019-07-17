@@ -477,8 +477,8 @@ HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned l
 			//Now need to set the halo it is orbiting to be the descendant of the host halo
 			//that the previous halo was orbiting and then move on to descendant halo
 			interphalos[j].orbitedhaloid = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].descendant;
-			interphalos[j].origrootprogenitor = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].origrootprogenitor;
-			interphalos[j].origrootdescendant = snapdata[orbitinghalosnap].Halo[orbitinghaloindex].origrootdescendant;
+			interphalos[j].origrootprogenitor = snapdata[progensnap].Halo[progenindex].origrootprogenitor;
+			interphalos[j].origrootdescendant = snapdata[progensnap].Halo[progenindex].origrootdescendant;
 			orbitinghalosnap = (int)(interphalos[j].orbitedhaloid/opt.TEMPORALHALOIDVAL);
 			orbitinghaloindex = (unsigned long long)(interphalos[j].orbitedhaloid%opt.TEMPORALHALOIDVAL-1);
 
