@@ -336,6 +336,16 @@ void CalcOrbitProps(Options &opt,
 			orbitprops.numorbits= orbitprops.numorbits - 0.5;
 			tmporbitdata.numorbits=orbitprops.numorbits;
 
+
+			//Remove 1 from the num entrytype
+			tmporbitdata.num_entrytype--;
+			if(vrad>0){ //Peri-centric
+				num_entrytypes[0]--;
+			}
+			else{    //Apocentric
+				num_entrytypes[1]--;
+			}
+
 			if(orbitprops.numorbits<=0.5){
 				orbitprops.orbitingflag=false;
 			}
@@ -353,7 +363,7 @@ void CalcOrbitProps(Options &opt,
 				prevorbitprops.masslossrate += orbitprops.masslossrate;
 				prevorbitprops.phi += orbitprops.phi;
 
-				 orbitprops = prevorbitprops;
+				orbitprops = prevorbitprops;
 			}
 		}
 
@@ -447,12 +457,15 @@ void CalcOrbitProps(Options &opt,
 
 			// semiMajor = (prevpassager+r)/2.0; //sqrt((rx-orbitprops.prevpassagepos[0])*(rx-orbitprops.prevpassagepos[0]) + (ry-orbitprops.prevpassagepos[1])*(ry-orbitprops.prevpassagepos[1]) + (rz-orbitprops.prevpassagepos[2])*(rz-orbitprops.prevpassagepos[2]));
 
-			//Remove any passages 
+			//Remove any passages that happen within 2 snapshots since these are not sampled correctly
 			if((currentsnap - orbitprops.prevpassagesnap) < 3){
 
 				//Add the previous passage to the remove indexes
 				branchorbitdata.erase(branchorbitdata.begin()+orbitprops.prevpassageindex);
 
+				//Reset the num_entrytype for this passage and the previous passage
+				num_entrytypes[0]--;
+				num_entrytypes[1]--;
 
 				// If the object has only undergone one orbit then lets remove the passages and reset so the halo is 
 				// no longer set to be orbiting, otherwise update the previous passage quantities
