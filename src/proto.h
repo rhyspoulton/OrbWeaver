@@ -13,6 +13,7 @@ vector<HaloData> ReadSnapshotData(int snap, int i,Group snapgroup, Options &opt,
 
 double GetUniverseAge(double scalefactor);
 double GetScaleFactor(double uniage);
+double GetH(double scalefactor);
 
 double LogInterp(double prevdata, double nextdata, double f);
 double LinInterp(double prevdata, double nextdata, double f);

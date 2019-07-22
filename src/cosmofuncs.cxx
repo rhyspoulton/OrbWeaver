@@ -1,6 +1,11 @@
 
 #include "orbweaver.h"
 
+// Function to find the Hubble parameter given a scalefactor
+double GetH(double a){
+	return Cosmo.h * 100.0 * sqrt(Cosmo.omegaM/(a*a*a) + (1.0 - Cosmo.omegaM));
+}
+
 double Integrand(double a,void *p){
 	double H0 = 100*Cosmo.h;
 	double HT = (3.08568025e+19/(H0 * 31556926))/1e+09;

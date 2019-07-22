@@ -267,12 +267,14 @@ struct SnapData{
 	double scalefactor;
 	double uniage; // Age of the universe at this snapshot
 	double physboxsize; //The physical size of the box
+	double Hz; // The Hubble parameter at this snapshot
 	vector<HaloData> Halo;
 
 	SnapData(){
 		numhalos=0;
 		scalefactor=0.0;
 		uniage=0.0;
+		Hz=0.0;
 		Halo.empty();
 	};	
 	~SnapData(){

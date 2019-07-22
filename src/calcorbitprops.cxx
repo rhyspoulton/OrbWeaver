@@ -30,13 +30,15 @@ void CalcOrbitProps(Options &opt,
 	double rx,ry,rz,vrx,vry,vrz,r,rcomove,vrad,vrel;
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
-	rx = hosthalo.x - orbitinghalo.x;
-	ry = hosthalo.y - orbitinghalo.y;
-	rz = hosthalo.z - orbitinghalo.z;
-	vrx = hosthalo.vx - orbitinghalo.vx;
-	vry = hosthalo.vy - orbitinghalo.vy;
-	vrz = hosthalo.vz - orbitinghalo.vz;
+	rx = orbitinghalo.x - hosthalo.x;
+	ry = orbitinghalo.y - hosthalo.y;
+	rz = orbitinghalo.z - hosthalo.z;
 	r = sqrt(rx * rx + ry * ry + rz * rz);
+
+	// Calculate the velocity relative to the host including the hubble flow
+	vrx = orbitinghalo.vx - hosthalo.vx + r * snapdata[currentsnap].Hz;
+	vry = orbitinghalo.vy - hosthalo.vy + r * snapdata[currentsnap].Hz;
+	vrz = orbitinghalo.vz - hosthalo.vz + r * snapdata[currentsnap].Hz;
 	vrad = (rx * vrx + ry * vry + rz * vrz) / r;
 	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
@@ -89,14 +91,16 @@ void CalcOrbitProps(Options &opt,
 
 	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvrad;
 
-	//Lets find the same for the previous halo
-	prevrx = prevhosthalo.x - prevorbitinghalo.x;
-	prevry = prevhosthalo.y - prevorbitinghalo.y;
-	prevrz = prevhosthalo.z - prevorbitinghalo.z;
-	prevvrx = prevhosthalo.vx - prevorbitinghalo.vx;
-	prevvry = prevhosthalo.vy - prevorbitinghalo.vy;
-	prevvrz = prevhosthalo.vz - prevorbitinghalo.vz;
+	//Lets find the previous orbiting halo host distance
+	prevrx = prevorbitinghalo.x - prevhosthalo.x;
+	prevry = prevorbitinghalo.y - prevhosthalo.y;
+	prevrz = prevorbitinghalo.z - prevhosthalo.z;
 	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
+
+	// Calculate the velocity relative to the host including the hubble flow
+	prevvrx = prevorbitinghalo.vx - prevhosthalo.vx + r * snapdata[prevsnap].Hz;
+	prevvry = prevorbitinghalo.vy - prevhosthalo.vy + r * snapdata[prevsnap].Hz;
+	prevvrz = prevorbitinghalo.vz - prevhosthalo.vz + r * snapdata[prevsnap].Hz;
 	prevvrad = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 
@@ -213,9 +217,9 @@ void CalcOrbitProps(Options &opt,
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
 		r = sqrt(rx*rx + ry*ry + rz*rz);
-		vrx = tmporbitdata.vxrel;
-		vry = tmporbitdata.vyrel;
-		vrz = tmporbitdata.vzrel;
+		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
+		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
+		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
 		vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
@@ -380,9 +384,9 @@ void CalcOrbitProps(Options &opt,
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
 		r = sqrt(rx*rx + ry*ry + rz*rz);
-		vrx = tmporbitdata.vxrel;
-		vry = tmporbitdata.vyrel;
-		vrz = tmporbitdata.vzrel;
+		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
+		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
+		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
 
 		//The difference in time since the previous snapshot
 		deltat = tmporbitdata.uniage - snapdata[prevsnap].uniage;
@@ -625,14 +629,17 @@ void AddFinalEntry(Options &opt,
 	//This is where all the orbital properties are calculate for the halo at this snapshot
 	double rx,ry,rz,vrx,vry,vrz,r,rcomove, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
 
+
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
-	rx = hosthalo.x - orbitinghalo.x;
-	ry = hosthalo.y - orbitinghalo.y;
-	rz = hosthalo.z - orbitinghalo.z;
-	vrx = hosthalo.vx - orbitinghalo.vx;
-	vry = hosthalo.vy - orbitinghalo.vy;
-	vrz = hosthalo.vz - orbitinghalo.vz;
+	rx = orbitinghalo.x - hosthalo.x;
+	ry = orbitinghalo.y - hosthalo.y;
+	rz = orbitinghalo.z - hosthalo.z;
 	r = sqrt(rx * rx + ry * ry + rz * rz);
+
+	// Calculate the velocity relative to the host including the hubble flow
+	vrx = orbitinghalo.vx - hosthalo.vx + r * snapdata[currentsnap].Hz;
+	vry = orbitinghalo.vy - hosthalo.vy + r * snapdata[currentsnap].Hz;
+	vrz = orbitinghalo.vz - hosthalo.vz + r * snapdata[currentsnap].Hz;
 	vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 
