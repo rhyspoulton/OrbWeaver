@@ -17,8 +17,8 @@ from orbio import ReadVELOCIraptorTreeandHalodata,OutputOrbitCatalog
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c",action="store",dest="configfile",help="Configuration file (orbweaver.cfg)",required=True)
-parser.add_argument("-t",action="store",dest="inputtree",help="The VELOCIraptor walkabletree file",required=True)
-parser.add_argument("-i",action="store",dest="inputhalobbasename",help="The base name for the VELOCIraptor catalog (/path/to/halo/catalog/snapshot_)",required=True)
+parser.add_argument("-t",action="store",dest="inputtreefilename",help="The VELOCIraptor walkabletree file",required=True)
+parser.add_argument("-i",action="store",dest="inputhalofilelistname",help="The filelist containing a list of the base filenames for VELOCIraptor output (e.g. /path/to/VELOCIraptor/output/snapshot_###.VELOCIraptor)",required=True)
 parser.add_argument("-o",action="store",dest="outfilebasename",help="The base name for the output catalogs",required=True)
 tmpOpt = parser.parse_args()
 
@@ -26,7 +26,7 @@ tmpOpt = parser.parse_args()
 opt = Options(tmpOpt)
 
 #Load in the VELOCIraptor halodata and tree
-desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xc","Yc","Zc","VXc","VYc","VZc","Vmax","Rmax","numSubStruct","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
+desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xcminpot","Ycminpot","Zcminpot","VXc","VYc","VZc","Vmax","Rmax","numSubStruct","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
 atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
 
 

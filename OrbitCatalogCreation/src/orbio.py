@@ -24,7 +24,7 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	start=time.clock()
 	if(opt.iverbose): print("Reading the walkable tree")
 	sys.stdout.flush()
-	tree,numsnaps = VPT.ReadWalkableHDFTree(opt.inputtree,False)
+	tree,numsnaps = VPT.ReadWalkableHDFTree(opt.inputtreefilename,False)
 	if(opt.iverbose): print("Done reading the walkable tree in",time.clock()-start)
 	sys.stdout.flush()
 
@@ -34,16 +34,31 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	#The fields that needs to be converted to physical
 	physconvertfields = ["Xc","Yc","Zc","R_200crit","Rmax","Lx","Ly","Lz"]
 
+	#Open up the filelist and extract all the filenames
+	snapfilelist = open(opt.inputhalofilelistname,"r")
+	snapfilenames = [line.strip() for line in snapfilelist]
+	snapfilelist.close()
+
+	#Check the number of files in the VELOCIraptor filelist is the same as whats reported by the walkable tree
+	if(len(snapfilenames)!=opt.numsnaps):
+		raise IOError("The number of input snapshots as reported by the walkable tree is not the same as the\n number of files in the input halo filelist, please correct this")
+
 	start=time.clock()
 	if(opt.iverbose): print("Reading in the halo catalog")
 	sys.stdout.flush()
-	numhalos=np.zeros(numsnaps,dtype=np.uint64)
-	halodata=[dict() for i in range(numsnaps)]
-	atime=np.zeros(numsnaps)
-	for i in range(numsnaps):
+	numhalos=np.zeros(opt.numsnaps,dtype=np.uint64)
+	halodata=[dict() for i in range(opt.numsnaps)]
+	atime=np.zeros(opt.numsnaps)
+	for i in range(opt.numsnaps):
 		start1 = time.clock()
-		halodata[i],numhalos[i]=VPT.ReadPropertyFile(opt.inputhalobbasename+'%03d.VELOCIraptor'%i, 2, 0, 0, desiredfields)
+		halodata[i],numhalos[i]=VPT.ReadPropertyFile(snapfilenames[i], 2, 0, 0, desiredfields)
 		atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
+
+		#Convert the fields to the Desired names
+		halodata["Xc"] = halodata.pop("Xcminpot")
+		halodata["Yc"] = halodata.pop("Ycminpot")
+		halodata["Zc"] = halodata.pop("Zcminpot")
+
 		for key in halodata[i].keys():
 			if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
 
@@ -65,7 +80,6 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	sys.stdout.flush()
 
 	VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata)
-
 
 	unitdata = halodata[0]["UnitInfo"]
 	cosmodata = halodata[0]["SimulationInfo"]

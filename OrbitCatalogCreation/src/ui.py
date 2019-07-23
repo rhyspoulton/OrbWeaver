@@ -9,8 +9,8 @@ class Options(object):
 
 		self.VERSION = 0.10
 		self.configfile = tmpOpt.configfile
-		self.inputtree = tmpOpt.inputtree
-		self.inputhalobbasename = tmpOpt.inputhalobbasename
+		self.inputtreefilename = tmpOpt.inputtreefilename
+		self.inputhalofilelistname = tmpOpt.inputhalofilelistname
 		self.outfilebasename = tmpOpt.outfilebasename
 		self.numsnaps=100
 		self.numRvirSearch = 4
