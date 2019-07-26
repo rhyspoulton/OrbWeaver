@@ -98,9 +98,9 @@ void CalcOrbitProps(Options &opt,
 	prevr = sqrt(prevrx * prevrx + prevry * prevry + prevrz * prevrz);
 
 	// Calculate the velocity relative to the host including the hubble flow
-	prevvrx = prevorbitinghalo.vx - prevhosthalo.vx + r * snapdata[prevsnap].Hz;
-	prevvry = prevorbitinghalo.vy - prevhosthalo.vy + r * snapdata[prevsnap].Hz;
-	prevvrz = prevorbitinghalo.vz - prevhosthalo.vz + r * snapdata[prevsnap].Hz;
+	prevvrx = prevorbitinghalo.vx - prevhosthalo.vx + prevr * snapdata[prevsnap].Hz;
+	prevvry = prevorbitinghalo.vy - prevhosthalo.vy + prevr * snapdata[prevsnap].Hz;
+	prevvrz = prevorbitinghalo.vz - prevhosthalo.vz + prevr * snapdata[prevsnap].Hz;
 	prevvrad = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
 
 
