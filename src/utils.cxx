@@ -1,7 +1,7 @@
 #include "orbweaver.h"
 
 
-double *computeAngles(double prevpos[3], OrbitData orbitdata){
+vector<double> computeAngles(vector<double> prevpos, OrbitData orbitdata){
 
 	/*
 	
@@ -11,7 +11,7 @@ double *computeAngles(double prevpos[3], OrbitData orbitdata){
 
 
 	double x[3],y[3],z[3], mag;
-	double* angles = new double[3];
+	vector<double> angles(3);
 
 	//Get the x-axis which is along the semi-major axis
 	x[0] = orbitdata.xrel - prevpos[0];

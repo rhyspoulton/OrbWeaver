@@ -8,7 +8,7 @@ void CalcOrbitProps(Options &opt,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
 	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
 	vector<SnapData> &snapdata,
-	int* num_entrytypes, OrbitProps &orbitprops, OrbitProps &prevorbitprops,
+	vector<int> num_entrytypes, OrbitProps &orbitprops, OrbitProps &prevorbitprops,
 	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
@@ -143,7 +143,8 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od, *currangles;
+	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od;
+	vector<double> currangles;
 	int prevpassageindex;
 
 
@@ -549,7 +550,7 @@ void CalcOrbitProps(Options &opt,
 
 
 			//If the reference angles hasn't been set then lets set it
-			if(orbitprops.refangles == NULL){
+			if(accumulate(orbitprops.refangles.begin(),orbitprops.refangles.end(),0) == 0){
 				orbitprops.refangles = computeAngles(orbitprops.prevpassagepos,tmporbitdata);
 			}
 			else{
@@ -823,7 +824,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	HaloData prevorbitinghalo, HaloData prevhosthalo,
 	vector<OrbitData> branchorbitdata, OrbitData tmporbitdata,
 	OrbitProps orbitprops, OrbitProps prevorbitprops,
-	int *num_entrytypes){
+	vector <int> num_entrytypes){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	int halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
@@ -1012,7 +1013,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata){
 
 	unsigned long long orbitID = 0;
-	int *num_entrytypes = new int[opt.totnumtypeofentries];
+	vector<int> num_entrytypes (opt.totnumtypeofentries);
 
 	//Keep track of the previous halos halodata and orbitdata
 	HaloData prevorbitinghalo;
@@ -1038,7 +1039,7 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 			if((snapdata[snap].Halo[i].doneflag) | (snapdata[snap].Halo[i].orbitedhaloid==-1)) continue;
 
 			//Reset all data to zero
-			for(int j=0; j<opt.totnumtypeofentries; j++) num_entrytypes[j]=0;
+			fill(num_entrytypes.begin(),num_entrytypes.end(),0);
 			prevorbitinghalo = {};
 			prevhosthalo = {};
 			branchorbitdata.clear();

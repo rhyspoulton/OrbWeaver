@@ -37,8 +37,8 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 	unsigned long long *ulongbuff=new unsigned long long[chunksize];
 	long long *longbuff=new long long[chunksize];
 	unsigned int *uintbuff=new unsigned int[chunksize];
-	float *floatbuff=new float[chunksize*3];
-	double *doublebuff=new double[chunksize*3];
+	float *floatbuff=new float[chunksize];
+	double *doublebuff=new double[chunksize];
 	bool *boolbuff = new bool[chunksize];
 
 	//Keep track of which field that is being read
@@ -452,11 +452,16 @@ vector<HaloData> ReadSnapshotData(int snap, Group snapgroup, Options &opt, vecto
 		offset+=ichunk;	
 		}
 
-
-	delete[] doublebuff;
+	//Delete all the buffers
+	delete[] intbuff;
+	delete[] ulongbuff;
 	delete[] longbuff;
-
-
+	delete[] uintbuff;
+	delete[] floatbuff;
+	delete[] doublebuff;
+	delete[] boolbuff;
+	delete[] halosdataset;
+	delete[] halosdataspace;
 				
 	
 	return Halo;
@@ -701,6 +706,7 @@ void ReadData(Options &opt, vector<SnapData> &snapdata){
 		}
 
 		Fhdf->close();
+		delete Fhdf;
 	} 
 
 	catch(GroupIException error)
@@ -763,11 +769,11 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 	}
 
 	//Create the buffers to load the data into
-	unsigned long long ullongbuf[numentries];
-	long long llongbuf[numentries];
-	int intbuff[numentries];
-	float floatbuff[numentries];
-	bool boolbuff[numentries];
+	unsigned long long *ullongbuf = new unsigned long long[numentries];
+	long long *llongbuf = new long long[numentries];
+	int *intbuff = new int[numentries];
+	float *floatbuff = new float[numentries];
+	bool *boolbuff = new bool[numentries];
 
 	//Lets setup the info for the datasets
 	dims[0] = numentries;
@@ -804,7 +810,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		//The inputfile which was processed to produce this catalog
 		attrspace=DataSpace(H5S_SCALAR);
 		// Create new string datatype for attribute
-		StrType strdatatype(PredType::C_S1, 1000);
+		StrType strdatatype(PredType::C_S1, strlen(opt.fname));
 		// Set up write buffer for attribute
 		const H5std_string strwritebuf (opt.fname);
 		attr = file.createAttribute("Input_preprocessed_catalog", strdatatype, attrspace);
@@ -2723,6 +2729,14 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 
 		file.close();
+
+		delete[] ullongbuf;
+		delete[] llongbuf;
+		delete[] intbuff;
+		delete[] floatbuff;
+		delete[] boolbuff;
+
+
 	}
 	catch(GroupIException error)
 	{

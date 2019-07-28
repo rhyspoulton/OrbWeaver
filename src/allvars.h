@@ -12,6 +12,7 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <math.h>
 #include <getopt.h>
 #include <sys/stat.h>
@@ -631,10 +632,10 @@ struct OrbitProps{
 	double mergertime;
 
 	//Store the reference angles
-	double *refangles;
+	vector<double> refangles;
 
 	//Store the radial vector for the previous position and the comoving radius
-	double prevpassagepos[3];
+	vector<double> prevpassagepos;
 	double prevpassagercomove;
 
 	//The closest approach; that the halo had to its host
@@ -663,7 +664,6 @@ struct OrbitProps{
 
 	OrbitProps(){
 		orbitingflag = false;
-        refangles = NULL;
 		numorbits=0.0;
 		prevcrossingentrytype=0.0;
 		prevpassagesnap = 0;
@@ -673,9 +673,8 @@ struct OrbitProps{
 		prevpassageindex=0;
 		mergertime=0.0;
 		masslossrate=0.0;
-		prevpassagepos[0]=0;
-		prevpassagepos[1]=0;
-		prevpassagepos[2]=0;
+		refangles.resize(3);
+		prevpassagepos.resize(3);
 		prevpassagercomove=0.0;
 		closestapproach=numeric_limits<double>::max();
 		closestapproachscalefactor=0.0;
