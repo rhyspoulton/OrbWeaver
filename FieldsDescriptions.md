@@ -40,7 +40,7 @@
 | VZ  | km/s | Z component of the halos velocity in the simulation |
 | Npart | N/A | Number of particles in the orbiting halo |
 | Mass  | solar masses | Mass of the halo (depends on mass definition given) |
-| R_200crit | phys Mpc | Virial radius of the halo |
+| Radius | phys Mpc | Radius of the halo (depends on mass definition given)|
 | min_Rscale | phys Mpc |  Minimum of the scale radius in this orbit history, used to see if the halo can be disrupted artificially due to inadequate force softening | 
 | min_Rmax | phys Mpc |  Minimum of the radius that the maximu circular velocity is at in this orbit history, used to see if the halo can be disrupted artificially due to inadequate force softening. | 
 | Rmax  | phys Mpc | Radial distance of Vmax |
@@ -68,7 +68,7 @@
 | LZrel_ave | solar masses phys Mpc km/s | The average z component of the orbital angular momentum vector since last apsis point |
 |Npart_host | N/A | Number of particle in its host halo |
 | Mass_host  | solar masses | Mass of its host (depends on mass definition given) |
-| R\_200crit_host  | phys Mpc | Virial radius of its host |
+| Radius_host  | phys Mpc | Radius of its host (depends on mass definition given) |
 | Rmax_host  | phys Mpc | Radial distance of Vmax for its host |
 | Vmax_host  | km/s | Maximum circular velocity of its host
 | cNFW_host | N/A  | Concentration of its host |
