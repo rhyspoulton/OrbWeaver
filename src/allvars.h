@@ -332,7 +332,7 @@ struct OrbitData{
 	float closestapproachscalefactor;
 
 	//The orbital eccentricity from ratio of passage distances
-	float orbiteccratio;
+	float orbitecc_ratio;
 
 	//The instananeous orbital energy
 	float orbitalenergy_inst;
@@ -346,14 +346,14 @@ struct OrbitData{
 	//The angular momentum of a circular orbit with the same energy
 	float eta;
 
-	//The peri-centric distance from wetzel 2011
-	float rperi_wetzel2011;
+	//The peri-centric distance from orbital energy and angular momentum calculation
+	float rperi_calc;
 
-	//The apo-centric distance from wetzel 2011
-	float rapo_wetzel2011;
+	//The apo-centric distance from orbital energy and angular momentum calculation
+	float rapo_calc;
 
-	//The orbital eccentricity from wetzel 2011
-	float orbitecc_wetzel2011;
+	//The orbital eccentricity from orbital energy and angular momentum calculation
+	float orbitecc_calc;
 
 	//Instantaneous mass loss rate
 	float masslossrate_inst;
@@ -530,14 +530,14 @@ struct OrbitData{
 		orbitperiod=0.0;
 		closestapproach=0.0;
 		closestapproachscalefactor=0.0;
-		orbitecc_wetzel2011=0.0;
-		orbiteccratio=0.0;
+		orbitecc_calc=0.0;
+		orbitecc_ratio=0.0;
 		orbitalenergy_inst=0.0;
 		orbitalenergy_ave=0.0;
 		rcirc=0.0;
 		eta=0.0;
-		rperi_wetzel2011=0.0;
-		rapo_wetzel2011=0.0;
+		rperi_calc=0.0;
+		rapo_calc=0.0;
 		masslossrate_inst=0.0;
 		masslossrate_ave=0.0;
 		longascnode=0.0;
@@ -658,7 +658,6 @@ struct OrbitProps{
 	double hostlx;
 	double hostly;
 	double hostlz;
-	double ltot;
 	double E;
 	double phi;
 
@@ -684,7 +683,6 @@ struct OrbitProps{
 		lx=0.0;
 		ly=0.0;
 		lz=0.0;
-		ltot=0.0;
 		E=0.0;
 		phi=0;
 	};
@@ -869,7 +867,7 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("closestapproachscalefactor");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("orbiteccratio");
+		datasetnames.push_back("orbitecc_ratio");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("orbitalenergy_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
@@ -879,11 +877,11 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Eta");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Rperi_Wetzel2011");
+		datasetnames.push_back("Rperi_calc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("Rapo_Wetzel2011");
+		datasetnames.push_back("Rapo_calc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
-		datasetnames.push_back("orbitecc_Wetzel2011");
+		datasetnames.push_back("orbitecc_calc");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("masslossrate_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

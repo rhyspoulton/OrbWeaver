@@ -1198,7 +1198,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		idataset++;
 
 
-		/* orbiteccratio */
+		/* orbitecc_ratio */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1219,7 +1219,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbiteccratio;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc_ratio;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
@@ -1323,7 +1323,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* rperi_wetzel2011 */
+		/* rperi_calc */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1344,11 +1344,11 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi_wetzel2011;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rperi_calc;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* rapo_wetzel2011 */
+		/* rapo_calc */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1369,11 +1369,11 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo_wetzel2011;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].rapo_calc;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 
-		/* orbitecc_wetzel2011 */
+		/* orbitecc_calc */
 
 		//Create the dataset
 		dataspace = DataSpace(rank,dims);
@@ -1394,7 +1394,7 @@ void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata){
 		}
 
 		//Write out the dataset
-		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc_wetzel2011;
+		for(unsigned int j=0; j<numentries;j++) floatbuff[j] = orbitdata[j].orbitecc_calc;
 		dataset.write(floatbuff,hdfdatasetnames.datasettypes[idataset]);
 		idataset++;
 

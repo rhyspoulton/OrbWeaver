@@ -124,9 +124,6 @@ void CalcOrbitProps(Options &opt,
 		orbitprops.ly += mu * ly;
 		orbitprops.lz += mu * lz;
 
-		//The halos total orbital angular momentum
-		orbitprops.ltot += sqrt(lx*lx + ly*ly + lz*lz);
-
 		//The halos orbital energy
 		orbitprops.E += 0.5 * mu * vrel * vrel - (Cosmo.G * orbitinghalo.mass * hosthalo.mass)/r;
 
@@ -275,9 +272,17 @@ void CalcOrbitProps(Options &opt,
 
 		//Any additional properties to be calculated here
 
+		//The halos orbital eccentricity calculated from energy and angular momentum
+		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
 		//Set the orbit period and eccentricty as -1.0
 		tmporbitdata.orbitperiod = -1.0;
-		tmporbitdata.orbitecc_wetzel2011 = -1.0;
 		tmporbitdata.lxrel_ave = -1.0;
 		tmporbitdata.lyrel_ave = -1.0;
 		tmporbitdata.lzrel_ave = -1.0;
@@ -360,7 +365,6 @@ void CalcOrbitProps(Options &opt,
 				prevorbitprops.ly += orbitprops.ly;
 				prevorbitprops.lz += orbitprops.lz;
 				prevorbitprops.E += orbitprops.E;
-				prevorbitprops.ltot += orbitprops.ltot;
 				prevorbitprops.mu += orbitprops.mu;
 				prevorbitprops.hostlx += orbitprops.hostlx;
 				prevorbitprops.hostly += orbitprops.hostlx;
@@ -437,6 +441,15 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.eta = ltot/jcirc;
 		}
 
+		//The halos orbital eccentricity calculated from energy and angular momentum
+		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
+		//Find the orbits apo and pericentric distances
+		tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
 
 		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
 		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
@@ -453,9 +466,9 @@ void CalcOrbitProps(Options &opt,
 		if(orbitprops.orbitingflag){
 			// Calculate the orbit eccentricity
 			if(vrad>0)
-				tmporbitdata.orbiteccratio = (orbitprops.prevpassagercomove-rcomove)/(orbitprops.prevpassagercomove+rcomove);
+				tmporbitdata.orbitecc_ratio = (orbitprops.prevpassagercomove-rcomove)/(orbitprops.prevpassagercomove+rcomove);
 			else
-				tmporbitdata.orbiteccratio = (rcomove-orbitprops.prevpassagercomove)/(rcomove+orbitprops.prevpassagercomove);
+				tmporbitdata.orbitecc_ratio = (rcomove-orbitprops.prevpassagercomove)/(rcomove+orbitprops.prevpassagercomove);
 
 			// //Calculate the orbit period as 2x the previous passage
 			tmporbitdata.orbitperiod = 2.0* (tmporbitdata.uniage - orbitprops.prevpassagetime);
@@ -482,7 +495,6 @@ void CalcOrbitProps(Options &opt,
 					orbitprops.ly = 0.0;
 					orbitprops.lz = 0.0;
 					orbitprops.E = 0.0;
-					orbitprops.ltot = 0.0;
 					orbitprops.mu = 0.0;
 					orbitprops.hostlx = 0.0;
 					orbitprops.hostly = 0.0;
@@ -497,7 +509,6 @@ void CalcOrbitProps(Options &opt,
 					prevorbitprops.ly += orbitprops.ly;
 					prevorbitprops.lz += orbitprops.lz;
 					prevorbitprops.E += orbitprops.E;
-					prevorbitprops.ltot += orbitprops.ltot;
 					prevorbitprops.mu += orbitprops.mu;
 					prevorbitprops.hostlx += orbitprops.hostlx;
 					prevorbitprops.hostly += orbitprops.hostlx;
@@ -514,20 +525,10 @@ void CalcOrbitProps(Options &opt,
 				return;
 			}
 
-			//Find the average energy, total angular momentum and reduced mass
-			ltot = orbitprops.ltot / (double)(currentsnap - orbitprops.prevpassagesnap);
+			//Find the average energy and reduced mass
 			mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
-
 			tmporbitdata.orbitalenergy_ave = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);;
 
-			//The halos orbital eccentricity from the average properties
-			tmporbitdata.orbitecc_wetzel2011 = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_ave * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
-
-			//Find the orbits apo and pericentric distances
-			tmporbitdata.rperi_wetzel2011 = (ltot*ltot)/((1+tmporbitdata.orbitecc_wetzel2011) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
-
-			//Find the orbits apo and pericentric distances
-			tmporbitdata.rapo_wetzel2011 = (ltot*ltot)/((1-tmporbitdata.orbitecc_wetzel2011) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu); //1.0 / ((2.0/r) - (vr*vr)/(Cosmo.G*hosthalo.mass));
 
 			//The average mass loss rate
 			tmporbitdata.masslossrate_ave = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -572,7 +573,6 @@ void CalcOrbitProps(Options &opt,
 			orbitprops.ly = 0.0;
 			orbitprops.lz = 0.0;
 			orbitprops.E = 0.0;
-			orbitprops.ltot = 0.0;
 			orbitprops.mu = 0.0;
 			orbitprops.hostlx = 0.0;
 			orbitprops.hostly = 0.0;
@@ -775,9 +775,17 @@ void AddFinalEntry(Options &opt,
 
 	//Any additional properties to be calculated here
 
+	//The halos orbital eccentricity calculated from energy and angular momentum
+	tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+
+	//Find the orbits apo and pericentric distances
+	tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
+	//Find the orbits apo and pericentric distances
+	tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+
 	//Set the orbit period and eccentricty as -1.0
 	tmporbitdata.orbitperiod = -1.0;
-	tmporbitdata.orbitecc_wetzel2011 = -1.0;
 	tmporbitdata.lxrel_ave = -1.0;
 	tmporbitdata.lyrel_ave = -1.0;
 	tmporbitdata.lzrel_ave = -1.0;
