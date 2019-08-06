@@ -1,6 +1,41 @@
 import numpy as np
 
+def GetDatasetNames(opt):
 
+	orbitfields = {}
+
+	#Find the name of the datasetfile given the desired InputFormat
+	if(opt.InputFormat==0):
+
+		datasetfile = "example_inputs/input_VELOCIraptor_catalog.txt"
+
+		print("Loading in the halos from VELOCIraptor and merger tree from TreeFrog")
+		print("Extracting the datasets names from",datasetfile)
+
+	else:
+		raise NotImplementedError(opt.InputFormat,"is currently not supported. If you are interested in having OrbWeaver support it please contact the developer")
+
+	#Extract the dataset names from the file
+	with open(datasetfile,"r") as f:
+
+		for line in f:
+
+			if(line[0]=="#"): continue
+
+			line = line.replace(" ","")
+
+			line = line.strip()
+
+			if(not line): continue
+
+			line = line.split(":")
+
+			if(len(line)!=2):
+				IOError(line,"has no corresponding halo catalog field  please update this")
+
+			orbitfields[line[0]] = line[1]
+
+	return orbitfields
 
 class Options(object):
 
@@ -13,6 +48,7 @@ class Options(object):
 		self.inputhalofilelistname = tmpOpt.inputhalofilelistname
 		self.outfilebasename = tmpOpt.outfilebasename
 		self.numsnaps=100
+		self.InputFormat = 0
 		self.numRvirSearch = 4
 		self.NpartLimHost = 10000
 		self.MinSnapExist = 20
@@ -34,7 +70,10 @@ class Options(object):
 
 				line = line.split("=")
 
-				if(line[0]=="numRvirSearch"):
+				if(line[0]=="InputFormat"):
+					self.InputFormat=int(line[1])
+
+				elif(line[0]=="numRvirSearch"):
 					self.numRvirSearch=np.float32(line[1])
 
 				elif(line[0]=="NpartLimHost"):

@@ -3,6 +3,7 @@
 ## Developed by
 	Rhys Poulton
 	Additional contributors:
+	Lucie Bakels
 	Pascal Elahi
 
 OrbWeaver is designed to extract orbits from halo catalogs enabling a large statistical study of their orbital parameters. This code is presented in Poulton et al., in prep, along with some results.
@@ -26,9 +27,17 @@ There are two stages to running OrbWeaver the first is to run to generate a prep
 
  The code to generate these preprocessed files are run by the command:
 
-	python OrbitCatalogCreation/CreateOrbitCatalog.py -c <configuration filename (example_configuration.cfg)> -i <file containing a list of the base VELOCIraptor filename> -t <walkable tree file> -o <output base filename>
+	python OrbitCatalogCreation/CreateOrbitCatalog.py -c <configuration filename (example_configuration.cfg)> -i <file containing a list of the base VELOCIraptor filenames> -t <walkable tree file> -o <output base filename>
 
-In the configuration file you can modify the orbit host selection and the region around orbit host which is used for the superset of orbiting halos. Each orbit host has a orbit forest (that contains halos that ever passed within the region of interest) and the code outputs a file that contains multiple orbit forest within them, the number is set by numOrbitForestPerFile in the configuration file. So multiple preprocessed files are created with the naming scheme:
+In the configuration file, you can specify the input catalog format, this will load in the datasets that are specified from the following files:
+
+| Input catalog name | Name of dataset names files |
+|--------------------|-----------------------------|
+| VELOCIraptor       | OrbitCatalogCreation/example\_inputs/input\_VELOCIraptor\_catalog.txt |
+
+*If the desired input catalog is not specified here it is not currently supported, please contact the lead developer.*
+
+where the datasets loaded can be changed if desired and additional datasets can be loaded (coming soon). You can also modify the orbit host selection and the region around orbit host which is used for the superset of orbiting halos, in the configuration file. Each orbit host has an orbit forest (that contains halos that ever passed within the region of interest), and the code outputs a file that contains multiple orbit forest within them, the number is set by numOrbitForestPerFile in the configuration file. So multiple preprocessed files are created with the naming scheme:
 
 	<output base filename>.<fileno>.orbweaver.preprocessed.hdf
 

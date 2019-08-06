@@ -84,8 +84,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 	#Store the snapshots to be interpolated
 	interpsnaps = []
-	splinefields = ["Xc","Yc","Zc","VXc","VYc","VZc","Lx","Ly","Lz"]
-	loginterpfields = ["Mass_200crit","R_200crit","Vmax","Rmax","Mass_tot","Mass_FOF"]
+	splinefields = ["X","Y","Z","Vx","Vy","Vz","Lx","Ly","Lz"]
+	loginterpfields = ["Mass","Radius","Vmax","Rmax"]
 	lininterpfields = ["npart","cNFW","numSubStruct"]
 
 	#Store the orbital data
@@ -132,13 +132,13 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[snap]["OrigRootDescenID"].append(np.uint64(origRootHeadID))
 
 			#Set a boolean if this halo is a host halo or not
-			orbitdata[snap]["FieldHalo"].append(halodata[snap]["hostHaloID"][haloIndex]==-1)
+			orbitdata[snap]["FieldHalo"].append(halodata[snap]["host_id"][haloIndex]==-1)
 
 			#Append if the orbit host has merged
 			orbitdata[snap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			prevMassinSubStructure =halodata[snap]["MassinSubStruct"][haloIndex]/halodata[snap]["Mass_200crit"][haloIndex]
+			prevMassinSubStructure =halodata[snap]["MassinSubStruct"][haloIndex]/halodata[snap]["Mass"][haloIndex]
 
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(prevMassinSubStructure)
 
@@ -160,7 +160,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[snap]["OrigRootDescenID"].append(np.uint64(origRootHeadID))
 
 			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
-			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1 & halodata[headSnap]["hostHaloID"][headIndex]==-1)
+			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["host_id"][haloIndex]==-1 & halodata[headSnap]["host_id"][headIndex]==-1)
 
 			#Append if the orbit host has merged
 			orbitdata[snap]["hostMerges"].append(hostMerges)
@@ -169,8 +169,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			f = (snap - haloSnap)/(headSnap - haloSnap)
 
 			#Find the ratio of mass in substructure
-			# nextSubStructIndexes = np.where(halodata[snap]["hostHaloID"]==ID)[0]
-			nextMassinSubStructure =halodata[headSnap]["MassinSubStruct"][headIndex]/halodata[headSnap]["Mass_200crit"][headIndex]
+			# nextSubStructIndexes = np.where(halodata[snap]["host_id"]==ID)[0]
+			nextMassinSubStructure =halodata[headSnap]["MassinSubStruct"][headIndex]/halodata[headSnap]["Mass"][headIndex]
 
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(LinInterp(prevMassinSubStructure,nextMassinSubStructure,f))
 
@@ -257,7 +257,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 		#Lets find any halos that are within opt.numRvirSearch of this halo
 		if isinstance(pos_tree[snap], cKDTree):
-			indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["Xc"][index],orbitdata[snap]["Yc"][index],orbitdata[snap]["Zc"][index]],r = opt.numRvirSearch * orbitdata[snap]["R_200crit"][index])
+			indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["X"][index],orbitdata[snap]["Y"][index],orbitdata[snap]["Z"][index]],r = opt.numRvirSearch * orbitdata[snap]["Radius"][index])
 		else:
 			print("Warning: snapshot", snap, "does not contain a KDtree. This can occur due to a gap in the halo tree.")
 			indexes = []
@@ -309,13 +309,13 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
 
 			#Set a boolean if this halo is a host halo or not
-			orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
+			orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["host_id"][haloIndex]==-1)
 
 			#Append if this halo's orbit host has merged
 			orbitdata[haloSnap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass_200crit"][haloIndex])
+			orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass"][haloIndex])
 
 
 			# increment local halo counter
@@ -359,7 +359,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				orbitdata[haloSnap]["OrbitedHaloID"].append(mainOrbitHaloIDs[haloSnap])
 
 				#Set a boolean if this halo is a host halo or not
-				orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["hostHaloID"][haloIndex]==-1)
+				orbitdata[haloSnap]["FieldHalo"].append(halodata[haloSnap]["host_id"][haloIndex]==-1)
 
 				#Append if this halo's orbit host has merged
 				orbitdata[haloSnap]["hostMerges"].append(hostMerges)
@@ -373,7 +373,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
 				#Find the ratio of mass in substructure only if these if sub structure
-				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass_200crit"][haloIndex])
+				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass"][haloIndex])
 
 				#Mark this halo as done so it is not walked again in this orbital forest ID
 				# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid

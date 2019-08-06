@@ -11,7 +11,7 @@ basecodedir=scriptpath.split('CreateOrbitCatalogs.py')[0]
 sys.path.append(basecodedir+'/src/')
 
 from MakeOrbitForest import CreateOrbitForest
-from ui import Options
+from ui import GetDatasetNames,Options
 from orbio import ReadVELOCIraptorTreeandHalodata,OutputOrbitCatalog
 
 
@@ -25,10 +25,11 @@ tmpOpt = parser.parse_args()
 #store number of snaps
 opt = Options(tmpOpt)
 
-#Load in the VELOCIraptor halodata and tree
-desiredfields = ["hostHaloID","npart","Mass_200crit","R_200crit","Xcminpot","Ycminpot","Zcminpot","VXc","VYc","VZc","Vmax","Rmax","numSubStruct","cNFW","Mass_tot","Mass_FOF","Lx","Ly","Lz"]
-atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,desiredfields)
+#Get the name of the datasets for the desired input format
+inputfields = GetDatasetNames(opt)
 
+#Load in the VELOCIraptor halodata and tree
+atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,inputfields)
 
 
 # built KD tree to quickly search for near neighbours. only build if not passed.
@@ -40,7 +41,7 @@ for snap in range(opt.numsnaps-1,-1,-1):
 	if (numhalos[snap]>0):
 		start1 = time.clock()
 		if(opt.iverbose>1): print('Snapshot', snap, 'producing spatial tree')
-		pos=np.transpose(np.asarray([halodata[snap]["Xc"],halodata[snap]["Yc"],halodata[snap]["Zc"]]))
+		pos=np.transpose(np.asarray([halodata[snap]["X"],halodata[snap]["Y"],halodata[snap]["Z"]]))
 		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
 		if(opt.iverbose>1): print('Done',snap,'in',time.clock()-start1)
 if (opt.iverbose): print("Done building in",time.clock()-start)
@@ -48,12 +49,12 @@ sys.stdout.flush()
 
 
 #Extract all the datatypes from the numpy arrays
-datatypes = {field:halodata[0][field].dtype for field in desiredfields}
+datatypes = {field:halodata[0][field].dtype for field in inputfields.keys()}
 datatypes.update({field:tree[0][field].dtype for field in tree[0].keys()})
 
 # Build a new data stucture to contain the information for this file
 treefields = ["OrigID","OrigRootProgenID","OrigRootDescenID","ID","Head","Tail","OrbitedHaloID","FieldHalo","RatioOfMassinSubsStruct","hostMerges"]
-orbitalfields = [field for field in desiredfields if field!="hostHaloID"]
+orbitalfields = [field for field in inputfields.keys() if field!="host_id"]
 orbitdata = [{field:[] for field in orbitalfields+treefields} for snap in range(opt.numsnaps)]
 
 orbithalocount = np.zeros(opt.numOrbitForestPerFile, dtype=np.int64)
@@ -81,16 +82,16 @@ for snap in range(opt.numsnaps):
 
 #Lets pre-compute the mass in substructre for all halos
 for snap in range(opt.numsnaps):
-	indexes = np.where(halodata[snap]["hostHaloID"]>-1)[0]
-	hostIndxes = np.array(halodata[snap]["hostHaloID"][indexes]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
+	indexes = np.where(halodata[snap]["host_id"]>-1)[0]
+	hostIndxes = np.array(halodata[snap]["host_id"][indexes]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
 	for i in range(indexes.size):
-		halodata[snap]["MassinSubStruct"][hostIndxes[i]]+=halodata[snap]["Mass_200crit"][indexes[i]]
+		halodata[snap]["MassinSubStruct"][hostIndxes[i]]+=halodata[snap]["Mass"][indexes[i]]
 
 
 if(opt.iverbose): print("Building the orbit forests")
 
 #Now walk backwards in time along the halos history finding any unique
-#branch that comes within numRvirSearch * R_200crit and set it to 
+#branch that comes within numRvirSearch * Radius and set it to 
 #be a member of this orbital forest ID
 orbitforestidval=0
 start=time.clock()

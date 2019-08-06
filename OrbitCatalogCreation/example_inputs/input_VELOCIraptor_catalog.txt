@@ -1,0 +1,21 @@
+#The default fields to be loaded
+#OrbWeaver field      #Corresponding input catalog field
+host_id         :     hostHaloID
+npart           :     npart
+Mass            :     Mass_200crit
+Radius          :     R_200crit
+X               :     Xcminpot
+Y               :     Ycminpot
+Z               :     Zcminpot
+Vx              :     VXc
+Vy              :     VYc
+Vz              :     VZc
+Lx              :     Lx
+Ly              :     Ly
+Lz              :     Lz
+numSubStruct    :     numSubStruct
+
+#Extra fields to be loaded
+Vmax            :     Vmax
+Rmax            :     Rmax
+cNFW            :     cNFW

@@ -18,8 +18,7 @@ else:
 	import velociraptor_python_tools as VPT
 
 
-
-def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
+def ReadVELOCIraptorTreeandHalodata(opt,inputfields):
 
 	start=time.clock()
 	if(opt.iverbose): print("Reading the walkable tree")
@@ -32,7 +31,7 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	opt.update_numsnaps(numsnaps)
 
 	#The fields that needs to be converted to physical
-	physconvertfields = ["Xc","Yc","Zc","R_200crit","Rmax","Lx","Ly","Lz"]
+	physconvertfields = [inputfields[field] for field in inputfields.keys() if field in ["X","Y","Z","Radius","Lx","Ly","Lz"]]
 
 	#Open up the filelist and extract all the filenames
 	snapfilelist = open(opt.inputhalofilelistname,"r")
@@ -42,6 +41,9 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	#Check the number of files in the VELOCIraptor filelist is the same as whats reported by the walkable tree
 	if(len(snapfilenames)!=opt.numsnaps):
 		raise IOError("The number of input snapshots as reported by the walkable tree is not the same as the\n number of files in the input halo filelist, please correct this")
+
+	#extract the desiredfields from the inputfields
+	desiredfields = list(inputfields.values())
 
 	start=time.clock()
 	if(opt.iverbose): print("Reading in the halo catalog")
@@ -54,13 +56,8 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 		halodata[i],numhalos[i]=VPT.ReadPropertyFile(snapfilenames[i], 2, 0, 0, desiredfields)
 		atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
 
-		#Convert the fields to the Desired names
-		halodata["Xc"] = halodata.pop("Xcminpot")
-		halodata["Yc"] = halodata.pop("Ycminpot")
-		halodata["Zc"] = halodata.pop("Zcminpot")
-
 		for key in halodata[i].keys():
-			if (key == 'SimulationInfo' or key == 'UnitInfo'): continue
+			if (key == 'SimulationInfo' or key == 'UnitInfo' or key == 'ConfigurationInfo'): continue
 
 			#Reduce the precision of the datasets since OrbWeaver is all in float32
 			if (halodata[i][key].dtype==np.float64):
@@ -79,11 +76,16 @@ def ReadVELOCIraptorTreeandHalodata(opt,desiredfields):
 	if(opt.iverbose): print('Finished reading halo properties in', time.clock()-start)
 	sys.stdout.flush()
 
-	VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata)
+	VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata,tree)
 
 	unitdata = halodata[0]["UnitInfo"]
 	cosmodata = halodata[0]["SimulationInfo"]
 	cosmodata["ComovingBoxSize"] = np.round(cosmodata["Period"]*cosmodata["h_val"]/cosmodata["ScaleFactor"],1)
+
+	#Now it has been loaded the dictionary keys needs to be updated in the halodata so they are compatible with OrbWeaver
+	for i in range(opt.numsnaps):
+		for field in inputfields.keys():
+			halodata[i][field] = halodata[i].pop(inputfields[field])
 
 	return atime, numhalos, halodata, tree, unitdata, cosmodata
 
