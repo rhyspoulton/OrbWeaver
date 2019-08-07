@@ -30,7 +30,7 @@ double Menc(double r, double Mvir, double c, double Rvir);
 
 void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &orbitdata);
 void ProcessHalo(Options &opt, int snap, unsigned long long i, vector<SnapData> &snapdata, OrbitData &orbitdata, HaloData prevorbitinghalo, HaloData prevhosthalo, vector<OrbitData> branchorbitdata, OrbitData tmporbitdata, OrbitProps orbitprops, OrbitProps prevorbitprops, vector<int> num_entrytypes);
-void CalcOrbitProps(Options &opt, unsigned long long orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, vector<int> num_entrytypes, OrbitProps &orbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
+void CalcOrbitProps(Options &opt, unsigned long long orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, vector<int> num_entrytypes, OrbitProps &orbitprops, vector<OrbitProps> &passagesorbitprops, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 void AddFinalEntry(Options &opt, unsigned long long orbitID, int currentsnap, int prevsnap, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata, vector<SnapData> &snapdata, OrbitProps &orbitprops, bool mergedflag);
 
 void WriteOrbitData(Options &opt, vector<OrbitData> &orbitdata);

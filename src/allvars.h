@@ -177,6 +177,7 @@ struct HaloData{
 		origrootprogenitor=0;
 		origrootdescendant=0;
 		fieldhalo=false;
+		hostmerges=false;
 		numsubstruct=0;
 		ratioofmassinsubsstruct=0.0;
 		orbitedhaloid=0;
@@ -683,10 +684,20 @@ struct OrbitProps{
 		lx=0.0;
 		ly=0.0;
 		lz=0.0;
+		hostlx=0.0;
+		hostly=0.0;
+		hostlz=0.0;
 		E=0.0;
 		phi=0;
 	};
+	~OrbitProps(){
+		refangles.clear();
+		refangles.shrink_to_fit();
+		prevpassagepos.clear();
+		prevpassagepos.shrink_to_fit();
+	};
 };
+
 
 struct UnitsData{
 	bool distFlag;

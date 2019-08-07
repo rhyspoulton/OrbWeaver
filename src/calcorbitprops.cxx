@@ -8,7 +8,7 @@ void CalcOrbitProps(Options &opt,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
 	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
 	vector<SnapData> &snapdata,
-	vector<int> num_entrytypes, OrbitProps &orbitprops, OrbitProps &prevorbitprops,
+	vector<int> num_entrytypes, OrbitProps &orbitprops, vector<OrbitProps> &passagesorbitprops,
 	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
@@ -361,18 +361,18 @@ void CalcOrbitProps(Options &opt,
 			}
 			else{
 
-				prevorbitprops.lx += orbitprops.lx;
-				prevorbitprops.ly += orbitprops.ly;
-				prevorbitprops.lz += orbitprops.lz;
-				prevorbitprops.E += orbitprops.E;
-				prevorbitprops.mu += orbitprops.mu;
-				prevorbitprops.hostlx += orbitprops.hostlx;
-				prevorbitprops.hostly += orbitprops.hostlx;
-				prevorbitprops.hostlz += orbitprops.hostlx;
-				prevorbitprops.masslossrate += orbitprops.masslossrate;
-				prevorbitprops.phi += orbitprops.phi;
+				passagesorbitprops.back().lx += orbitprops.lx;
+				passagesorbitprops.back().ly += orbitprops.ly;
+				passagesorbitprops.back().lz += orbitprops.lz;
+				passagesorbitprops.back().E += orbitprops.E;
+				passagesorbitprops.back().mu += orbitprops.mu;
+				passagesorbitprops.back().hostlx += orbitprops.hostlx;
+				passagesorbitprops.back().hostly += orbitprops.hostlx;
+				passagesorbitprops.back().hostlz += orbitprops.hostlx;
+				passagesorbitprops.back().masslossrate += orbitprops.masslossrate;
+				passagesorbitprops.back().phi += orbitprops.phi;
 
-				orbitprops = prevorbitprops;
+				orbitprops = passagesorbitprops.back();
 			}
 		}
 
@@ -505,18 +505,18 @@ void CalcOrbitProps(Options &opt,
 				}
 				else{
 
-					prevorbitprops.lx += orbitprops.lx;
-					prevorbitprops.ly += orbitprops.ly;
-					prevorbitprops.lz += orbitprops.lz;
-					prevorbitprops.E += orbitprops.E;
-					prevorbitprops.mu += orbitprops.mu;
-					prevorbitprops.hostlx += orbitprops.hostlx;
-					prevorbitprops.hostly += orbitprops.hostlx;
-					prevorbitprops.hostlz += orbitprops.hostlx;
-					prevorbitprops.masslossrate += orbitprops.masslossrate;
-					prevorbitprops.phi += orbitprops.phi;
+					passagesorbitprops.back().lx += orbitprops.lx;
+					passagesorbitprops.back().ly += orbitprops.ly;
+					passagesorbitprops.back().lz += orbitprops.lz;
+					passagesorbitprops.back().E += orbitprops.E;
+					passagesorbitprops.back().mu += orbitprops.mu;
+					passagesorbitprops.back().hostlx += orbitprops.hostlx;
+					passagesorbitprops.back().hostly += orbitprops.hostlx;
+					passagesorbitprops.back().hostlz += orbitprops.hostlx;
+					passagesorbitprops.back().masslossrate += orbitprops.masslossrate;
+					passagesorbitprops.back().phi += orbitprops.phi;
 
-					orbitprops = prevorbitprops;
+					orbitprops = passagesorbitprops.back();
 
 					//Remove 0.5 from the total number of orbits so far
 					orbitprops.numorbits-=0.5;
@@ -528,7 +528,6 @@ void CalcOrbitProps(Options &opt,
 			//Find the average energy and reduced mass
 			mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
 			tmporbitdata.orbitalenergy_ave = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);;
-
 
 			//The average mass loss rate
 			tmporbitdata.masslossrate_ave = orbitprops.masslossrate / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -566,7 +565,8 @@ void CalcOrbitProps(Options &opt,
 			//The total angle moved through since last orbit
 			tmporbitdata.phi = orbitprops.phi;
 
-			prevorbitprops = orbitprops;
+			//Add the current orbit props to the passage orbit props vector
+			passagesorbitprops.push_back(orbitprops);
 
 			//Reset the total angular momentum in the orbit props to zero
 			orbitprops.lx = 0.0;
@@ -831,7 +831,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	vector<SnapData> &snapdata, vector<OrbitData> &orbitdata,
 	HaloData prevorbitinghalo, HaloData prevhosthalo,
 	vector<OrbitData> branchorbitdata, OrbitData tmporbitdata,
-	OrbitProps orbitprops, OrbitProps prevorbitprops,
+	OrbitProps orbitprops, vector<OrbitProps> passagesorbitprops,
 	vector <int> num_entrytypes){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
@@ -945,7 +945,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 				snapdata[halosnap].Halo[haloindex], snapdata[halosnap].Halo[orbitinghaloindex], prevorbitinghalo,prevhosthalo,
 				branchorbitdata,tmporbitdata,
 				snapdata,
-				num_entrytypes, orbitprops, prevorbitprops,
+				num_entrytypes, orbitprops, passagesorbitprops,
 				splinefuncs, hostsplinefuncs);
 
 		// if(find(interpsnaps.begin(), interpsnaps.end(), halosnap) != interpsnaps.end())
@@ -1031,7 +1031,7 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 
 	//Keep track of the properties of each orbit
 	OrbitProps orbitprops;
-	OrbitProps prevorbitprops;
+	vector<OrbitProps> passagesorbitprops;
 
 	// Now lets start at the starting snapshot and walk up the tree
 	// calculating the orbit relative to the halo which it was found
@@ -1053,13 +1053,13 @@ void ProcessOrbits(Options &opt, vector<SnapData> &snapdata, vector<OrbitData> &
 			branchorbitdata.clear();
 			tmporbitdata = {};
 			orbitprops = {};
-			prevorbitprops = {};
+			passagesorbitprops.clear();
 
 			ProcessHalo(opt,orbitID,snap,i,
 				snapdata,orbitdata,
 				prevorbitinghalo, prevhosthalo,
 				branchorbitdata, tmporbitdata,
-				orbitprops,prevorbitprops,
+				orbitprops,passagesorbitprops,
 				num_entrytypes);
 
 			orbitID++;
