@@ -617,6 +617,9 @@ struct OrbitProps{
 	//Value to keep track of the time of the previous apo/peri-centric pasage
 	double prevpassagetime;
 
+	//Store the index of this passage
+	int passageindex;
+
 	//Store the index of the previous passage
 	int prevpassageindex;
 
@@ -670,6 +673,7 @@ struct OrbitProps{
 		prevpassagetime = 0.0;
 		prevpassageindex=0;
 		crossrvirtime=0.0;
+		passageindex=0;
 		prevpassageindex=0;
 		mergertime=0.0;
 		masslossrate=0.0;
@@ -696,6 +700,7 @@ struct OrbitProps{
 		prevpassagepos.clear();
 		prevpassagepos.shrink_to_fit();
 	};
+
 };
 
 

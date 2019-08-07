@@ -361,6 +361,7 @@ void CalcOrbitProps(Options &opt,
 			}
 			else{
 
+				//Add the orbit average qantities to the previous passage orbit props
 				passagesorbitprops.back().lx += orbitprops.lx;
 				passagesorbitprops.back().ly += orbitprops.ly;
 				passagesorbitprops.back().lz += orbitprops.lz;
@@ -371,6 +372,12 @@ void CalcOrbitProps(Options &opt,
 				passagesorbitprops.back().hostlz += orbitprops.hostlx;
 				passagesorbitprops.back().masslossrate += orbitprops.masslossrate;
 				passagesorbitprops.back().phi += orbitprops.phi;
+
+				//Keep the closest approach, the scalefactor it happened at and the minmum Rscale and Rmax
+				passagesorbitprops.back().closestapproach = orbitprops.closestapproach;
+				passagesorbitprops.back().closestapproachscalefactor = orbitprops.closestapproachscalefactor;
+				passagesorbitprops.back().minrmax = orbitprops.minrmax;
+				passagesorbitprops.back().minrscale = orbitprops.minrscale;
 
 				orbitprops = passagesorbitprops.back();
 			}
@@ -505,6 +512,7 @@ void CalcOrbitProps(Options &opt,
 				}
 				else{
 
+					//Add the orbit average qantities to the previous passage orbit props
 					passagesorbitprops.back().lx += orbitprops.lx;
 					passagesorbitprops.back().ly += orbitprops.ly;
 					passagesorbitprops.back().lz += orbitprops.lz;
@@ -515,6 +523,13 @@ void CalcOrbitProps(Options &opt,
 					passagesorbitprops.back().hostlz += orbitprops.hostlx;
 					passagesorbitprops.back().masslossrate += orbitprops.masslossrate;
 					passagesorbitprops.back().phi += orbitprops.phi;
+
+					//Keep the closest approach, the scalefactor it happened at and the minmum Rscale and Rmax
+					passagesorbitprops.back().closestapproach = orbitprops.closestapproach;
+					passagesorbitprops.back().closestapproachscalefactor = orbitprops.closestapproachscalefactor;
+					passagesorbitprops.back().minrmax = orbitprops.minrmax;
+					passagesorbitprops.back().minrscale = orbitprops.minrscale;
+
 
 					orbitprops = passagesorbitprops.back();
 
@@ -564,6 +579,9 @@ void CalcOrbitProps(Options &opt,
 
 			//The total angle moved through since last orbit
 			tmporbitdata.phi = orbitprops.phi;
+
+			//Store the index of this passgae
+			orbitprops.passageindex = branchorbitdata.size();
 
 			//Add the current orbit props to the passage orbit props vector
 			passagesorbitprops.push_back(orbitprops);
