@@ -3,103 +3,241 @@
 #include "orbweaver.h"
 
 
-void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime){
+void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitProps> passagesorbitprops){
+	/*
 
-	//Store data and the number of passages
-	int prevpassageindex, nextpassageindex;
-	int numpassages=0;
-	float rx,ry,rz, r, tmprx, tmpry, tmprz, tmpr, prevphi, nextphi;
-	int numentries = branchorbitdata.size();
+	This function cleans the orbits of "wobbles" where passages seem to happen due to an interaction with another object.
+	The cleaning is done by removing any passage with phi and orbitecc_ratio that are below a reigion in the Phi and
+	orbiteccratio plane. This region is set by PHICLEANLIMIT and ECCCLEANLIMI set in allvars.h.
+
+	When removing passages it also requires updating the number of orbits for the crossing points between passages and
+	any points after the deleted passaged. In addition the orbit averaged quanties
+
+	*/
+
+	int passageindex, prevpassageindex, nextpassageindex, updatepassageindex;
+	int currpassagensnap, prevpassagesnap;
+	int numpassages = passagesorbitprops.size();
+	double ecclimit, hostlx, hostly, hostlz, rcomove;
+	int i=0,numoutputs = branchorbitdata.size();
+
 
 	//Store a vector of indices to delete
 	vector<int> idel;
 
-	//Lets clean the passage points by check
-	for(int i=0;i<branchorbitdata.size();i++){
-		if(abs(branchorbitdata[i].entrytype)==99){
+	//Loop over all the passages in the passage orbit props
+	while(i<passagesorbitprops.size()){
 
-			//Skip the first passage by checking if the orbital period is 0
-			if(numpassages>0){
+		//Extract the index which this is in the branchorbitdata
+		passageindex = passagesorbitprops[i].passageindex;
 
-				//Calculate the angle between this passage and the previous
-				rx = branchorbitdata[i].xrel;
-				ry = branchorbitdata[i].yrel;
-				rz = branchorbitdata[i].zrel;
-				r = sqrt(rx*rx + ry*ry + rz*rz);
+		//Lets see if the eccentricity and Phi are below the region as described in Poulton et at., in prep
+		ecclimit = ECCCLEANLIMIT - (ECCCLEANLIMIT/PHICLEANLIMIT) * branchorbitdata[passageindex].phi;
+		if((ecclimit>branchorbitdata[passageindex].orbitecc_ratio) & (ecclimit<ECCCLEANLIMIT)){
 
-				tmprx = branchorbitdata[prevpassageindex].xrel;
-				tmpry = branchorbitdata[prevpassageindex].yrel;
-				tmprz = branchorbitdata[prevpassageindex].zrel;
-				tmpr = sqrt(tmprx*tmprx + tmpry*tmpry + tmprz*tmprz);
+			//Now we have found it to be less than the clean limits it can be add this index to the delete vector
+			idel.push_back(passageindex);
 
-				//Now calculate the size of the angle
-				prevphi = acos((rx*tmprx + ry*tmpry + rz*tmprz)/(r*tmpr));
+			//Initially add the previous passage as the one to be deleted
+			prevpassageindex = passagesorbitprops[i].prevpassageindex;
 
-				if(prevphi<M_PI/2.0){
+			//So one passage is to be deleted, but another needed to be deleted since there would be two passages of the same time
+			// therefore we need to check which one caused this wobble either the previous or next passage (if it exists)
+			if(i+1<numpassages){
 
-					//Lets delete this passage
-					idel.push_back(i);
+				//Extract the index for the next passage
+				nextpassageindex = passagesorbitprops[i+1].passageindex;
 
-					//Now we need to check which of the surrounding passages to remove
-					//based on how much the halo has moved around its host
-					nextpassageindex = i+1;
+				//Lets check if the next is worse than this one
+				if((branchorbitdata[nextpassageindex].phi<branchorbitdata[passageindex].phi) & (branchorbitdata[nextpassageindex].orbitecc_ratio<branchorbitdata[passageindex].orbitecc_ratio)){
 
-					//Move to the next passage point
-					while((nextpassageindex<numentries) & (abs(branchorbitdata[nextpassageindex].entrytype)!=99)) nextpassageindex++;
+					//The next passage is wrose to add to the delete vector
+					idel.push_back(nextpassageindex);
 
-					//If at the end of the entries the delete the previous passage and
-					//the clean can be stopeed
-					if(nextpassageindex==numentries){
-						idel.push_back(prevpassageindex);
-						numpassages--;
-						break;
+					//Lets first update the number of orbits we only need to subtract 0.5 an orbit between the passage index and the next passage index
+					for(int j=passageindex; j<nextpassageindex; j++)
+						branchorbitdata[j].numorbits-=0.5;
+
+					//But we need to remove 1.0 orbit after the next passage index since two passages have been removed
+					for(int j=nextpassageindex; j<branchorbitdata.size(); j++)
+						branchorbitdata[j].numorbits-=1.0;
+
+					//Lets check if there is another passage, if so then its properties needs to be updated
+					if(i+2<numpassages){
+
+						//Lets add the properties of the deleted passages to this passage
+						passagesorbitprops[i+2]+=passagesorbitprops[i];
+						passagesorbitprops[i+2]+=passagesorbitprops[i+1];
+
+						//Update the previous passage index to point to the passsage before the deleted ones
+						passagesorbitprops[i+2].prevpassageindex = passagesorbitprops[i].prevpassageindex;
+
+						//Extract the index for this passage
+						updatepassageindex = passagesorbitprops[i+2].passageindex;
+
+						//Find the current and previous passages for snapshots
+						currpassagensnap = passagesorbitprops[i+2].passagesnap;
+						prevpassagesnap = passagesorbitprops[i].prevpassagesnap;
+
+						//Need to update the orbit eccentricity ratio for this passages
+						rcomove = sqrt(branchorbitdata[updatepassageindex].xrel*branchorbitdata[updatepassageindex].xrel + branchorbitdata[updatepassageindex].yrel*branchorbitdata[updatepassageindex].yrel + branchorbitdata[updatepassageindex].zrel*branchorbitdata[updatepassageindex].zrel) * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
+						passagesorbitprops[i+2].prevpassageindex = passagesorbitprops[i].prevpassageindex;if(branchorbitdata[updatepassageindex].entrytype==99)
+							branchorbitdata[updatepassageindex].orbitecc_ratio = (passagesorbitprops[i].prevpassagercomove-rcomove)/(passagesorbitprops[i].prevpassagercomove+rcomove);
+						else
+							branchorbitdata[updatepassageindex].orbitecc_ratio = (rcomove-passagesorbitprops[i].prevpassagercomove)/(rcomove+passagesorbitprops[i].prevpassagercomove);
+
+						//We need to re-calculate the orbit averaged quanties
+						//Find the average energy and reduced mass
+						branchorbitdata[updatepassageindex].orbitalenergy_ave = passagesorbitprops[i+2].E / (double)(currpassagensnap - prevpassagesnap);;
+
+						//The average mass loss rate
+						branchorbitdata[updatepassageindex].masslossrate_ave = passagesorbitprops[i+2].masslossrate / (double)(currpassagensnap -prevpassagesnap);
+
+						//Lets output the average angular momentum since the last passage
+						branchorbitdata[updatepassageindex].lxrel_ave = passagesorbitprops[i+2].lx / (double)(currpassagensnap - prevpassagesnap);
+						branchorbitdata[updatepassageindex].lyrel_ave = passagesorbitprops[i+2].ly / (double)(currpassagensnap - prevpassagesnap);
+						branchorbitdata[updatepassageindex].lzrel_ave = passagesorbitprops[i+2].lz / (double)(currpassagensnap - prevpassagesnap);
+
+						//Find the average angular momentum of the host halo
+						hostlx = passagesorbitprops[i+2].hostlx / (double)(currpassagensnap - prevpassagesnap);
+						hostly = passagesorbitprops[i+2].hostly / (double)(currpassagensnap - prevpassagesnap);
+						hostlz = passagesorbitprops[i+2].hostlz / (double)(currpassagensnap - prevpassagesnap);
+
+						//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
+						branchorbitdata[updatepassageindex].hostalignment = acos(((hostlx*branchorbitdata[updatepassageindex].lxrel_ave) + (hostly*branchorbitdata[updatepassageindex].lyrel_ave)	+ (hostlz*branchorbitdata[updatepassageindex].lzrel_ave))/
+							(sqrt(hostlx*hostlx + hostly*hostly + hostlz*hostlz) * sqrt(branchorbitdata[updatepassageindex].lxrel_ave*branchorbitdata[updatepassageindex].lxrel_ave + branchorbitdata[updatepassageindex].lyrel_ave*branchorbitdata[updatepassageindex].lyrel_ave + branchorbitdata[updatepassageindex].lzrel_ave*branchorbitdata[updatepassageindex].lzrel_ave)));
+
+						//Update the value of phi for this orbit
+						branchorbitdata[updatepassageindex].phi = passagesorbitprops[i+2].phi;
+
+						//Now we have updated the orbit averaged quantities we also need to update the num_entrytype,
+						// only 1 needs to be removed from each num_entrytype since 1 pericenter and 1 apocentre have been deleted
+						for(int j=i+2; j<passagesorbitprops.size(); j++){
+
+							//Extract the index of the passage
+							passageindex = passagesorbitprops[j].passageindex;
+
+							//Remove 1 from its num_entrytype
+							branchorbitdata[passageindex].num_entrytype-=1;
+						}
+
+						//Need to add to the iterator here as the next passage has already been deleted
+						i++;
+
 					}
+					//Otherwise nothing needs to be done
 
-					//Otherwise lets calculate the size of the angle between this passage and the previous
-					tmprx = branchorbitdata[nextpassageindex].xrel;
-					tmpry = branchorbitdata[nextpassageindex].yrel;
-					tmprz = branchorbitdata[nextpassageindex].zrel;
-					tmpr = sqrt(tmprx*tmprx + tmpry*tmpry + tmprz*tmprz);
+				}
+				else{
+					// If there is another passage but it the phi and eccentricity is not worse then we need to update a different passage
 
-					//Now calculate the size of the angle
-					nextphi = acos((rx*tmprx + ry*tmpry + rz*tmprz)/(r*tmpr));
 
-					//Check which angle between the passages is larger
-					if(prevphi>nextphi){
+					//If there is no next passage then we just need to delete the previous passage
+					idel.push_back(prevpassageindex);
 
-						//In this case lets remove the next passage as it has moved through a smaller angel
-						idel.push_back(nextpassageindex);
+					//Then update the number of orbits between the passages, first update between the passages and subtract 0.5 an orbit
+					for(int j=prevpassageindex; j<passageindex; j++)
+						branchorbitdata[j].numorbits-=0.5;
 
-						//We can now skip the next passage as it will be deleted
-						while((i<numentries) & (i<nextpassageindex)) i++;
+					//Next update after the passages and remove 1.0 orbit (two deleted passages)
+					for(int j=passageindex; j<branchorbitdata.size(); j++)
+						branchorbitdata[j].numorbits-=1.0;
+
+					//Extract the index for this passage
+					updatepassageindex = passagesorbitprops[i+1].passageindex;
+
+					//We need to update the orbit properties for the new apsis points, this only needs to be done when i>0
+					//i.e. the passage to be updated is not first passage
+					if((i>0) & (idel.size()<numpassages)){
+						//Mark this passage as beeb deleted
+
+						//Lets add the properties of the deleted passages to this passage
+						passagesorbitprops[i+1]+=passagesorbitprops[i-1];
+						passagesorbitprops[i+1]+=passagesorbitprops[i];
+
+						//Find the current and previous passages for snapshots
+						currpassagensnap = passagesorbitprops[i+1].passagesnap;
+						prevpassagesnap = passagesorbitprops[i-1].prevpassagesnap;
+
+						//Update the previous passage index to point to the passsage before the deleted ones
+						passagesorbitprops[i+1].prevpassageindex = passagesorbitprops[i-1].prevpassageindex;
+
+						//Need to update the orbit eccentricity ratio for this passages
+						rcomove = sqrt(branchorbitdata[updatepassageindex].xrel*branchorbitdata[updatepassageindex].xrel + branchorbitdata[updatepassageindex].yrel*branchorbitdata[updatepassageindex].yrel + branchorbitdata[updatepassageindex].zrel*branchorbitdata[updatepassageindex].zrel) * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
+						if(branchorbitdata[updatepassageindex].entrytype==99)
+							branchorbitdata[updatepassageindex].orbitecc_ratio = (passagesorbitprops[i-1].prevpassagercomove-rcomove)/(passagesorbitprops[i-1].prevpassagercomove+rcomove);
+						else
+							branchorbitdata[updatepassageindex].orbitecc_ratio = (rcomove-passagesorbitprops[i-1].prevpassagercomove)/(rcomove+passagesorbitprops[i-1].prevpassagercomove);
+
+						//We need to re-calculate the orbit averaged quanties
+						//Find the average energy and reduced mass
+						branchorbitdata[updatepassageindex].orbitalenergy_ave = passagesorbitprops[i+1].E / (double)(currpassagensnap - prevpassagesnap);;
+
+						//The average mass loss rate
+						branchorbitdata[updatepassageindex].masslossrate_ave = passagesorbitprops[i+1].masslossrate / (double)(currpassagensnap -prevpassagesnap);
+
+						//Lets output the average angular momentum since the last passage
+						branchorbitdata[updatepassageindex].lxrel_ave = passagesorbitprops[i+1].lx / (double)(currpassagensnap - prevpassagesnap);
+						branchorbitdata[updatepassageindex].lyrel_ave = passagesorbitprops[i+1].ly / (double)(currpassagensnap - prevpassagesnap);
+						branchorbitdata[updatepassageindex].lzrel_ave = passagesorbitprops[i+1].lz / (double)(currpassagensnap - prevpassagesnap);
+
+						//Find the average angular momentum of the host halo
+						hostlx = passagesorbitprops[i+1].hostlx / (double)(currpassagensnap - prevpassagesnap);
+						hostly = passagesorbitprops[i+1].hostly / (double)(currpassagensnap - prevpassagesnap);
+						hostlz = passagesorbitprops[i+1].hostlz / (double)(currpassagensnap - prevpassagesnap);
+
+						//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
+						branchorbitdata[updatepassageindex].hostalignment = acos(((hostlx*branchorbitdata[updatepassageindex].lxrel_ave) + (hostly*branchorbitdata[updatepassageindex].lyrel_ave)	+ (hostlz*branchorbitdata[updatepassageindex].lzrel_ave))/
+							(sqrt(hostlx*hostlx + hostly*hostly + hostlz*hostlz) * sqrt(branchorbitdata[updatepassageindex].lxrel_ave*branchorbitdata[updatepassageindex].lxrel_ave + branchorbitdata[updatepassageindex].lyrel_ave*branchorbitdata[updatepassageindex].lyrel_ave + branchorbitdata[updatepassageindex].lzrel_ave*branchorbitdata[updatepassageindex].lzrel_ave)));
+
+						//Update the value of phi for this orbit
+						branchorbitdata[updatepassageindex].phi = passagesorbitprops[i+1].phi;
 					}
 					else{
-						//Other wise remove the previous passage
-						idel.push_back(prevpassageindex);
-						numpassages--;
-
-						//Now need to update the previous pasage index since it is being deleted
-						//if numpassages>0, otherwise if numpassages is 0 then all the reference
-						// angles needs to be updated
-						if(numpassages>0){
-
-							//Find the index of the previous passage and check it is not in the delete vector
-							prevpassageindex--;
-							while((abs(branchorbitdata[prevpassageindex].entrytype)!=99) | (find(idel.begin(),idel.end(),prevpassageindex)!=idel.end())){
-							 prevpassageindex--;
-							}
-						}
+						//Otherwise the passage to be updated is the first passage in the orbit so should not have the above quantities calculated
+						//as there is not another passage which they can be calculated with reference to
+						branchorbitdata[updatepassageindex].orbitecc_ratio = 0;
+						branchorbitdata[updatepassageindex].orbitalenergy_ave = 0;
+						branchorbitdata[updatepassageindex].masslossrate_ave = 0;
+						branchorbitdata[updatepassageindex].lxrel_ave = 0;
+						branchorbitdata[updatepassageindex].lyrel_ave = 0;
+						branchorbitdata[updatepassageindex].lzrel_ave = 0;
+						branchorbitdata[updatepassageindex].hostalignment = 0;
+						branchorbitdata[updatepassageindex].phi = 0;
 					}
-					continue;
+
+
+					//Now we have updated the orbit averaged quantities we also need to update the num_entrytype,
+					// only 1 needs to be removed from each num_entrytype since 1 pericenter and 1 apocentre have been deleted
+					for(int j=i+1; j<passagesorbitprops.size(); j++){
+
+						//Extract the index of the passage
+						passageindex = passagesorbitprops[j].passageindex;
+
+						//Remove 1 from its num_entrytype
+						branchorbitdata[passageindex].num_entrytype-=1;
+					}
+
 				}
+
 			}
+			else{
+				//If there is no next passage then we just need to delete the previous passage
+				idel.push_back(prevpassageindex);
 
-			//Store the index of the previous passage
-			prevpassageindex = i;
+				//Then update the number of orbits between the passages, first update between the passages and subtract 0.5 an orbit
+				for(int j=prevpassageindex; j<passageindex; j++)
+					branchorbitdata[j].numorbits-=0.5;
 
-			//Add one to the number of passages
-			numpassages++;
+				//Next update after the passages and remove 1.0 orbit (two deleted passages)
+				for(int j=passageindex; j<branchorbitdata.size(); j++)
+					branchorbitdata[j].numorbits-=1.0;
+
+			}
 		}
+
+		//Add to the iterator
+		i++;
 	}
 
 	//Now lets sort the delete vector so in sorted order
@@ -107,70 +245,12 @@ void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime){
 
 	//Check if there is any indexes to delete
 	if(idel.size()>0){
-		for(int i=idel.size()-1;i>=0;i--)
+		for(int i=idel.size()-1;i>=0;i--){
 			branchorbitdata.erase(branchorbitdata.begin()+idel[i]);
+		}
 	}
 
 	//Remove all the values from the delete vector
 	idel.clear();
-
-	numpassages=0;
-
-	float semiMajor, keplarPeriod, orbitalperiod;
-
-	//Lets clean the passage points by check
-	for(int i=0;i<branchorbitdata.size();i++){
-		if(abs(branchorbitdata[i].entrytype)==99){
-			//Skip the first passage by checking if the orbital period is 0
-			if(numpassages>0){
-
-				//Calculate the angle between this passage and the previous
-				rx = branchorbitdata[i].xrel;
-				ry = branchorbitdata[i].yrel;
-				rz = branchorbitdata[i].zrel;
-				r = sqrt(rx*rx + ry*ry + rz*rz);
-
-				tmprx = branchorbitdata[prevpassageindex].xrel;
-				tmpry = branchorbitdata[prevpassageindex].yrel;
-				tmprz = branchorbitdata[prevpassageindex].zrel;
-				tmpr = sqrt(tmprx*tmprx + tmpry*tmpry + tmprz*tmprz);
-
-				//Now calculate the size of the angle
-				prevphi = acos((rx*tmprx + ry*tmpry + rz*tmprz)/(r*tmpr));
-
-				orbitalperiod = 2.0 * (branchorbitdata[i].uniage - branchorbitdata[prevpassageindex].uniage);
-
-				if(orbitalperiod>simtime/2.0){
-					idel.push_back(i);
-					idel.push_back(prevpassageindex);
-					numpassages--;
-
-					if(numpassages>0){
-						//Find the index of the previous passage and check it is not in the delete vector
-						prevpassageindex--;
-						while((abs(branchorbitdata[prevpassageindex].entrytype)!=99) | (find(idel.begin(),idel.end(),prevpassageindex)!=idel.end())){
-						 prevpassageindex--;
-						}
-					}
-					continue;
-				}
-
-			}
-			//Store the index of the previous passage
-			prevpassageindex = i;
-
-			//Add one to the number of passages
-			numpassages++;
-		}
-	}
-
-	//Now lets sort the delete vector so in sorted order
-	sort(idel.begin(),idel.end());
-
-	//Check if there is any indexes to delete
-	if(idel.size()>0){
-		for(int i=idel.size()-1;i>=0;i--)
-			branchorbitdata.erase(branchorbitdata.begin()+idel[i]);
-	}
 
 }

@@ -1031,12 +1031,13 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 		branchorbitdata[i].minrmax = orbitprops.minrmax;
 	}
 
-	double simtime = snapdata.back().uniage - snapdata.front().uniage;
-
 	//If merged then set the MergedFlag == tur
 	if(mergedflag) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
 
-	// CleanOrbits(branchorbitdata,simtime);
+	//Clean the orbits of "wobbles"
+	CleanOrbits(opt,branchorbitdata,passagesorbitprops);
+
+	if(branchorbitdata.size()==1) return;
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be

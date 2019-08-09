@@ -23,7 +23,7 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 HaloData InterpHaloProps(Options &opt, vector<int> &halosnaps, vector<unsigned long long> &haloindexes, vector<int> &interpsnaps, vector<SnapData> &snapdata, SplineFuncs &splinefuncs);
 double InterpCrossingHaloProps(float numrvircrossing, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs);
 
-void CleanOrbits(vector<OrbitData> &branchorbitdata, double simtime);
+void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitProps> passagesorbitprops);
 
 vector<double> computeAngles(vector<double> prevpos, OrbitData orbitdata);
 double Menc(double r, double Mvir, double c, double Rvir);

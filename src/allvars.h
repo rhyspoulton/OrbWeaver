@@ -41,6 +41,10 @@
 #define PHYSICAL 0
 #define COMOVING 1
 
+//Parameters used to clean the orbits to remove apsis points that are "wobbles"
+#define PHICLEANLIMIT (0.75 * M_PI)
+#define ECCCLEANLIMIT 0.4
+
 using namespace std;
 using namespace H5;
 
