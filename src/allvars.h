@@ -611,6 +611,9 @@ struct OrbitProps{
 	//Store the snapshot which the previous crossing point happened
 	int prevcrossingsnap;
 
+	//Store the snapshot of the passage
+	int passagesnap;
+
 	//Store the snapshot which the previous passage happened
 	int prevpassagesnap;
 
@@ -669,6 +672,8 @@ struct OrbitProps{
 		orbitingflag = false;
 		numorbits=0.0;
 		prevcrossingentrytype=0.0;
+		prevcrossingsnap = 0;
+		passagesnap = 0;
 		prevpassagesnap = 0;
 		prevpassagetime = 0.0;
 		prevpassageindex=0;
@@ -700,6 +705,18 @@ struct OrbitProps{
 		prevpassagepos.clear();
 		prevpassagepos.shrink_to_fit();
 	};
+	OrbitProps &operator+=(OrbitProps &orbitprops){
+		lx += orbitprops.lx;
+		ly += orbitprops.ly;
+		lz += orbitprops.lz;
+		E += orbitprops.E;
+		mu += orbitprops.mu;
+		hostlx += orbitprops.hostlx;
+		hostly += orbitprops.hostlx;
+		hostlz += orbitprops.hostlx;
+		masslossrate += orbitprops.masslossrate;
+		phi += orbitprops.phi;
+	}
 
 };
 

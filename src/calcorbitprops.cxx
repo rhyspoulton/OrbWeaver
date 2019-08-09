@@ -140,7 +140,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, semiMajor, keplarperi_wetzel2011od;
+	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, hostlx, hostly, hostlz;
 	vector<double> currangles;
 	int prevpassageindex;
 
@@ -380,6 +380,9 @@ void CalcOrbitProps(Options &opt,
 				passagesorbitprops.back().minrscale = orbitprops.minrscale;
 
 				orbitprops = passagesorbitprops.back();
+
+				//Delete the last entry in the passagesorbitprops
+				passagesorbitprops.pop_back();
 			}
 		}
 
@@ -533,6 +536,9 @@ void CalcOrbitProps(Options &opt,
 
 					orbitprops = passagesorbitprops.back();
 
+					//Delete the last entry in the passagesorbitprops
+					passagesorbitprops.pop_back();
+
 					//Remove 0.5 from the total number of orbits so far
 					orbitprops.numorbits-=0.5;
 				}
@@ -541,7 +547,6 @@ void CalcOrbitProps(Options &opt,
 			}
 
 			//Find the average energy and reduced mass
-			mu = orbitprops.mu / (double)(currentsnap - orbitprops.prevpassagesnap);
 			tmporbitdata.orbitalenergy_ave = orbitprops.E / (double)(currentsnap - orbitprops.prevpassagesnap);;
 
 			//The average mass loss rate
@@ -553,13 +558,13 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.lzrel_ave = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 			//Find the average angular momentum of the host halo
-			orbitprops.hostlx /= (double)(currentsnap - orbitprops.prevpassagesnap);
-			orbitprops.hostly /= (double)(currentsnap - orbitprops.prevpassagesnap);
-			orbitprops.hostlz /= (double)(currentsnap - orbitprops.prevpassagesnap);
+			hostlx = orbitprops.hostlx / (double)(currentsnap - orbitprops.prevpassagesnap);
+			hostly = orbitprops.hostly / (double)(currentsnap - orbitprops.prevpassagesnap);
+			hostlz = orbitprops.hostlz / (double)(currentsnap - orbitprops.prevpassagesnap);
 
 			//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
-			tmporbitdata.hostalignment = acos(((orbitprops.hostlx*tmporbitdata.lxrel_ave) + (orbitprops.hostly*tmporbitdata.lyrel_ave)	+ (orbitprops.hostlz*tmporbitdata.lzrel_ave))/
-				(sqrt(orbitprops.hostlx*orbitprops.hostlx + orbitprops.hostly*orbitprops.hostly + orbitprops.hostlz*orbitprops.hostlz) * sqrt(tmporbitdata.lxrel_ave*tmporbitdata.lxrel_ave + tmporbitdata.lyrel_ave*tmporbitdata.lyrel_ave + tmporbitdata.lzrel_ave*tmporbitdata.lzrel_ave)));
+			tmporbitdata.hostalignment = acos(((hostlx*tmporbitdata.lxrel_ave) + (hostly*tmporbitdata.lyrel_ave)	+ (hostlz*tmporbitdata.lzrel_ave))/
+				(sqrt(hostlx*hostlx + hostly*hostly + hostlz*hostlz) * sqrt(tmporbitdata.lxrel_ave*tmporbitdata.lxrel_ave + tmporbitdata.lyrel_ave*tmporbitdata.lyrel_ave + tmporbitdata.lzrel_ave*tmporbitdata.lzrel_ave)));
 
 			/* Compute all the angles */
 
@@ -580,8 +585,9 @@ void CalcOrbitProps(Options &opt,
 			//The total angle moved through since last orbit
 			tmporbitdata.phi = orbitprops.phi;
 
-			//Store the index of this passgae
+			//Store the index and snapshot of this passgae
 			orbitprops.passageindex = branchorbitdata.size();
+			orbitprops.passagesnap = currentsnap;
 
 			//Add the current orbit props to the passage orbit props vector
 			passagesorbitprops.push_back(orbitprops);
@@ -591,7 +597,6 @@ void CalcOrbitProps(Options &opt,
 			orbitprops.ly = 0.0;
 			orbitprops.lz = 0.0;
 			orbitprops.E = 0.0;
-			orbitprops.mu = 0.0;
 			orbitprops.hostlx = 0.0;
 			orbitprops.hostly = 0.0;
 			orbitprops.hostlz = 0.0;
@@ -1005,6 +1010,9 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	if(branchorbitdata.size()==0) return;
 	// file2.close();
 	// file.close();
+
+	//Reset all the data to zero
+	tmporbitdata={};
 
 	//Output a final entry point if the halo has undergone a crossing or passage point
 	AddFinalEntry(opt,
