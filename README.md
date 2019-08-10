@@ -49,12 +49,13 @@ A file containing the list of filenames is also outputted with the naming scheme
 
 Using the filelist generated in the first stage it is now possible to to run OrbWeaver using the python script in python-tools from the following command:
 
-	python python-tools/runorbweaver.py -i <output base filename>.orbweaver.filelist.txt -c <fracrvircross> -s <schedulertype> -v <verbose>
+	python python-tools/runorbweaver.py -i <output base filename>.orbweaver.filelist.txt  -s <schedulertype> [-f <fracrvircross> -c <iclean> -v <verbose>]
 
 Where:
 
-* fracrvircross - is the fraction of the host viral radius where a crossing point is outputed (default is a output point every 0.5 of the host viral radius)
 * schedulertype - The type of scheduler avalible either Slurm, PBS or None, if None then python's multiprocessing will be used to run orbweaver concurrently (currently not implemented)
+* fracrvircross - is the fraction of the host viral radius where a crossing point is outputed (default is a output point every 0.5 of the host viral radius)
+* iclean  -  Flag to switch on/ off orbit cleaning, this is done to remove any apsis points where the object is not orbiting the host of interest. (default True)
 * verbose - How verbose the code is 0=None, 1=talkative
 
 If either a scheduler is used then the base submit file will needed to be updated based on the size of the data being processed, these are located in:

@@ -1034,8 +1034,10 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	//If merged then set the MergedFlag == tur
 	if(mergedflag) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
 
+
 	//Clean the orbits of "wobbles"
-	CleanOrbits(opt,branchorbitdata,passagesorbitprops);
+	if(opt.iclean)
+		CleanOrbits(opt,branchorbitdata,passagesorbitprops);
 
 	if(branchorbitdata.size()==1) return;
 

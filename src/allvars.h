@@ -79,6 +79,9 @@ struct Options
 	//this is also used as the upper limit for which crossing points are outputted.
 	float numRvirSearch;
 
+	//Flag to run the orbit cleaning
+	bool iclean;
+
 	//The value which the halo ID snapvalue is offset by
 	unsigned long long TEMPORALHALOIDVAL;
 
@@ -96,6 +99,7 @@ struct Options
 		fracrvircross=0;
 		fileno=0;
 		numRvirSearch=0.0;
+		iclean=true;
 		TEMPORALHALOIDVAL=0;
 		iverbose=0;
 	};

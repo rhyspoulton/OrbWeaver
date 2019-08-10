@@ -57,7 +57,7 @@ void GetArgs(int argc, char *argv[], Options &opt){
 
 	int option;
 	// int configflag=0;
-	while ((option = getopt(argc, argv, "i:c:o:v:")) != EOF)
+	while ((option = getopt(argc, argv, "i:o:f:c:v:")) != EOF)
 	{
 
 		switch(option){
@@ -65,12 +65,16 @@ void GetArgs(int argc, char *argv[], Options &opt){
 				opt.fname = optarg;
 				break;
 
-			case 'c':
+			case 'o':
+				opt.outputbasename = optarg;
+				break;
+
+			case 'f':
 				opt.fracrvircross = atof(optarg);
 				break;
 
-			case 'o':
-				opt.outputbasename = optarg;
+			case 'c':
+				opt.iclean  = atoi(optarg);
 				break;
 
 			case 'v':

@@ -12,8 +12,9 @@ baseorbweaverdir  = pythontoolsdir.split('python-tools')[0]
 #Parse the command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("-i",action="store",dest="inputfilelist",help="file list containing the names of the preprocessed catalogues",required=True)
-parser.add_argument("-s",action="store",default='None',dest="schedulertype",help="The type of scheduler avalible either Slurm, PBS or None, if None then python's multiprocessing will be used to run orbweaver concurrently",required=True)
-parser.add_argument("-c",action="store",type=float,default=0.0,dest="fracrvircross",help="Configuration file (orbweaver.cfg)",required=False)
+parser.add_argument("-s",action="store",default='None',dest="schedulertype",help="The type of scheduler avalible either Slurm, PBS or None, if None then python's multiprocessing will be used to run orbweaver concurrently (not currenly implemented)",required=True)
+parser.add_argument("-f",action="store",type=float,default=0.0,dest="fracrvircross",help="The he fraction of the host viral radius where a crossing point is outputed (defualt 0.5)",required=False)
+parser.add_argument("-c",action="store",type=int,default=True,dest="iclean",help="Flag to switch on/ off (1/ 0) the orbit cleaning in OrbWeaver, this is done to remove any apsis points where the object is not orbiting the host of interest (default 1)",required=False)
 parser.add_argument("-v",action="store",type=int,default=0,dest="iverbose",help="How verbose the code is 0=None, 1=talkative",required=False)
 tmpOpt = parser.parse_args()
 
@@ -25,6 +26,10 @@ elif(tmpOpt.fracrvircross<0.1):
 	raise ValueError("The fraction of the host's rvir at which crossing points are to be outputted is set below 0.1, which is most likely smaller than the simulation output times.\nPlease input a value 0.1<=c<=3.0")
 elif(tmpOpt.fracrvircross>3.0):
 	raise ValueError("The fraction of the host's rvir at which crossing points are to be outputted is set above 3.0, which is outside where orbit properties are calculated.\nPlease input a value 0.1<=c<=3.0")
+
+if(tmpOpt.iclean>0):
+	raise ValueError("-c only accepts either 0 (off) or 1 (on)")
+
 
 with open(tmpOpt.inputfilelist,"r") as filenamelist:
 
@@ -76,7 +81,7 @@ with open(tmpOpt.inputfilelist,"r") as filenamelist:
 				fc = f.read()
 				fc = fc.replace("JOBNAME","OrbWeaver-%i"%ifileno)
 				fc = fc + "\ncd " + baseorbweaverdir + "/build"
-				fc = fc + "\n./orbweaver -i " + inputfilename + " -o " + basefilename + " -c " + str(tmpOpt.fracrvircross) + " -v " + str(tmpOpt.iverbose)
+				fc = fc + "\n./orbweaver -i " + inputfilename + " -o " + basefilename + " -f " + str(tmpOpt.fracrvircross) + " -c " + str(int(tmpOpt.iclean)) + " -v " + str(tmpOpt.iverbose)
 				
 			#Open up a new submit file with all the updated contents
 			if(tmpOpt.schedulertype=="PBS"): submitfilename = pythontoolsdir + "/runscripts/qsub.runorbweaver.%i.sh" %ifileno 
