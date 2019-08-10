@@ -54,6 +54,7 @@
 | MergedFlag | N/A | A flag identifying if this halo merges with its orbit host |
 | Vrad | km/s | The radial velocity of the orbiting halo with respect to its host |
 | Vtan | km/s | The tangential velocity of the orbiting halo with respect to its host |
+| R  | phys Mpc | The distance of the halo relative to its host |
 | Xrel  | phys Mpc | X position of the halo relative to its host |
 | Yrel  | phys Mpc | Y position of the halo relative to its host |
 | Zrel  | phys Mpc | Z position of the halo relative to its host |

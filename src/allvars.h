@@ -457,6 +457,9 @@ struct OrbitData{
 	//The tangential velocity of the halo with respect to its host
 	float vtan;
 
+	//The radius of the orbit
+	float r;
+
 	//The relative x position to the host
 	float xrel;
 
@@ -578,6 +581,7 @@ struct OrbitData{
 		ratioofmassinsubsstruct=0.0;
 		vrad=0.0;
 		vtan=0.0;
+		r=0.0;
 		xrel=0.0;
 		yrel=0.0;
 		zrel=0.0;
@@ -985,6 +989,8 @@ struct HDFOutputNames{
 		datasetnames.push_back("Vrad");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Vtan");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("R");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Xrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

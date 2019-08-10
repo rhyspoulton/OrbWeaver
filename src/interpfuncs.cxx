@@ -294,6 +294,7 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	tmporbitdata.xrel = xhost - tmporbitdata.x;
 	tmporbitdata.yrel = yhost - tmporbitdata.y;
 	tmporbitdata.zrel = zhost - tmporbitdata.z;
+	tmporbitdata.r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
 
 	if(tmporbitdata.xrel>0.5*Cosmo.boxsize)
 		cout<<"Have a halo greater than the boxsize apart "<<tmporbitdata.orbitID<<endl;

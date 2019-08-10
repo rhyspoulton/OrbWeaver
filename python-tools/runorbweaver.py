@@ -27,7 +27,7 @@ elif(tmpOpt.fracrvircross<0.1):
 elif(tmpOpt.fracrvircross>3.0):
 	raise ValueError("The fraction of the host's rvir at which crossing points are to be outputted is set above 3.0, which is outside where orbit properties are calculated.\nPlease input a value 0.1<=c<=3.0")
 
-if(tmpOpt.iclean>0):
+if((tmpOpt.iclean!=1) & (tmpOpt.iclean!=0)):
 	raise ValueError("-c only accepts either 0 (off) or 1 (on)")
 
 

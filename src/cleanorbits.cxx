@@ -80,7 +80,7 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 						prevpassagesnap = passagesorbitprops[i].prevpassagesnap;
 
 						//Need to update the orbit eccentricity ratio for this passages
-						rcomove = sqrt(branchorbitdata[updatepassageindex].xrel*branchorbitdata[updatepassageindex].xrel + branchorbitdata[updatepassageindex].yrel*branchorbitdata[updatepassageindex].yrel + branchorbitdata[updatepassageindex].zrel*branchorbitdata[updatepassageindex].zrel) * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
+						rcomove = branchorbitdata[updatepassageindex].r * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
 						passagesorbitprops[i+2].prevpassageindex = passagesorbitprops[i].prevpassageindex;if(branchorbitdata[updatepassageindex].entrytype==99)
 							branchorbitdata[updatepassageindex].orbitecc_ratio = (passagesorbitprops[i].prevpassagercomove-rcomove)/(passagesorbitprops[i].prevpassagercomove+rcomove);
 						else
@@ -163,7 +163,7 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 						passagesorbitprops[i+1].prevpassageindex = passagesorbitprops[i-1].prevpassageindex;
 
 						//Need to update the orbit eccentricity ratio for this passages
-						rcomove = sqrt(branchorbitdata[updatepassageindex].xrel*branchorbitdata[updatepassageindex].xrel + branchorbitdata[updatepassageindex].yrel*branchorbitdata[updatepassageindex].yrel + branchorbitdata[updatepassageindex].zrel*branchorbitdata[updatepassageindex].zrel) * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
+						rcomove = branchorbitdata[updatepassageindex].r * Cosmo.h / branchorbitdata[updatepassageindex].scalefactor;
 						if(branchorbitdata[updatepassageindex].entrytype==99)
 							branchorbitdata[updatepassageindex].orbitecc_ratio = (passagesorbitprops[i-1].prevpassagercomove-rcomove)/(passagesorbitprops[i-1].prevpassagercomove+rcomove);
 						else

@@ -214,7 +214,7 @@ void CalcOrbitProps(Options &opt,
 		rx = tmporbitdata.xrel;
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
-		r = sqrt(rx*rx + ry*ry + rz*rz);
+		r = tmporbitdata.r;
 		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
 		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
 		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
@@ -398,7 +398,7 @@ void CalcOrbitProps(Options &opt,
 		rx = tmporbitdata.xrel;
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
-		r = sqrt(rx*rx + ry*ry + rz*rz);
+		r = tmporbitdata.r;
 		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
 		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
 		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
@@ -838,6 +838,7 @@ void AddFinalEntry(Options &opt,
 	tmporbitdata.vx = orbitinghalo.vx;
 	tmporbitdata.vy = orbitinghalo.vy;
 	tmporbitdata.vz = orbitinghalo.vz;
+	tmporbitdata.r = r;
 	tmporbitdata.xrel = rx;
 	tmporbitdata.yrel = ry;
 	tmporbitdata.zrel = rz;
