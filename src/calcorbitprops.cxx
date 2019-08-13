@@ -8,7 +8,7 @@ void CalcOrbitProps(Options &opt,
 	HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo,
 	vector<OrbitData> &branchorbitdata, OrbitData &tmporbitdata,
 	vector<SnapData> &snapdata,
-	vector<int> num_entrytypes, OrbitProps &orbitprops, vector<OrbitProps> &passagesorbitprops,
+	vector<int> &num_entrytypes, OrbitProps &orbitprops, vector<OrbitProps> &passagesorbitprops,
 	SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
 	//First correct for periodicity compared to the host halo
@@ -856,7 +856,7 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 	HaloData prevorbitinghalo, HaloData prevhosthalo,
 	vector<OrbitData> branchorbitdata, OrbitData tmporbitdata,
 	OrbitProps orbitprops, vector<OrbitProps> passagesorbitprops,
-	vector <int> num_entrytypes){
+	vector<int> &num_entrytypes){
 
 	unsigned long long haloID = snapdata[snap].Halo[index].id;
 	int halosnap = (int)(haloID/opt.TEMPORALHALOIDVAL);
