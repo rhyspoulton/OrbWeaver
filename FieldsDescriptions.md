@@ -17,6 +17,8 @@
 | orbitalenergy_inst | solarmasses km^2 / s^2 | The instantaneous energy of the orbit |
 | orbitalenergy_ave | solarmasses km^2 / s^2 | The average energy of the orbit since infall or last passage, only outputted at apsis points |
 | R_circ | phys Mpc | The radius of a circular orbit with the same orbital energy, calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241) |
+| V_circ | km/s | The velocity of a circular orbit with the same orbital energy, calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241) |
+| L_circ | solar masses phys Mpc km/s | The orbital angular momentum of a circular orbit with the same orbital energy, calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241) |
 | Eta | N/A | The ratio of the (instantaneous) orbital angular momentum to the orbital angularmomentum of a circular orbit with the same orbital energy (J\_circ). This is useful to identify the type of orbit the halo is on, where 0 is a highly radial orbit and 1 is a circular orbit. J_circ is calculated from [Khochfar and Burkert 2006](https://doi.org/10.1051/0004-6361:20053241)|
 | Rperi_calc | phys Mpc | The calculated peri-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
 | Rapo_calc | phys Mpc | The calculated apo-centric distance from [Wetzel, 2011](https://doi.org/10.1111/j.1365-2966.2010.17877.x). |
