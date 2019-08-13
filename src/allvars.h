@@ -430,6 +430,12 @@ struct OrbitData{
 	//The minimum scale radius
 	float minrscale;
 
+	//The minimum scalar accleration
+	float minacc;
+
+	//The maximum scalar accleration
+	float maxacc;
+
 	//The vmax of the orbiting halo
 	float vmax;
 
@@ -477,6 +483,9 @@ struct OrbitData{
 
 	//The relative z velocity to the host
 	float vzrel;
+
+	//The relative scalar acceleration
+	float accrel;
 
 	//The instantaneous orbital angular momentum in x-direction
 	float lxrel_inst;
@@ -588,6 +597,7 @@ struct OrbitData{
 		vxrel=0.0;
 		vyrel=0.0;
 		vzrel=0.0;
+		accrel=0.0;
 		lxrel_inst=0.0;
 		lyrel_inst=0.0;
 		lzrel_inst=0.0;
@@ -666,6 +676,8 @@ struct OrbitProps{
 	//The minimum rhalfmass and scale radius
 	double minrmax;
 	double minrscale;
+	double minacc;
+	double maxacc;
 
 	// Store the reduced mass,angular momentum vectors for the orbiting halo 
 	// and its host, total orbital angular momentum, orbital energy and 
@@ -701,6 +713,8 @@ struct OrbitProps{
 		closestapproachscalefactor=0.0;
 		minrmax=numeric_limits<double>::max();
 		minrscale=numeric_limits<double>::max();
+		minacc=numeric_limits<double>::max();
+		maxacc=numeric_limits<double>::min();
 		mu=0.0;
 		lx=0.0;
 		ly=0.0;
@@ -1003,6 +1017,12 @@ struct HDFOutputNames{
 		datasetnames.push_back("VYrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Accrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("minaccrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("maxaccrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LXrel_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

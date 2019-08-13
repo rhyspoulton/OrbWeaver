@@ -54,9 +54,10 @@ void CalcOrbitProps(Options &opt,
 
 	//Can see if this is the closest approach, this needs to be compared in comoving
 	rcomove = r * Cosmo.h / snapdata[currentsnap].scalefactor;
-	if(rcomove<orbitprops.closestapproach)
+	if(rcomove<orbitprops.closestapproach){
 		orbitprops.closestapproach = rcomove;
 		orbitprops.closestapproachscalefactor = snapdata[currentsnap].scalefactor;
+	}
 
 	//Put into the output data and convert back to physical
 	tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
@@ -89,7 +90,7 @@ void CalcOrbitProps(Options &opt,
 	else
 		tmporbitdata.orbithaloID = orbitinghalo.id;
 
-	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvrad;
+	double prevrx,prevry,prevrz,prevvrx,prevvry,prevvrz,prevr,prevvrad,prevvrel,accrel;
 
 	//Lets find the previous orbiting halo host distance
 	prevrx = prevorbitinghalo.x - prevhosthalo.x;
@@ -102,7 +103,16 @@ void CalcOrbitProps(Options &opt,
 	prevvry = prevorbitinghalo.vy - prevhosthalo.vy + prevr * snapdata[prevsnap].Hz;
 	prevvrz = prevorbitinghalo.vz - prevhosthalo.vz + prevr * snapdata[prevsnap].Hz;
 	prevvrad = (prevrx * prevvrx + prevry * prevvry + prevrz * prevvrz) / prevr;
+	prevvrel = (prevvrx * prevvrx + prevvry * prevvry + prevvrz * prevvrz);
 
+	//Calculate the relative acceleration
+	accrel = (vrel - prevvrel)/(snapdata[currentsnap].uniage - snapdata[prevsnap].uniage);
+
+	//Check if this is the minimum/ maximum acceleration
+	if(accrel<orbitprops.minacc)
+		orbitprops.minacc = accrel;
+	else if(accrel>orbitprops.maxacc)
+		orbitprops.maxacc = accrel;
 
 	double mu, lx, ly, lz, e, count, deltat;
 	//The difference in time since the previous snapshot
@@ -219,6 +229,15 @@ void CalcOrbitProps(Options &opt,
 		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
 		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
 		vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
+
+		//Calculate the scalar acceleration
+		tmporbitdata.accrel = (vrel - prevvrel)/(tmporbitdata.uniage - snapdata[prevsnap].uniage);
+
+		//Check if this is the minimum/ maximum acceleration
+		if(tmporbitdata.accrel<orbitprops.minacc)
+			orbitprops.minacc = tmporbitdata.accrel;
+		else if(tmporbitdata.accrel>orbitprops.maxacc)
+			orbitprops.maxacc = tmporbitdata.accrel;
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
 		tmporbitdata.orbitperiod = -1.0;
@@ -405,6 +424,15 @@ void CalcOrbitProps(Options &opt,
 
 		//The difference in time since the previous snapshot
 		deltat = tmporbitdata.uniage - snapdata[prevsnap].uniage;
+
+		//Calculate the scalar acceleration
+		tmporbitdata.accrel = (vrel - prevvrel)/deltat;
+
+		//Check if this is the minimum/ maximum acceleration
+		if(tmporbitdata.accrel<orbitprops.minacc)
+			orbitprops.minacc = tmporbitdata.accrel;
+		else if(tmporbitdata.accrel>orbitprops.maxacc)
+			orbitprops.maxacc = tmporbitdata.accrel;
 
 		//Find the components of the radial vector
 		vcomp = (rx*vrx + ry*vry + rz*vrz)/(r*r);
@@ -1030,6 +1058,8 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 		branchorbitdata[i].totnumorbits = orbitprops.numorbits;
 		branchorbitdata[i].minrscale = orbitprops.minrscale;
 		branchorbitdata[i].minrmax = orbitprops.minrmax;
+		branchorbitdata[i].minacc = orbitprops.minacc;
+		branchorbitdata[i].maxacc = orbitprops.maxacc;
 	}
 
 	//If merged then set the MergedFlag == tur
