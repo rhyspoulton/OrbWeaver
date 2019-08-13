@@ -352,7 +352,13 @@ struct OrbitData{
 	//The radius of a circular orbit with the same energy
 	float rcirc;
 
+	//The velocity of a circular orbit with the same energy
+	float vcirc;
+
 	//The angular momentum of a circular orbit with the same energy
+	float jcirc;
+
+	//The ratio of the orbital angular momentum to angular momentum of a circular orbit with the same energy
 	float eta;
 
 	//The peri-centric distance from orbital energy and angular momentum calculation
@@ -547,6 +553,8 @@ struct OrbitData{
 		orbitalenergy_inst=0.0;
 		orbitalenergy_ave=0.0;
 		rcirc=0.0;
+		vcirc=0.0;
+		jcirc=0.0;
 		eta=0.0;
 		rperi_calc=0.0;
 		rapo_calc=0.0;
@@ -919,6 +927,10 @@ struct HDFOutputNames{
 		datasetnames.push_back("orbitalenergy_ave");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("R_circ");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("V_circ");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("L_circ");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Eta");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);

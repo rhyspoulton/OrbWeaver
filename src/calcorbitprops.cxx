@@ -140,7 +140,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, f, vcirc, jcirc, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, hostlx, hostly, hostlz;
+	double ltot, f, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, hostlx, hostly, hostlz;
 	vector<double> currangles;
 	int prevpassageindex;
 
@@ -261,13 +261,13 @@ void CalcOrbitProps(Options &opt,
 
 
 			//Find the circular velocity of a circular orbit with the same energy
-			vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+			tmporbitdata.vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
 
 			//Can use these to find the orbital angular momentum of a circular orbit
-			jcirc = mu * tmporbitdata.rcirc * vcirc;
+			tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 			//Compute the circularity for the orbit (eta)
-			tmporbitdata.eta = ltot/jcirc;
+			tmporbitdata.eta = ltot/tmporbitdata.jcirc;
 		}
 
 		//Any additional properties to be calculated here
@@ -442,13 +442,13 @@ void CalcOrbitProps(Options &opt,
 
 
 			//Find the circular velocity of a circular orbit with the same energy
-			vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+			tmporbitdata.vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
 
 			//Can use these to find the orbital angular momentum of a circular orbit
-			jcirc = mu * tmporbitdata.rcirc * vcirc;
+			tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 			//Compute the circularity for the orbit (eta)
-			tmporbitdata.eta = ltot/jcirc;
+			tmporbitdata.eta = ltot/tmporbitdata.jcirc;
 		}
 
 		//The halos orbital eccentricity calculated from energy and angular momentum
@@ -787,13 +787,13 @@ void AddFinalEntry(Options &opt,
 
 
 		//Find the circular velocity of a circular orbit with the same energy
-		vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
+		tmporbitdata.vcirc = sqrt((- 2.0 *tmporbitdata.orbitalenergy_inst)/mu);
 
 		//Can use these to find the orbital angular momentum of a circular orbit
-		jcirc = mu * tmporbitdata.rcirc * vcirc;
+		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 		//Compute the circularity for the orbit (eta)
-		tmporbitdata.eta = ltot/jcirc;
+		tmporbitdata.eta = ltot/tmporbitdata.jcirc;
 	}
 
 	//Any additional properties to be calculated here
