@@ -121,11 +121,11 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 							branchorbitdata[passageindex].num_entrytype-=1;
 						}
 
-						//Need to add to the iterator here as the next passage has already been deleted
-						i++;
-
 					}
 					//Otherwise nothing needs to be done
+
+					//Need to add to the iterator here as the next passage has already been deleted
+					i++;
 
 				}
 				else{

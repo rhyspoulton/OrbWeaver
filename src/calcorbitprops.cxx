@@ -1025,12 +1025,6 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 				orbitprops,
 				mergedflag);
 
-	//Set the total number of orbits for all entries
-	for(int i = 0; i<branchorbitdata.size(); i++){
-		branchorbitdata[i].totnumorbits = orbitprops.numorbits;
-		branchorbitdata[i].minrscale = orbitprops.minrscale;
-		branchorbitdata[i].minrmax = orbitprops.minrmax;
-	}
 
 	//If merged then set the MergedFlag == tur
 	if(mergedflag) for(int i = 0; i<branchorbitdata.size(); i++) branchorbitdata[i].mergedflag=true;
@@ -1041,6 +1035,14 @@ void ProcessHalo(Options &opt, unsigned long long orbitID, int snap, unsigned lo
 		CleanOrbits(opt,branchorbitdata,passagesorbitprops);
 
 	if(branchorbitdata.size()==1) return;
+
+	//Set the total number of orbits for all entries
+	int totnumorbits = branchorbitdata.back().numorbits;
+	for(int i = 0; i<branchorbitdata.size(); i++){
+		branchorbitdata[i].totnumorbits = totnumorbits;
+		branchorbitdata[i].minrscale = orbitprops.minrscale;
+		branchorbitdata[i].minrmax = orbitprops.minrmax;
+	}
 
 	//Now finished with this branches orbital calculations so it can be added
 	//into the orbitdata vector that contains all halos, it only needs to be
