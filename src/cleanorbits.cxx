@@ -148,7 +148,7 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 
 					//We need to update the orbit properties for the new apsis points, this only needs to be done when i>0
 					//i.e. the passage to be updated is not first passage
-					if((i>0) & (idel.size()<numpassages)){
+					if((i>0) & (idel.size()<i+2)){
 						//Mark this passage as beeb deleted
 
 						//Lets add the properties of the deleted passages to this passage
