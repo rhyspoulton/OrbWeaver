@@ -31,6 +31,14 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 		//Extract the index which this is in the branchorbitdata
 		passageindex = passagesorbitprops[i].passageindex;
 
+
+		//Check if this passage is within CLEANRATIOHOSTRADIUS * host radius, if so then lets continue to the next passage.
+		//This is so orbits which have not been properly sampled by the simulation are also included if desired
+		if((branchorbitdata[passageindex].r/branchorbitdata[passageindex].rvirhost)<CLEANRATIOHOSTRADIUS){
+			i++;
+			continue;
+		}
+
 		//Lets see if the eccentricity and Phi are below the region as described in Poulton et at., in prep
 		ecclimit = ECCCLEANLIMIT - (ECCCLEANLIMIT/PHICLEANLIMIT) * branchorbitdata[passageindex].phi;
 		if((ecclimit>branchorbitdata[passageindex].orbitecc_ratio) & (ecclimit<ECCCLEANLIMIT)){
