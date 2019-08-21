@@ -314,13 +314,13 @@ void CalcOrbitProps(Options &opt,
 	}
 
 
-	/* Check if the halo has gone past pericenter or apocenter */
+	/* Check if the halo has gone past pericenter or apocenter and is within numRvirSearch of its host */
 
 	//Check if has undergone its first peri-centric passage (orbitingflag==true) and has undergone
 	//a change in its radial motion. Otherwise if the orbitingflag==false then check if the halo
 	//has had a pericentric passage within the host halos virial radius which then switches on
 	//the orbiting flag so the number of orbits is tracked
-	if((vrad*prevvrad<0) & (r<3.0*hosthalo.rvir)){
+	if((vrad*prevvrad<0) & (r<opt.numRvirSearch*hosthalo.rvir)){
 
 		//Add 0.5 an orbit
 		orbitprops.numorbits = orbitprops.numorbits + 0.5;
