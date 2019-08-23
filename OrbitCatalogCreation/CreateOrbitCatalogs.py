@@ -77,9 +77,6 @@ for snap in range(opt.numsnaps):
 	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
 	halodata[snap]["MassinSubStruct"] = np.zeros(numhalos[snap],dtype=np.float32)
 
-	#Generate a head index for each halo
-	tree[snap]["HeadIndex"] = np.array(tree[snap]["Head"]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
-
 #Lets pre-compute the mass in substructre for all halos
 for snap in range(opt.numsnaps):
 	indexes = np.where(halodata[snap]["host_id"]>-1)[0]
@@ -102,7 +99,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 	start2=time.clock()
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
-	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHead"]/opt.TEMPORALHALOIDVAL-tree[j]["RootTail"]/opt.TEMPORALHALOIDVAL).astype(int)>=opt.MinSnapExist))[0]
+	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHeadSnap"]-tree[j]["RootTailSnap"])>=opt.MinNumSnapExistHost))[0]
 	if(opt.iverbose>1): print('Snapshot',j,' containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
 	sys.stdout.flush()
 

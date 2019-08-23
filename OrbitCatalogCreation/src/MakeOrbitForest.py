@@ -46,7 +46,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 	# Lets walk up this branch while it exists
 	ID = origRootTailID
-	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
+	haloIndex = tree[snap]["RootTailIndex"][index]
 	haloSnap = mainRootTailSnap
 
 	#Flag to keep track if the host has merged
@@ -66,7 +66,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		elif(headTail!=ID):
 
 			#If this halo has existed less than 20 snapshots before merging then don't include it in the orbit catalog
-			if((haloSnap-mainRootTailSnap)<opt.MinSnapExist):
+			if((haloSnap-mainRootTailSnap)<opt.MinNumSnapExistHost):
 				return 0
 			else:
 				mainRootHeadSnap = haloSnap
@@ -268,9 +268,50 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
 				continue
 
+			#Let check the lifetime of this object and see if it is greater than the MinNumSnapExistSat
+			ID = tree[snap]["RootTail"][iindex]
+			haloIndex = tree[snap]["RootTailIndex"][iindex]
+			haloSnap = tree[snap]["RootTailSnap"][iindex]
+
+			#Walk this halo and check how long it lives before it merges if it does
+			while(True):
+
+				# Extract its heads information
+				headID = tree[haloSnap]["Head"][haloIndex]
+				headSnap = tree[haloSnap]["HeadSnap"][haloIndex]
+				headIndex = tree[haloSnap]["HeadIndex"][haloIndex]
+
+				#Extract its heads tail to see if it merged
+				headTail = tree[headSnap]["Tail"][headIndex]
+
+				#Lets check if this halo still exists at the end of the simulation if so then it will be kept
+				# since it may live greater than the MinNumSnapExistSat but doesn't due to the end of the simulation
+				if(haloSnap==opt.numsnaps-1):
+					merged = False
+					terminatedbeforehost = False
+					break
+				elif(headTail!=ID): #Check if it merged with its host
+					merged = True
+					terminatedbeforehost = False
+					break
+				elif(ID==headID): # Or if it terminated in the simulation before its host
+					merged = False
+					terminatedbeforehost = True
+					break
+
+				#Move to its decendant
+				ID = headID
+				haloIndex = headIndex
+				haloSnap = headSnap
+
+			#If this halo either merged or terminated before its host then check how long it exists for to see if it get
+			# added to the catalog
+			if(((merged) | (terminatedbeforehost)) & ((haloSnap - tree[snap]["RootTailSnap"][iindex])<opt.MinNumSnapExistSat)):
+				continue
+
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver
 
-			# Extract the haloID
+			# Reset the halo ID info
 			ID = tree[snap]["ID"][iindex]
 			haloSnap = snap
 			haloIndex = iindex
