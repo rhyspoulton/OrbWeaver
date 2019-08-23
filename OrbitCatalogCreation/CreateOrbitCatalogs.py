@@ -26,7 +26,7 @@ tmpOpt = parser.parse_args()
 opt = Options(tmpOpt)
 
 #Get the name of the datasets for the desired input format
-inputfields = GetDatasetNames(opt)
+inputfields = GetDatasetNames(opt,basecodedir)
 
 #Load in the VELOCIraptor halodata and tree
 atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHalodata(opt,inputfields)

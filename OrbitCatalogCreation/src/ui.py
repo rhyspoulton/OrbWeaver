@@ -1,13 +1,13 @@
 import numpy as np
 
-def GetDatasetNames(opt):
+def GetDatasetNames(opt,basecodedir):
 
 	orbitfields = {}
 
 	#Find the name of the datasetfile given the desired InputFormat
 	if(opt.InputFormat==0):
 
-		datasetfile = "example_inputs/input_VELOCIraptor_catalog.txt"
+		datasetfile = basecodedir+"/example_inputs/input_VELOCIraptor_catalog.txt"
 
 		print("Loading in the halos from VELOCIraptor and merger tree from TreeFrog")
 		print("Extracting the datasets names from",datasetfile)
