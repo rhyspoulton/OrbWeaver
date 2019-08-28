@@ -257,17 +257,21 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 		#Lets find any halos that are within opt.numRvirSearch of this halo
 		if isinstance(pos_tree[snap], cKDTree):
-			indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["X"][index],orbitdata[snap]["Y"][index],orbitdata[snap]["Z"][index]],r = opt.numRvirSearch * orbitdata[snap]["Radius"][index])
+			indexes = np.asarray(pos_tree[snap].query_ball_point([orbitdata[snap]["X"][index],orbitdata[snap]["Y"][index],orbitdata[snap]["Z"][index]],r = opt.numRvirSearch * orbitdata[snap]["Radius"][index]),dtype=np.int64)
 		else:
 			print("Warning: snapshot", snap, "does not contain a KDtree. This can occur due to a gap in the halo tree.")
 			indexes = []
 
+		#Remove the haloes where:
+		#	the orbital halo ID has already been set to this one 
+		#	the halo is greater than the number of particles in the halo currently being orbited
+		#	the halo only exists for less than 3 snapshots from the current snapshot 
+		#   it is first found as a subhalo
+		indexes = indexes[~processedFlag[snap][indexes] & (halodata[snap]["npart"][indexes]<mainOrbitHaloNpart) & ((tree[snap]["RootHeadSnap"][indexes] - snap)>3) & (halodata[snap]["host_id"][indexes]==-1)]
+
+
 		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:
-			#Skip this halo if its orbital halo ID has already been set to this one or the halo is greater than the number of particles in the halo currently being orbited
-			# or the halo only exists for less than 3 snapshots from the current snapshot
-			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart) | ((tree[snap]["RootHeadSnap"][iindex] - snap)<3)):
-				continue
 
 			#Let check the lifetime of this object and see if it is greater than 3 snapshots required for interpolation
 			ID = tree[snap]["ID"][iindex]
