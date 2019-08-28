@@ -66,7 +66,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		elif(headTail!=ID):
 
 			#If this halo has existed less than 20 snapshots before merging then don't include it in the orbit catalog
-			if((haloSnap-mainRootTailSnap)<opt.MinNumSnapExistHost):
+			if((haloSnap-mainRootTailSnap)<opt.MinNumSnapExist):
 				return 0
 			else:
 				mainRootHeadSnap = haloSnap
@@ -249,7 +249,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	#List to keep track of which indexes are needed to be extracted per snapshot
 	extractIndexes = [[] for i in range(opt.numsnaps)]
 	# Now for the full history of the main branch lets find which halos come within Rvir of this halo
-	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
+	for snap in range(mainRootTailSnap,mainRootHeadSnap-1):
 		#Extract the ID of the halo at this snapshot and its index
 		mainOrbitHaloID = mainOrbitHaloIDs[snap]
 		index = int(mainOrbitHaloID%opt.TEMPORALHALOIDVAL-1)
@@ -265,13 +265,17 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:
 			#Skip this halo if its orbital halo ID has already been set to this one or the halo is greater than the number of particles in the halo currently being orbited
-			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
+			# or the halo only exists for less than 3 snapshots from the current snapshot
+			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart) | ((tree[snap]["RootHeadSnap"][iindex] - snap)<3)):
 				continue
 
-			#Let check the lifetime of this object and see if it is greater than the MinNumSnapExistSat
-			ID = tree[snap]["RootTail"][iindex]
-			haloIndex = tree[snap]["RootTailIndex"][iindex]
-			haloSnap = tree[snap]["RootTailSnap"][iindex]
+			#Let check the lifetime of this object and see if it is greater than 3 snapshots required for interpolation
+			ID = tree[snap]["ID"][iindex]
+			haloSnap = snap
+			haloIndex = iindex
+
+			#Store how many snapshot this halo exists for
+			inumsnapexist = 1
 
 			#Walk this halo and check how long it lives before it merges if it does
 			while(True):
@@ -284,19 +288,10 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				#Extract its heads tail to see if it merged
 				headTail = tree[headSnap]["Tail"][headIndex]
 
-				#Lets check if this halo still exists at the end of the simulation if so then it will be kept
-				# since it may live greater than the MinNumSnapExistSat but doesn't due to the end of the simulation
-				if(haloSnap==opt.numsnaps-1):
-					merged = False
-					terminatedbeforehost = False
+				#Check that this halo exists for at least 3 snapshots before it merges
+				if(inumsnapexist==3):
 					break
-				elif(headTail!=ID): #Check if it merged with its host
-					merged = True
-					terminatedbeforehost = False
-					break
-				elif(ID==headID): # Or if it terminated in the simulation before its host
-					merged = False
-					terminatedbeforehost = True
+				elif(headTail!=ID): # Or if it merges with its host within 3 snapshots
 					break
 
 				#Move to its decendant
@@ -304,9 +299,10 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				haloIndex = headIndex
 				haloSnap = headSnap
 
-			#If this halo either merged or terminated before its host then check how long it exists for to see if it get
-			# added to the catalog
-			if(((merged) | (terminatedbeforehost)) & ((haloSnap - tree[snap]["RootTailSnap"][iindex])<opt.MinNumSnapExistSat)):
+				inumsnapexist+=1
+
+			# Check if this halo merged with its host within 3 snapshots, if so don't add it to the catalog
+			if(inumsnapexist<3):
 				continue
 
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver

@@ -99,7 +99,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 	start2=time.clock()
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
-	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHeadSnap"]-tree[j]["RootTailSnap"])>=opt.MinNumSnapExistHost))[0]
+	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHeadSnap"]-tree[j]["RootTailSnap"])>=opt.MinNumSnapExist))[0]
 	if(opt.iverbose>1): print('Snapshot',j,' containing initial set of ', haloIndexes.size, 'orbital forest candidates') 
 	sys.stdout.flush()
 
