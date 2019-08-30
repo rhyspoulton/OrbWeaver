@@ -40,7 +40,10 @@ with open(tmpOpt.inputfilelist,"r") as filenamelist:
 		raise IOError("The first line of the filelist (which says the number of files), cannot be interpreted as a integer")
 
 	#Loop over all the filename in the list
-	for i,basefilename in enumerate(filenamelist):
+	for i in range(numfiles):
+
+		#Extract the line from the file
+		basefilename = filenamelist.readline()
 
 		#Remove any whitespace
 		basefilename=basefilename.strip()
@@ -91,7 +94,7 @@ with open(tmpOpt.inputfilelist,"r") as filenamelist:
 			submitfile.close()
 
 			#Submit the job
-			if(tmpOpt.schedulertype=="PBS"): returncode = subprocess.call(["qsub",submitfilename],shell=True)
+			if(tmpOpt.schedulertype=="PBS"): returncode = subprocess.call("qsub "+submitfilename,shell=True)
 			else: returncode = subprocess.call("sbatch "+submitfilename,shell=True)
 
 			#Check if it returned a non-zero error on submission
