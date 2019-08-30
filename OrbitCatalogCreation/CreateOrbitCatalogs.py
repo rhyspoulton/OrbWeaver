@@ -71,18 +71,30 @@ datatypes["OrbitedHaloID"] = np.dtype("int64")
 datatypes["RatioOfMassinSubsStruct"] = np.dtype("float32")
 datatypes["hostMerges"] = np.dtype("bool")
 
+#Pre compute the TEMPORALHALOIDVAL for all snapshots
+ALLTEMPORALHALOIDVAL = np.zeros(opt.numsnaps,dtype = np.int64)
+
 #initialize the dictionaries and also generate the HeadIndex for the halos as this offers a significant speed up if computed here
 for snap in range(opt.numsnaps):
 	#Set a done flag for the halos who's orbits around have already be analysed
 	halodata[snap]["doneFlag"] = np.zeros(numhalos[snap],dtype=bool)
-	halodata[snap]["MassinSubStruct"] = np.zeros(numhalos[snap],dtype=np.float32)
+	halodata[snap]["RatioOfMassinSubsStruct"] = np.zeros(numhalos[snap],dtype=np.float32)
+
+	#Compute the TEMPORALHALOIDVAL for this snapshot
+	ALLTEMPORALHALOIDVAL[snap] = snap * opt.TEMPORALHALOIDVAL
 
 #Lets pre-compute the mass in substructre for all halos
 for snap in range(opt.numsnaps):
 	indexes = np.where(halodata[snap]["host_id"]>-1)[0]
 	hostIndxes = np.array(halodata[snap]["host_id"][indexes]%opt.TEMPORALHALOIDVAL-1,dtype=np.int64)
+
+	MassinSubStruct = np.zeros(numhalos[snap],dtype=np.float32)
 	for i in range(indexes.size):
-		halodata[snap]["MassinSubStruct"][hostIndxes[i]]+=halodata[snap]["Mass"][indexes[i]]
+		MassinSubStruct[hostIndxes[i]]+=halodata[snap]["Mass"][indexes[i]]
+
+	halodata[snap]["RatioOfMassinSubsStruct"][hostIndxes] = MassinSubStruct[hostIndxes]/halodata[snap]["Mass"][hostIndxes]
+
+del MassinSubStruct
 
 
 if(opt.iverbose): print("Building the orbit forests")
@@ -115,7 +127,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 			print("On oribital forest", orbitforestidval)
 			sys.stdout.flush()
 
-		orbithalocount[inumForest] = CreateOrbitForest(opt,numhalos,halodata,tree,tree[j]["ID"][indx],orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata)
+		orbithalocount[inumForest] = CreateOrbitForest(opt,j,indx,numhalos,halodata,tree,orbitforestidval,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,ALLTEMPORALHALOIDVAL)
 
 		#If there were zero entries in this halos orbit forest
 		if(orbithalocount[inumForest]==0):
