@@ -33,18 +33,18 @@ atime, numhalos, halodata, tree, unitdata, cosmodata = ReadVELOCIraptorTreeandHa
 
 
 # built KD tree to quickly search for near neighbours. only build if not passed.
-start=time.clock()
+start=time.time()
 pos_tree=[[] for j in range(opt.numsnaps)]
-start=time.clock()
+start=time.time()
 if (opt.iverbose): print("KD tree build")
 for snap in range(opt.numsnaps-1,-1,-1):
 	if (numhalos[snap]>0):
-		start1 = time.clock()
+		start1 = time.time()
 		if(opt.iverbose>1): print('Snapshot', snap, 'producing spatial tree')
 		pos=np.transpose(np.asarray([halodata[snap]["X"],halodata[snap]["Y"],halodata[snap]["Z"]]))
 		pos_tree[snap]=spatial.cKDTree(pos,boxsize=halodata[snap]["SimulationInfo"]["Period"])
-		if(opt.iverbose>1): print('Done',snap,'in',time.clock()-start1)
-if (opt.iverbose): print("Done building in",time.clock()-start)
+		if(opt.iverbose>1): print('Done',snap,'in',time.time()-start1)
+if (opt.iverbose): print("Done building in",time.time()-start)
 sys.stdout.flush()
 
 
@@ -103,12 +103,12 @@ if(opt.iverbose): print("Building the orbit forests")
 #branch that comes within numRvirSearch * Radius and set it to 
 #be a member of this orbital forest ID
 orbitforestidval=0
-start=time.clock()
+start=time.time()
 inumForest = 0
 prevorbitforestidval=0
 ifileno=0
 for j in range(opt.numsnaps-1,-1,-1):
-	start2=time.clock()
+	start2=time.time()
 	if (numhalos[j]==0): continue
 	#First define halos of interest, intially just do it based on mass and how long the halo has existed for
 	haloIndexes = np.where((halodata[j]["npart"]>opt.NpartLimHost) & ((tree[j]["RootHeadSnap"]-tree[j]["RootTailSnap"])>=opt.MinNumSnapExist))[0]
@@ -121,7 +121,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 		#Skip if this halo's orbits have already been extracted
 		if(halodata[j]["doneFlag"][indx]): continue
 
-		start3 = time.clock()
+		start3 = time.time()
 		#Set the OrbitalForestID
 		if (opt.iverbose > 1):
 			print("On oribital forest", orbitforestidval)
@@ -134,7 +134,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 			continue
 
 		if (opt.iverbose > 1):
-			print("Done orbital forest", orbitforestidval, time.clock()-start3)
+			print("Done orbital forest", orbitforestidval, time.time()-start3)
 			sys.stdout.flush()
 
 		#Keep track of the current number of forest
@@ -164,14 +164,14 @@ for j in range(opt.numsnaps-1,-1,-1):
 
 
 	if (opt.iverbose>1):
-		print("Done snap",j,time.clock()-start2)
+		print("Done snap",j,time.time()-start2)
 		sys.stdout.flush()
 
 
 if(orbitforestidval!=prevorbitforestidval -1):
 	orbitforestdata['Number_of_halos']=np.array(orbithalocount[:inumForest], dtype=np.int64)
 	OutputOrbitCatalog(opt,orbitdata,datatypes,prevorbitforestidval,orbitforestidval,inumForest,ifileno,atime,cosmodata,unitdata,orbitforestdata)
-print("Done generating orbit forest",time.clock()-start)
+print("Done generating orbit forest",time.time()-start)
 sys.stdout.flush()
 
 
