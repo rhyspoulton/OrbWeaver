@@ -140,7 +140,7 @@ void CalcOrbitProps(Options &opt,
 	}
 
 	//Define varibles for the calculations
-	double ltot, f, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, hostlx, hostly, hostlz;
+	double f, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, prevpassager, hostlx, hostly, hostlz;
 	vector<double> currangles;
 	int prevpassageindex;
 
@@ -245,10 +245,10 @@ void CalcOrbitProps(Options &opt,
 		lx = (ry * vrz) - (rz * vry);
 		ly = -((rx * vrz) - (rz * vrx));
 		lz = (rx * vry) - (ry * vrx);
-		ltot = mu* sqrt(lx*lx + ly*ly + lz*lz);
-		tmporbitdata.lxrel_inst += mu * lx;
-		tmporbitdata.lyrel_inst += mu * ly;
-		tmporbitdata.lzrel_inst += mu * lz;
+		tmporbitdata.lrel_inst = mu* sqrt(lx*lx + ly*ly + lz*lz);
+		tmporbitdata.lxrel_inst = mu * lx;
+		tmporbitdata.lyrel_inst = mu * ly;
+		tmporbitdata.lzrel_inst = mu * lz;
 
 		//Find the energy of the orbit
 		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * tmporbitdata.mass*tmporbitdata.masshost)/r;
@@ -267,25 +267,26 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 			//Compute the circularity for the orbit (eta)
-			tmporbitdata.eta = ltot/tmporbitdata.jcirc;
+			tmporbitdata.eta = tmporbitdata.lrel_inst/tmporbitdata.jcirc;
 		}
 
 		//Any additional properties to be calculated here
 
 		//The halos orbital eccentricity calculated from energy and angular momentum
-		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
 
 		//Find the orbits apo and pericentric distances
-		tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+		tmporbitdata.rperi_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 		//Find the orbits apo and pericentric distances
-		tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+		tmporbitdata.rapo_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 		//Set the orbit period and eccentricty as -1.0
 		tmporbitdata.orbitperiod = -1.0;
 		tmporbitdata.lxrel_ave = -1.0;
 		tmporbitdata.lyrel_ave = -1.0;
 		tmporbitdata.lzrel_ave = -1.0;
+		tmporbitdata.lrel_ave = -1.0;
 		tmporbitdata.hostalignment = 0.0;
 
 		//Store the previous crossing point entry type
@@ -426,10 +427,10 @@ void CalcOrbitProps(Options &opt,
 		lx = (ry * vrz) - (rz * vry);
 		ly = -((rx * vrz) - (rz * vrx));
 		lz = (rx * vry) - (ry * vrx);
-		ltot = mu* sqrt(lx*lx + ly*ly + lz*lz);
-		tmporbitdata.lxrel_inst += mu * lx;
-		tmporbitdata.lyrel_inst += mu * ly;
-		tmporbitdata.lzrel_inst += mu * lz;
+		tmporbitdata.lrel_inst = mu* sqrt(lx*lx + ly*ly + lz*lz);
+		tmporbitdata.lxrel_inst = mu * lx;
+		tmporbitdata.lyrel_inst = mu * ly;
+		tmporbitdata.lzrel_inst = mu * lz;
 
 		//Find the energy of the orbit
 		tmporbitdata.orbitalenergy_inst = 0.5 * mu  * (vrel*vrel) - (Cosmo.G * tmporbitdata.mass*tmporbitdata.masshost)/r;
@@ -448,17 +449,17 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 			//Compute the circularity for the orbit (eta)
-			tmporbitdata.eta = ltot/tmporbitdata.jcirc;
+			tmporbitdata.eta = tmporbitdata.lrel_inst/tmporbitdata.jcirc;
 		}
 
 		//The halos orbital eccentricity calculated from energy and angular momentum
-		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+		tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
 
 		//Find the orbits apo and pericentric distances
-		tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+		tmporbitdata.rperi_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 		//Find the orbits apo and pericentric distances
-		tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+		tmporbitdata.rapo_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 
 		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
@@ -556,6 +557,7 @@ void CalcOrbitProps(Options &opt,
 			tmporbitdata.lxrel_ave = orbitprops.lx / (double)(currentsnap - orbitprops.prevpassagesnap);
 			tmporbitdata.lyrel_ave = orbitprops.ly / (double)(currentsnap - orbitprops.prevpassagesnap);
 			tmporbitdata.lzrel_ave = orbitprops.lz / (double)(currentsnap - orbitprops.prevpassagesnap);
+			tmporbitdata.lrel_ave = sqrt(tmporbitdata.lxrel_ave*tmporbitdata.lxrel_ave + tmporbitdata.lyrel_ave*tmporbitdata.lyrel_ave + tmporbitdata.lzrel_ave*tmporbitdata.lzrel_ave);
 
 			//Find the average angular momentum of the host halo
 			hostlx = orbitprops.hostlx / (double)(currentsnap - orbitprops.prevpassagesnap);
@@ -564,7 +566,7 @@ void CalcOrbitProps(Options &opt,
 
 			//Now we have the average angular momentum,the alignment with the host angular momentum can be computed
 			tmporbitdata.hostalignment = acos(((hostlx*tmporbitdata.lxrel_ave) + (hostly*tmporbitdata.lyrel_ave)	+ (hostlz*tmporbitdata.lzrel_ave))/
-				(sqrt(hostlx*hostlx + hostly*hostly + hostlz*hostlz) * sqrt(tmporbitdata.lxrel_ave*tmporbitdata.lxrel_ave + tmporbitdata.lyrel_ave*tmporbitdata.lyrel_ave + tmporbitdata.lzrel_ave*tmporbitdata.lzrel_ave)));
+				(sqrt(hostlx*hostlx + hostly*hostly + hostlz*hostlz) * tmporbitdata.lrel_ave));
 
 			/* Compute all the angles */
 
@@ -651,7 +653,7 @@ void AddFinalEntry(Options &opt,
 	if((orbitinghalo.z - hosthalo.z)<-0.5*snapdata[currentsnap].physboxsize) orbitinghalo.z+=snapdata[currentsnap].physboxsize;
 
 	//This is where all the orbital properties are calculate for the halo at this snapshot
-	double rx,ry,rz,vrx,vry,vrz,r,rcomove, vrel, vcirc, jcirc, ltot, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
+	double rx,ry,rz,vrx,vry,vrz,r,rcomove, vrel, vcirc, jcirc, lx, ly, lz, vcomp, vradx, vrady, vradz, vtanx, vtany, vtanz, mu, deltat;
 
 
 	// Find the orbitinghalos distance to the hosthalo and its orbiting vector
@@ -771,7 +773,7 @@ void AddFinalEntry(Options &opt,
 	lx = (ry * vrz) - (rz * vry);
 	ly = -((rx * vrz) - (rz * vrx));
 	lz = (rx * vry) - (ry * vrx);
-	ltot = mu*sqrt(lx*lx + ly*ly + lz*lz);
+	tmporbitdata.lrel_inst = mu*sqrt(lx*lx + ly*ly + lz*lz);
 	tmporbitdata.lxrel_inst += mu * lx;
 	tmporbitdata.lyrel_inst += mu * ly;
 	tmporbitdata.lzrel_inst += mu * lz;
@@ -793,25 +795,26 @@ void AddFinalEntry(Options &opt,
 		tmporbitdata.jcirc = mu * tmporbitdata.rcirc * tmporbitdata.vcirc;
 
 		//Compute the circularity for the orbit (eta)
-		tmporbitdata.eta = ltot/tmporbitdata.jcirc;
+		tmporbitdata.eta =  tmporbitdata.lrel_inst/tmporbitdata.jcirc;
 	}
 
 	//Any additional properties to be calculated here
 
 	//The halos orbital eccentricity calculated from energy and angular momentum
-	tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * ltot*ltot)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
+	tmporbitdata.orbitecc_calc = sqrt(1.0 + ((2.0 * tmporbitdata.orbitalenergy_inst * tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((Cosmo.G * orbitinghalo.mass * hosthalo.mass)*(Cosmo.G * orbitinghalo.mass * hosthalo.mass) * mu)));
 
 	//Find the orbits apo and pericentric distances
-	tmporbitdata.rperi_calc = (ltot*ltot)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+	tmporbitdata.rperi_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1+tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 	//Find the orbits apo and pericentric distances
-	tmporbitdata.rapo_calc = (ltot*ltot)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
+	tmporbitdata.rapo_calc = (tmporbitdata.lrel_inst*tmporbitdata.lrel_inst)/((1-tmporbitdata.orbitecc_calc) * Cosmo.G * orbitinghalo.mass * hosthalo.mass  * mu);
 
 	//Set the orbit period and eccentricty as -1.0
 	tmporbitdata.orbitperiod = -1.0;
 	tmporbitdata.lxrel_ave = -1.0;
 	tmporbitdata.lyrel_ave = -1.0;
 	tmporbitdata.lzrel_ave = -1.0;
+	tmporbitdata.lrel_ave = -1.0;
 	tmporbitdata.hostalignment = 0.0;
 
 

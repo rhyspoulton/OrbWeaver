@@ -60,12 +60,15 @@
 | Xrel  | phys Mpc | X position of the halo relative to its host |
 | Yrel  | phys Mpc | Y position of the halo relative to its host |
 | Zrel  | phys Mpc | Z position of the halo relative to its host |
+| Vrel  | km/s | The halos velocity relative to its host |
 | VXrel  | km/s | X component of the halos velocity relative to its host |
 | VYrel  | km/s | Y component of the halos velocity relative to its host |
 | Vzrel  | km/s | Z component of the halos velocity relative to its host |
+| Lrel_inst | solar masses phys Mpc km/s | The instantaneous orbital angular momentum vector |
 | LXrel_inst | solar masses phys Mpc km/s | The instantaneous x component of the orbital angular momentum vector |
 | LYrel_inst | solar masses phys Mpc km/s | The instantaneous y component of the orbital angular momentum vector |
 | LZrel_inst | solar masses phys Mpc km/s | The instantaneous z component of the orbital angular momentum vector |
+| Lrel_ave | solar masses phys Mpc km/s | The average orbital angular momentum vector since last apsis point |
 | LXrel_ave | solar masses phys Mpc km/s | The average x component of the orbital angular momentum vector since last apsis point |
 | LYrel_ave | solar masses phys pc km/s | The average y component of the orbital angular momentum vector since last apsis point |
 | LZrel_ave | solar masses phys Mpc km/s | The average z component of the orbital angular momentum vector since last apsis point |

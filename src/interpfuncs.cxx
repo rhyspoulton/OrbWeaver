@@ -311,6 +311,7 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	tmporbitdata.vxrel = vxhost - tmporbitdata.vx;
 	tmporbitdata.vyrel = vyhost - tmporbitdata.vy;
 	tmporbitdata.vzrel = vzhost - tmporbitdata.vz;
+	tmporbitdata.vrel = sqrt(tmporbitdata.vxrel*tmporbitdata.vxrel + tmporbitdata.vyrel*tmporbitdata.vyrel + tmporbitdata.vzrel*tmporbitdata.vzrel);
 
 	// r = sqrt((tmporbitdata.x-xhost)*(tmporbitdata.x-xhost) + (tmporbitdata.y-yhost)*(tmporbitdata.y-yhost) + (tmporbitdata.z-zhost)*(tmporbitdata.z-zhost));
 

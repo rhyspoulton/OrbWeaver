@@ -476,6 +476,9 @@ struct OrbitData{
 	//The relative z position to the host
 	float zrel;
 
+	//The total relative velocity
+	float vrel;
+
 	//The relative x velocity to the host
 	float vxrel;
 
@@ -485,6 +488,9 @@ struct OrbitData{
 	//The relative z velocity to the host
 	float vzrel;
 
+	//The total instantaneous orbital angular momentum
+	float lrel_inst;
+
 	//The instantaneous orbital angular momentum in x-direction
 	float lxrel_inst;
 
@@ -493,6 +499,9 @@ struct OrbitData{
 
 	//The instantaneous orbital angular momentum in z-direction
 	float lzrel_inst;
+
+	//The total average orbital angular momentum
+	float lrel_ave;
 
 	//The average orbital angular momentum in x-direction since last passage
 	float lxrel_ave;
@@ -594,12 +603,15 @@ struct OrbitData{
 		xrel=0.0;
 		yrel=0.0;
 		zrel=0.0;
+		vrel=0.0;
 		vxrel=0.0;
 		vyrel=0.0;
 		vzrel=0.0;
+		lrel_inst=0.0;
 		lxrel_inst=0.0;
 		lyrel_inst=0.0;
 		lzrel_inst=0.0;
+		lrel_ave=0.0;
 		lxrel_ave=0.0;
 		lyrel_ave=0.0;
 		lzrel_ave=0.0;
@@ -1011,17 +1023,23 @@ struct HDFOutputNames{
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("Zrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Vrel");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VXrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VYrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("VZrel");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Lrel_inst");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LXrel_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LYrel_inst");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LZrel_inst");
+		datasettypes.push_back(PredType::NATIVE_FLOAT);
+		datasetnames.push_back("Lrel_ave");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
 		datasetnames.push_back("LXrel_ave");
 		datasettypes.push_back(PredType::NATIVE_FLOAT);
