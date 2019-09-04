@@ -42,7 +42,7 @@
 #define COMOVING 1
 
 //Parameters used to clean the orbits to remove apsis points that are "wobbles"
-#define PHICLEANLIMIT (0.75 * M_PI)
+#define PHICLEANLIMIT (0.45 * M_PI)
 #define ECCCLEANLIMIT 0.4
 #define CLEANRATIOHOSTRADIUS 0.5 // The ratio of the host radius which cleaning is not done
 
