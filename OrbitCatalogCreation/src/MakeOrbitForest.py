@@ -18,12 +18,13 @@ def LinInterp(prevdata,nextdata,f):
 	return interpoutput.astype(inputdtype)
 
 
-def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata):
+def CreateOrbitForest(opt,snap,index,numhalos,halodata,tree,orbitforestid,orbitdata,atime,treefields,orbitalfields,pos_tree,cosmodata,ALLTEMPORALHALOIDVAL):
 	"""
 	Sets the orbital forestID by finding any halos which come with opt.numRvirSearch x Rvir of
 	the branch of interest over all the snapshots that it exists in
 
 	"""
+	HaloID = tree[snap]["ID"][index]
 
 	#Set a dataset to mark a halo as done within this orbitID
 	processedFlag = [[] for i in range(opt.numsnaps)]
@@ -33,8 +34,6 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	#Lets first walk down extracting the haloIDs for this branch of interest
 	mainHaloIDs = -1 * np.ones(opt.numsnaps,dtype=np.int64)
 	mainOrbitHaloIDs = -1 * np.ones(opt.numsnaps,dtype=np.int64)
-	snap = int(HaloID/opt.TEMPORALHALOIDVAL)
-	index = int(HaloID%opt.TEMPORALHALOIDVAL-1)
 
 	# Set the snapshot for which this branch first comes into existence
 	mainRootTailSnap = tree[snap]["RootTailSnap"][index]
@@ -46,7 +45,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 	# Lets walk up this branch while it exists
 	ID = origRootTailID
-	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
+	haloIndex = tree[snap]["RootTailIndex"][index]
 	haloSnap = mainRootTailSnap
 
 	#Flag to keep track if the host has merged
@@ -66,7 +65,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		elif(headTail!=ID):
 
 			#If this halo has existed less than 20 snapshots before merging then don't include it in the orbit catalog
-			if((haloSnap-mainRootTailSnap)<opt.MinSnapExist):
+			if((haloSnap-mainRootTailSnap)<opt.MinNumSnapExist):
 				return 0
 			else:
 				mainRootHeadSnap = haloSnap
@@ -79,7 +78,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 	# Lets walk up this branch while it exists
 	ID = tree[snap]["RootTail"][index]
-	haloIndex = int(ID%opt.TEMPORALHALOIDVAL-1)
+	haloIndex = tree[snap]["RootTailIndex"][index]
 	haloSnap = mainRootTailSnap
 
 	#Store the snapshots to be interpolated
@@ -99,17 +98,17 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 		if(snap==mainRootTailSnap):
 			#At the first snapshot set the tailID = haloID
-			mainOrbitHaloID = np.int64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
+			mainOrbitHaloID = ALLTEMPORALHALOIDVAL[haloSnap] + len(orbitdata[haloSnap]["ID"]) + 1
 			mainOrbitTailID = mainOrbitHaloID
 			if(mainRootHeadSnap>snap+1):
-				mainOrbitHeadID = np.int64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["ID"]) + 1)
+				mainOrbitHeadID = ALLTEMPORALHALOIDVAL[snap+1] + len(orbitdata[snap+1]["ID"]) + 1
 		elif(snap==mainRootHeadSnap):
 			#If at the final snapshot set headID==haloID
 			mainOrbitHaloID = mainOrbitHeadID
 		else:
 			#Set the re-mapped tree information for this branch
 			mainOrbitHaloID = mainOrbitHeadID
-			mainOrbitHeadID = np.int64((snap+1) * opt.TEMPORALHALOIDVAL + len(orbitdata[snap+1]["ID"]) + 1)
+			mainOrbitHeadID = ALLTEMPORALHALOIDVAL[snap+1] + len(orbitdata[snap+1]["ID"]) + 1
 
 		# Lets re-map the tree information
 		orbitdata[snap]["ID"].append(mainOrbitHaloID)
@@ -127,9 +126,9 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 		#Extract all the information for this halo if it exists
 		if(ID!=0):
 			#Store the orginal haloID
-			orbitdata[snap]["OrigID"].append(np.uint64(ID))
-			orbitdata[snap]["OrigRootProgenID"].append(np.uint64(origRootTailID))
-			orbitdata[snap]["OrigRootDescenID"].append(np.uint64(origRootHeadID))
+			orbitdata[snap]["OrigID"].append(ID)
+			orbitdata[snap]["OrigRootProgenID"].append(origRootTailID)
+			orbitdata[snap]["OrigRootDescenID"].append(origRootHeadID)
 
 			#Set a boolean if this halo is a host halo or not
 			orbitdata[snap]["FieldHalo"].append(halodata[snap]["host_id"][haloIndex]==-1)
@@ -138,7 +137,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[snap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			prevMassinSubStructure =halodata[snap]["MassinSubStruct"][haloIndex]/halodata[snap]["Mass"][haloIndex]
+			prevMassinSubStructure =halodata[snap]["RatioOfMassinSubsStruct"][haloIndex]
 
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(prevMassinSubStructure)
 
@@ -156,8 +155,8 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#If the halo is interpolated set ist origID to 0
 			orbitdata[snap]["OrigID"].append(0)
-			orbitdata[snap]["OrigRootProgenID"].append(np.uint64(origRootTailID))
-			orbitdata[snap]["OrigRootDescenID"].append(np.uint64(origRootHeadID))
+			orbitdata[snap]["OrigRootProgenID"].append(origRootTailID)
+			orbitdata[snap]["OrigRootDescenID"].append(origRootHeadID)
 
 			#Set a boolean if this halo if it a host halo or not based on the surrounding snapshots
 			orbitdata[snap]["FieldHalo"].append(halodata[haloSnap]["host_id"][haloIndex]==-1 & halodata[headSnap]["host_id"][headIndex]==-1)
@@ -170,7 +169,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 			#Find the ratio of mass in substructure
 			# nextSubStructIndexes = np.where(halodata[snap]["host_id"]==ID)[0]
-			nextMassinSubStructure =halodata[headSnap]["MassinSubStruct"][headIndex]/halodata[headSnap]["Mass"][headIndex]
+			nextMassinSubStructure =halodata[headSnap]["RatioOfMassinSubsStruct"][headIndex]
 
 			orbitdata[snap]["RatioOfMassinSubsStruct"].append(LinInterp(prevMassinSubStructure,nextMassinSubStructure,f))
 
@@ -249,7 +248,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 	#List to keep track of which indexes are needed to be extracted per snapshot
 	extractIndexes = [[] for i in range(opt.numsnaps)]
 	# Now for the full history of the main branch lets find which halos come within Rvir of this halo
-	for snap in range(mainRootTailSnap,mainRootHeadSnap+1):
+	for snap in range(mainRootTailSnap,mainRootHeadSnap-1):
 		#Extract the ID of the halo at this snapshot and its index
 		mainOrbitHaloID = mainOrbitHaloIDs[snap]
 		index = int(mainOrbitHaloID%opt.TEMPORALHALOIDVAL-1)
@@ -257,20 +256,65 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 
 		#Lets find any halos that are within opt.numRvirSearch of this halo
 		if isinstance(pos_tree[snap], cKDTree):
-			indexes = pos_tree[snap].query_ball_point([orbitdata[snap]["X"][index],orbitdata[snap]["Y"][index],orbitdata[snap]["Z"][index]],r = opt.numRvirSearch * orbitdata[snap]["Radius"][index])
+			indexes = np.asarray(pos_tree[snap].query_ball_point([orbitdata[snap]["X"][index],orbitdata[snap]["Y"][index],orbitdata[snap]["Z"][index]],r = opt.numRvirSearch * orbitdata[snap]["Radius"][index]),dtype=np.int64)
 		else:
 			print("Warning: snapshot", snap, "does not contain a KDtree. This can occur due to a gap in the halo tree.")
 			indexes = []
 
+		#Remove the haloes where:
+		#	the orbital halo ID has already been set to this one 
+		#	the halo is greater than the number of particles in the halo currently being orbited
+		#	the halo only exists for less than 3 snapshots from the current snapshot 
+		#   it is first found as a subhalo
+		indexes = indexes[~processedFlag[snap][indexes] & (halodata[snap]["npart"][indexes]<mainOrbitHaloNpart) & ((tree[snap]["RootHeadSnap"][indexes] - snap)>3) & (halodata[snap]["host_id"][indexes]==-1)]
+
+
 		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:
-			#Skip this halo if its orbital halo ID has already been set to this one or the halo is greater than the number of particles in the halo currently being orbited
-			if((processedFlag[snap][iindex]) | (halodata[snap]["npart"][iindex]>mainOrbitHaloNpart)):
+
+			#Let check the lifetime of this object and see if it is greater than 3 snapshots required for interpolation
+			ID = tree[snap]["ID"][iindex]
+			haloSnap = snap
+			haloIndex = iindex
+
+			#Store how many snapshot this halo exists for
+			inumsnapexist = 1
+
+			#Walk this halo and check how long it lives before it merges if it does
+			while(True):
+
+				# Extract its heads information
+				headID = tree[haloSnap]["Head"][haloIndex]
+				headSnap = tree[haloSnap]["HeadSnap"][haloIndex]
+				headIndex = tree[haloSnap]["HeadIndex"][haloIndex]
+
+				#Extract its heads tail to see if it merged
+				headTail = tree[headSnap]["Tail"][headIndex]
+
+				#Check that this halo exists for at least 3 snapshots before it merges
+				if(inumsnapexist==3):
+					break
+				elif(headTail!=ID): # Or if it merges with its host within 3 snapshots
+					break
+
+				#Move to its decendant
+				ID = headID
+				haloIndex = headIndex
+				haloSnap = headSnap
+
+				inumsnapexist+=1
+
+			# Check if this halo merged with its host within 3 snapshots, if so don't add it to the catalog
+			if(inumsnapexist<3):
 				continue
 
 			# Note: no interpolation is done here for the orbiting branches as this will be done by OrbWeaver
 
-			# Extract the haloID
+			#Extract the halos RootTail and RootHead
+			BranchRootTail = tree[haloSnap]["RootTail"][haloIndex]
+			BranchRootHead = tree[haloSnap]["RootHead"][haloIndex]
+
+			# Reset the halo ID info
 			ID = tree[snap]["ID"][iindex]
 			haloSnap = snap
 			haloIndex = iindex
@@ -288,14 +332,14 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				continue
 
 			#Store the halos original ID
-			orbitdata[haloSnap]["OrigID"].append(np.uint64(ID))
-			orbitdata[haloSnap]["OrigRootProgenID"].append(np.uint64(tree[haloSnap]["RootTail"][haloIndex]))
-			orbitdata[haloSnap]["OrigRootDescenID"].append(np.uint64(tree[haloSnap]["RootHead"][haloIndex]))
+			orbitdata[haloSnap]["OrigID"].append(ID)
+			orbitdata[haloSnap]["OrigRootProgenID"].append(BranchRootTail)
+			orbitdata[haloSnap]["OrigRootDescenID"].append(BranchRootHead)
 
 			#At the first snapshot lets set the tail == haloID and its head
-			orbitingHaloID = np.int64(haloSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[haloSnap]["ID"]) + 1)
+			orbitingHaloID = ALLTEMPORALHALOIDVAL[haloSnap] + len(orbitdata[haloSnap]["ID"]) + 1
 			orbitingTailID = orbitingHaloID
-			orbitingHeadID = np.int64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["ID"]) + 1)
+			orbitingHeadID = ALLTEMPORALHALOIDVAL[headSnap] + len(orbitdata[headSnap]["ID"]) + 1
 
 			#Add to the orbit catalog
 			orbitdata[haloSnap]["ID"].append(orbitingHaloID)
@@ -315,7 +359,7 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 			orbitdata[haloSnap]["hostMerges"].append(hostMerges)
 
 			#Find the ratio of mass in substructure only if these if sub structure
-			orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass"][haloIndex])
+			orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["RatioOfMassinSubsStruct"][haloIndex])
 
 
 			# increment local halo counter
@@ -365,15 +409,15 @@ def CreateOrbitForest(opt,numhalos,halodata,tree,HaloID,orbitforestid,orbitdata,
 				orbitdata[haloSnap]["hostMerges"].append(hostMerges)
 
 				# Re-map its tree properties
-				orbitdata[haloSnap]["OrigID"].append(np.uint64(ID))
-				orbitdata[haloSnap]["OrigRootProgenID"].append(np.uint64(tree[haloSnap]["RootTail"][haloIndex]))
-				orbitdata[haloSnap]["OrigRootDescenID"].append(np.uint64(tree[haloSnap]["RootHead"][haloIndex]))
+				orbitdata[haloSnap]["OrigID"].append(ID)
+				orbitdata[haloSnap]["OrigRootProgenID"].append(BranchRootTail)
+				orbitdata[haloSnap]["OrigRootDescenID"].append(BranchRootHead)
 				orbitingHaloID = orbitingHeadID
-				orbitingHeadID = np.int64(headSnap * opt.TEMPORALHALOIDVAL + len(orbitdata[headSnap]["ID"]) + 1)
+				orbitingHeadID = ALLTEMPORALHALOIDVAL[headSnap] + len(orbitdata[headSnap]["ID"]) + 1
 				orbitdata[haloSnap]["ID"].append(orbitingHaloID)
 
 				#Find the ratio of mass in substructure only if these if sub structure
-				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["MassinSubStruct"][haloIndex]/halodata[haloSnap]["Mass"][haloIndex])
+				orbitdata[haloSnap]["RatioOfMassinSubsStruct"].append(halodata[haloSnap]["RatioOfMassinSubsStruct"][haloIndex])
 
 				#Mark this halo as done so it is not walked again in this orbital forest ID
 				# halodata[haloSnap]["OrbitForestID"][haloIndex] = orbitforestid

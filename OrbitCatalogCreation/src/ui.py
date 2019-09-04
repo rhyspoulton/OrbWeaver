@@ -1,13 +1,13 @@
 import numpy as np
 
-def GetDatasetNames(opt):
+def GetDatasetNames(opt,basecodedir):
 
 	orbitfields = {}
 
 	#Find the name of the datasetfile given the desired InputFormat
 	if(opt.InputFormat==0):
 
-		datasetfile = "example_inputs/input_VELOCIraptor_catalog.txt"
+		datasetfile = basecodedir+"/example_inputs/input_VELOCIraptor_catalog.txt"
 
 		print("Loading in the halos from VELOCIraptor and merger tree from TreeFrog")
 		print("Extracting the datasets names from",datasetfile)
@@ -51,7 +51,7 @@ class Options(object):
 		self.InputFormat = 0
 		self.numRvirSearch = 4
 		self.NpartLimHost = 10000
-		self.MinSnapExist = 20
+		self.MinNumSnapExist = 20
 		self.TEMPORALHALOIDVAL = 1000000000000
 		self.numOrbitForestPerFile = 2000
 		self.iverbose = 1
@@ -79,8 +79,8 @@ class Options(object):
 				elif(line[0]=="NpartLimHost"):
 					self.NpartLimHost=np.int64(line[1])
 
-				elif(line[0]=="MinSnapExist"):
-					self.MinSnapExist=int(line[1])
+				elif(line[0]=="MinNumSnapExist"):
+					self.MinNumSnapExist=int(line[1])
 
 				elif(line[0]=="TEMPORALHALOIDVAL"):
 					self.TEMPORALHALOIDVAL=np.uint64(line[1])

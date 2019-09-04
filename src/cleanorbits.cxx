@@ -31,6 +31,14 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 		//Extract the index which this is in the branchorbitdata
 		passageindex = passagesorbitprops[i].passageindex;
 
+
+		//Check if this passage is within CLEANRATIOHOSTRADIUS * host radius, if so then lets continue to the next passage.
+		//This is so orbits which have not been properly sampled by the simulation are also included if desired
+		if((branchorbitdata[passageindex].r/branchorbitdata[passageindex].rvirhost)<CLEANRATIOHOSTRADIUS){
+			i++;
+			continue;
+		}
+
 		//Lets see if the eccentricity and Phi are below the region as described in Poulton et at., in prep
 		ecclimit = ECCCLEANLIMIT - (ECCCLEANLIMIT/PHICLEANLIMIT) * branchorbitdata[passageindex].phi;
 		if((ecclimit>branchorbitdata[passageindex].orbitecc_ratio) & (ecclimit<ECCCLEANLIMIT)){
@@ -121,11 +129,11 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 							branchorbitdata[passageindex].num_entrytype-=1;
 						}
 
-						//Need to add to the iterator here as the next passage has already been deleted
-						i++;
-
 					}
 					//Otherwise nothing needs to be done
+
+					//Need to add to the iterator here as the next passage has already been deleted
+					i++;
 
 				}
 				else{
@@ -148,7 +156,7 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 
 					//We need to update the orbit properties for the new apsis points, this only needs to be done when i>0
 					//i.e. the passage to be updated is not first passage
-					if((i>0) & (idel.size()<numpassages)){
+					if((i>0) & (idel.size()<i+2)){
 						//Mark this passage as beeb deleted
 
 						//Lets add the properties of the deleted passages to this passage

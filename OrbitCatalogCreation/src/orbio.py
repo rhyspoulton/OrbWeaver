@@ -20,11 +20,11 @@ else:
 
 def ReadVELOCIraptorTreeandHalodata(opt,inputfields):
 
-	start=time.clock()
+	start=time.time()
 	if(opt.iverbose): print("Reading the walkable tree")
 	sys.stdout.flush()
 	tree,numsnaps = VPT.ReadWalkableHDFTree(opt.inputtreefilename,False)
-	if(opt.iverbose): print("Done reading the walkable tree in",time.clock()-start)
+	if(opt.iverbose): print("Done reading the walkable tree in",time.time()-start)
 	sys.stdout.flush()
 
 	#Update the number of snapshots from the tree
@@ -45,14 +45,14 @@ def ReadVELOCIraptorTreeandHalodata(opt,inputfields):
 	#extract the desiredfields from the inputfields
 	desiredfields = list(inputfields.values())
 
-	start=time.clock()
+	start=time.time()
 	if(opt.iverbose): print("Reading in the halo catalog")
 	sys.stdout.flush()
 	numhalos=np.zeros(opt.numsnaps,dtype=np.uint64)
 	halodata=[dict() for i in range(opt.numsnaps)]
 	atime=np.zeros(opt.numsnaps)
 	for i in range(opt.numsnaps):
-		start1 = time.clock()
+		start1 = time.time()
 		halodata[i],numhalos[i]=VPT.ReadPropertyFile(snapfilenames[i], 2, 0, 0, desiredfields)
 		atime[i]=halodata[i]['SimulationInfo']['ScaleFactor']
 
@@ -70,10 +70,10 @@ def ReadVELOCIraptorTreeandHalodata(opt,inputfields):
 		#Set the flag to physical
 		halodata[i]['UnitInfo']["Comoving_or_Physical"] = 0
 
-		if(opt.iverbose > 1): print('Snapshot', i,'done in', time.clock()-start1)
+		if(opt.iverbose > 1): print('Snapshot', i,'done in', time.time()-start1)
 		sys.stdout.flush()
 
-	if(opt.iverbose): print('Finished reading halo properties in', time.clock()-start)
+	if(opt.iverbose): print('Finished reading halo properties in', time.time()-start)
 	sys.stdout.flush()
 
 	VPT.AdjustforPeriod(opt.numsnaps, numhalos, halodata,tree)
