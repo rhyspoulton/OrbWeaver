@@ -265,9 +265,11 @@ def CreateOrbitForest(opt,snap,index,numhalos,halodata,tree,orbitforestid,orbitd
 		#	the orbital halo ID has already been set to this one 
 		#	the halo is greater than the number of particles in the halo currently being orbited
 		#	the halo only exists for less than 3 snapshots from the current snapshot 
-		#   it is first found as a subhalo
-		indexes = indexes[~processedFlag[snap][indexes] & (halodata[snap]["npart"][indexes]<mainOrbitHaloNpart) & ((tree[snap]["RootHeadSnap"][indexes] - snap)>3) & (halodata[snap]["host_id"][indexes]==-1)]
-
+		#   it is first found as a subhalo (if OrbitingHaloFoundAsHost=True)
+		if(opt.OrbitingHaloFoundAsHost):
+			indexes = indexes[~processedFlag[snap][indexes] & (halodata[snap]["npart"][indexes]<mainOrbitHaloNpart) & ((tree[snap]["RootHeadSnap"][indexes] - snap)>3) & (halodata[snap]["host_id"][indexes]==-1)]
+		else:
+			indexes = indexes[~processedFlag[snap][indexes] & (halodata[snap]["npart"][indexes]<mainOrbitHaloNpart) & ((tree[snap]["RootHeadSnap"][indexes] - snap)>3)]
 
 		# Walk along the branches of the halos within opt.numRvirSearch
 		for iindex in indexes:

@@ -52,6 +52,7 @@ class Options(object):
 		self.numRvirSearch = 4
 		self.NpartLimHost = 10000
 		self.MinNumSnapExist = 20
+		self.OrbitingHaloFoundAsHost = True
 		self.TEMPORALHALOIDVAL = 1000000000000
 		self.numOrbitForestPerFile = 2000
 		self.iverbose = 1
@@ -81,6 +82,9 @@ class Options(object):
 
 				elif(line[0]=="MinNumSnapExist"):
 					self.MinNumSnapExist=int(line[1])
+
+				elif(line[0]=="OrbitingHaloFoundAsHost"):
+					self.OrbitingHaloFoundAsHost=int(line[1])
 
 				elif(line[0]=="TEMPORALHALOIDVAL"):
 					self.TEMPORALHALOIDVAL=np.uint64(line[1])
