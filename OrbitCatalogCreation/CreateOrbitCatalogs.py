@@ -163,7 +163,7 @@ for j in range(opt.numsnaps-1,-1,-1):
 		orbitforestidval+=1
 
 
-	if (opt.iverbose>1):
+	if (opt.iverbose>0):
 		print("Done snap",j,time.time()-start2)
 		sys.stdout.flush()
 
