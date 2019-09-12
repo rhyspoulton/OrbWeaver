@@ -42,7 +42,7 @@ void CleanOrbits(Options &opt, vector<OrbitData> &branchorbitdata, vector<OrbitP
 		//Lets see if the eccentricity and Phi are below the region as described in Poulton et at., in prep
 		// ecclimit = ECCCLEANLIMIT - (ECCCLEANLIMIT/PHICLEANLIMIT) * branchorbitdata[passageindex].phi;
 		// if((ecclimit>branchorbitdata[passageindex].orbitecc_ratio) & (ecclimit<ECCCLEANLIMIT)){
-		if((branchorbitdata[passageindex].orbitecc_ratio<ECCCLEANLIMIT) & (branchorbitdata[passageindex].phi<PHICLEANLIMIT) & (branchorbitdata[i].numorbits>0.5)){
+		if((branchorbitdata[passageindex].orbitecc_ratio<ECCCLEANLIMIT) & (branchorbitdata[passageindex].phi<PHICLEANLIMIT) & (branchorbitdata[passageindex].numorbits>0.5)){
 
 			//Now we have found it to be less than the clean limits it can be add this index to the delete vector
 			idel.push_back(passageindex);
