@@ -230,7 +230,7 @@ void CalcOrbitProps(Options &opt,
 		vradx = vcomp * rx;
 		vrady = vcomp * ry;
 		vradz = vcomp * rz;
-		tmporbitdata.vrad = vcomp;
+		tmporbitdata.vrad = (rx*vrx + ry*vry + rz*vrz)/r;
 
 		//Then can use these components to find the components of the tangential velocity
 		vtanx = vrx - vradx;
@@ -412,7 +412,7 @@ void CalcOrbitProps(Options &opt,
 		vradx = vcomp * rx;
 		vrady = vcomp * ry;
 		vradz = vcomp * rz;
-		tmporbitdata.vrad = sqrt(vradx*vradx + vrady*vrady + vradz*vradz);
+		tmporbitdata.vrad = (rx*vrx + ry*vry + rz*vrz)/r;
 
 		//Then can use these components to find the components of the tangential velocity
 		vtanx = vrx - vradx;
