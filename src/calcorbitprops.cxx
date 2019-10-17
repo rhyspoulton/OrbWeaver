@@ -54,9 +54,10 @@ void CalcOrbitProps(Options &opt,
 
 	//Can see if this is the closest approach, this needs to be compared in comoving
 	rcomove = r * Cosmo.h / snapdata[currentsnap].scalefactor;
-	if(rcomove<orbitprops.closestapproach)
+	if(rcomove<orbitprops.closestapproach){
 		orbitprops.closestapproach = rcomove;
 		orbitprops.closestapproachscalefactor = snapdata[currentsnap].scalefactor;
+	}
 
 	//Put into the output data and convert back to physical
 	tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
@@ -297,9 +298,10 @@ void CalcOrbitProps(Options &opt,
 
 		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
 		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
-		if(rcomove<orbitprops.closestapproach)
+		if(rcomove<orbitprops.closestapproach){
 			orbitprops.closestapproach = rcomove;
 			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
+		}
 
 		//Put into the output data and convert back to physical
 		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
@@ -464,9 +466,10 @@ void CalcOrbitProps(Options &opt,
 
 		//Now done the interpolation can check if this is the closest approach so far which needs to be done in comoving
 		rcomove = r * Cosmo.h / tmporbitdata.scalefactor;
-		if(rcomove<orbitprops.closestapproach)
+		if(rcomove<orbitprops.closestapproach){
 			orbitprops.closestapproach = rcomove;
 			orbitprops.closestapproachscalefactor = tmporbitdata.scalefactor;
+		}
 
 		//Put into the output data and convert back to physical
 		tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
@@ -675,9 +678,10 @@ void AddFinalEntry(Options &opt,
 
 	//Can see if this is the closest approach, this needs to be compared in comoving
 	rcomove = r * Cosmo.h / snapdata[currentsnap].scalefactor;
-	if(rcomove<orbitprops.closestapproach)
+	if(rcomove<orbitprops.closestapproach){
 		orbitprops.closestapproach = rcomove;
 		orbitprops.closestapproachscalefactor = snapdata[currentsnap].scalefactor;
+	}
 
 	//Put into the output data and convert back to physical
 	tmporbitdata.closestapproach = orbitprops.closestapproach * orbitprops.closestapproachscalefactor/ Cosmo.h;
