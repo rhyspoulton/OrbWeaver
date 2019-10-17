@@ -159,7 +159,7 @@ def ReadOrbitData(filenamelist,iFileno=False,apsispoints=True,crossingpoints=Tru
 
 		if("OrbitID" in orbitdatakeys):
 			#Lets offset the orbitID to make it unique across all the data
-			orbitdata["OrbitID"][startindex:endindex]+=maxorbitIDs[i]
+			orbitdata["OrbitID"][startindex:endindex]+= np.uint64(maxorbitIDs[i] + i)
 
 		if(iFileno):
 			#Set the fileno that this came from
