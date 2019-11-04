@@ -257,7 +257,7 @@ void SetupPosVelInterpFunctionsHost(vector<int> &halosnaps, vector<unsigned long
 
 void InterpSingleHaloProps(double interpuniage, double currentuniage, double prevuniage, HaloData &orbitinghalo, HaloData &hosthalo, HaloData &prevorbitinghalo, HaloData &prevhosthalo, OrbitData &tmporbitdata, vector<SnapData> &snapdata, SplineFuncs &splinefuncs, SplineFuncs &hostsplinefuncs){
 
-	double xhost, yhost, zhost, vxhost, vyhost, vzhost;
+	double xhost, yhost, zhost, vxhost, vyhost, vzhost, scalefactor;
 	double f = (interpuniage - prevuniage)/(currentuniage - prevuniage);
 
 	//Interpolate the orbiting halo's properties
@@ -291,9 +291,9 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	yhost = gsl_spline_eval(hostsplinefuncs.y,interpuniage,hostsplinefuncs.yacc);
 	zhost = gsl_spline_eval(hostsplinefuncs.z,interpuniage,hostsplinefuncs.zacc);
 
-	tmporbitdata.xrel = xhost - tmporbitdata.x;
-	tmporbitdata.yrel = yhost - tmporbitdata.y;
-	tmporbitdata.zrel = zhost - tmporbitdata.z;
+	tmporbitdata.xrel = tmporbitdata.x - xhost;
+	tmporbitdata.yrel = tmporbitdata.y - yhost;
+	tmporbitdata.zrel = tmporbitdata.z - zhost;
 	tmporbitdata.r = sqrt(tmporbitdata.xrel*tmporbitdata.xrel + tmporbitdata.yrel*tmporbitdata.yrel + tmporbitdata.zrel*tmporbitdata.zrel);
 
 	if(tmporbitdata.xrel>0.5*Cosmo.boxsize)
@@ -308,9 +308,10 @@ void InterpSingleHaloProps(double interpuniage, double currentuniage, double pre
 	vyhost = gsl_spline_eval(hostsplinefuncs.vy,interpuniage,hostsplinefuncs.vyacc);
 	vzhost = gsl_spline_eval(hostsplinefuncs.vz,interpuniage,hostsplinefuncs.vzacc);
 
-	tmporbitdata.vxrel = vxhost - tmporbitdata.vx;
-	tmporbitdata.vyrel = vyhost - tmporbitdata.vy;
-	tmporbitdata.vzrel = vzhost - tmporbitdata.vz;
+	scalefactor = GetScaleFactor(interpuniage);
+	tmporbitdata.vxrel = tmporbitdata.vx - vxhost + tmporbitdata.r * GetH(scalefactor);
+	tmporbitdata.vyrel = tmporbitdata.vy - vyhost + tmporbitdata.r * GetH(scalefactor);
+	tmporbitdata.vzrel = tmporbitdata.vz - vzhost + tmporbitdata.r * GetH(scalefactor);
 	tmporbitdata.vrel = sqrt(tmporbitdata.vxrel*tmporbitdata.vxrel + tmporbitdata.vyrel*tmporbitdata.vyrel + tmporbitdata.vzrel*tmporbitdata.vzrel);
 
 	// r = sqrt((tmporbitdata.x-xhost)*(tmporbitdata.x-xhost) + (tmporbitdata.y-yhost)*(tmporbitdata.y-yhost) + (tmporbitdata.z-zhost)*(tmporbitdata.z-zhost));

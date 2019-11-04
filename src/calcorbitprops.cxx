@@ -216,9 +216,9 @@ void CalcOrbitProps(Options &opt,
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
 		r = tmporbitdata.r;
-		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
-		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
-		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
+		vrx = tmporbitdata.vxrel;
+		vry = tmporbitdata.vyrel;
+		vrz = tmporbitdata.vzrel;
 		vrel = sqrt(vrx*vrx + vry*vry + vrz*vrz);
 
 		//Set the orbit period as -1.0 here as only calculated at the passages
@@ -402,9 +402,9 @@ void CalcOrbitProps(Options &opt,
 		ry = tmporbitdata.yrel;
 		rz = tmporbitdata.zrel;
 		r = tmporbitdata.r;
-		vrx = tmporbitdata.vxrel + r * GetH(tmporbitdata.scalefactor);
-		vry = tmporbitdata.vyrel + r * GetH(tmporbitdata.scalefactor);
-		vrz = tmporbitdata.vzrel + r * GetH(tmporbitdata.scalefactor);
+		vrx = tmporbitdata.vxrel;
+		vry = tmporbitdata.vyrel;
+		vrz = tmporbitdata.vzrel;
 
 		//The difference in time since the previous snapshot
 		deltat = tmporbitdata.uniage - snapdata[prevsnap].uniage;
